@@ -4,6 +4,31 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 3: Custom Fields + List Templates
+_Completed: 2026-03-12_
+
+### Backend
+- [x] `backend/app/models/custom_field.py` — CustomFieldDefinition (FieldType enum, options_json, is_required, order_index) + CustomFieldValue (typed columns, UniqueConstraint)
+- [x] `backend/app/models/list_template.py` — ListTemplate (workspace_id, name, default_statuses JSONB)
+- [x] `backend/alembic/versions/0005_add_custom_fields.py` — migration
+- [x] `backend/alembic/versions/0006_add_list_templates.py` — migration
+- [x] `backend/app/features/custom_fields/` — full module: schemas, repository (ON CONFLICT upsert), service (required field validation → 422), router (6 endpoints)
+- [x] `backend/app/features/list_templates/` — full module: create/list/delete templates, POST /projects/{id}/lists/from-template
+- [x] `backend/app/main.py` — registered custom_fields_router + list_templates_router
+- [x] `backend/tests/test_custom_fields.py` — 11 tests, all passing
+- [x] `backend/tests/test_list_templates.py` — 5 tests, all passing (83 total)
+
+### Frontend
+- [x] `frontend/src/api/customFields.ts` — FieldDefinition, FieldValue types + hooks (useFieldDefinitions, useFieldValues, useCreateField, useUpdateField, useDeleteField, useUpsertValues)
+- [x] `frontend/src/api/listTemplates.ts` — ListTemplate type + hooks (useListTemplates, useCreateTemplate, useDeleteTemplate)
+- [x] `frontend/src/views/list/ListSettingsPage.tsx` — two-tab page: Statuses (create/edit/delete/color/is_complete) + Custom Fields (create with type + options + required)
+- [x] `frontend/src/views/list/ListPage.tsx` — ⚙ Settings link in header
+- [x] `frontend/src/router/index.tsx` — /settings route added
+- [x] `frontend/src/views/task/TaskDetailPage.tsx` — Custom Fields card with CustomFieldInput (all 6 types)
+- [x] `frontend/src/views/project/ProjectPage.tsx` — List Templates section + from-template list creation
+
+---
+
 ## UI Visual Overhaul (slate/violet design system)
 _Completed: 2026-03-12_
 

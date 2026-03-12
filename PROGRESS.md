@@ -9,7 +9,7 @@
 | **Phase 0** | ✅ Done | Planning, architecture, documentation, user stories |
 | **Phase 1** | ✅ Done | Task CRUD, list status config, Board + List views |
 | **Phase 2** | ✅ Done | Subtasks, dependencies, promote, audit trail, comments |
-| **Phase 3** | 🔄 In Progress | Custom fields, status mapping, list templates |
+| **Phase 3** | ✅ Done | Custom fields, status mapping, list templates |
 | **Phase 4** | ⏳ Not Started | WebSocket real-time, file attachments, notifications |
 | **Phase 5** | ⏳ Not Started | Full-text search, bulk ops, export, analytics |
 
@@ -82,7 +82,7 @@
 - [x] `views/project/ProjectPage.tsx` — Templates section + from-template list creation
 
 ## Currently Working On
-- Phase 3 complete — Phase 4 up next (WebSocket real-time, file attachments, notifications)
+- Phase 3 complete — starting Phase 4 (WebSocket real-time, file attachments, notifications)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
