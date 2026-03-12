@@ -31,8 +31,11 @@ async def create_comment(
     body: CreateCommentRequest,
     current_user: User = Depends(get_current_user),
     service: CommentService = Depends(_get_service),
+    session: AsyncSession = Depends(get_session),
 ):
-    return await service.create(task_id, body.body, body.parent_comment_id, current_user.id)
+    comment = await service.create(task_id, body.body, body.parent_comment_id, current_user.id)
+    await session.commit()
+    return comment
 
 
 @router.get("/tasks/{task_id}/comments", response_model=list[CommentResponse])
@@ -50,5 +53,7 @@ async def delete_comment(
     comment_id: UUID,
     current_user: User = Depends(get_current_user),
     service: CommentService = Depends(_get_service),
+    session: AsyncSession = Depends(get_session),
 ):
     await service.delete(comment_id, current_user.id)
+    await session.commit()
