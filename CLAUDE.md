@@ -3,6 +3,7 @@
 > **IMPORTANT**: Always read `PROGRESS.md` at the start of every session before doing any work.
 > **IMPORTANT**: Always update `PROGRESS.md` to reflect what task you are currently working on.
 > **IMPORTANT**: Always append completed tasks to `docs/PROGRESS-COMPLETED.md` after finishing any task.
+> **IMPORTANT**: Auto-commit after meaningful changes. Always inform the user what was committed.
 
 ## Project Overview
 Issue tracking system — React.js frontend, FastAPI (Python) backend. Inspired by ClickUp / Jira / Linear.

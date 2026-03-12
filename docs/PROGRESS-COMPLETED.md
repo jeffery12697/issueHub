@@ -4,6 +4,20 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 1: Backend Scaffold
+_Completed: 2026-03-12_
+
+- [x] `docker-compose.yml` — PostgreSQL 16, Redis 7, FastAPI, Vite services
+- [x] `backend/Dockerfile`
+- [x] `backend/requirements.txt`
+- [x] `backend/.env.example`
+- [x] `backend/app/core/` — config, database (async SQLAlchemy), redis, security (JWT)
+- [x] `backend/app/models/` — base (SoftDeleteMixin, TimestampMixin), User, Workspace, WorkspaceMember, Project, List, ListStatus, Task (ltree path)
+- [x] `backend/alembic/` — env.py + initial migration (0001): all tables, ltree extension, GiST index on path
+- [x] `backend/app/features/auth/` — Google OAuth router, service (upsert user), schemas
+
+---
+
 ## Pre-Development: Planning & Documentation
 _Completed: 2026-03-12_
 
