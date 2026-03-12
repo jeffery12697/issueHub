@@ -17,23 +17,34 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 w-full max-w-sm text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">IssueHub</h1>
-        <p className="text-gray-500 text-sm mb-8">Sign in to continue</p>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-slate-100 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-10 w-full max-w-sm">
+        {/* Logo area */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center shrink-0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="4" width="12" height="1.5" rx="0.75" fill="white" />
+              <rect x="2" y="7.25" width="9" height="1.5" rx="0.75" fill="white" />
+              <rect x="2" y="10.5" width="6" height="1.5" rx="0.75" fill="white" />
+            </svg>
+          </div>
+          <span className="text-2xl font-bold text-slate-900">IssueHub</span>
+        </div>
+
+        <p className="text-slate-500 text-sm mb-8">Track work. Ship faster.</p>
 
         <a
           href="/api/v1/auth/google/redirect"
-          className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-3 w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <GoogleIcon />
           Continue with Google
         </a>
 
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-4 pt-4 border-t border-slate-100 text-center">
           <button
             onClick={devLogin}
-            className="w-full text-sm text-gray-400 hover:text-gray-600 py-2"
+            className="text-sm text-slate-400 hover:text-slate-600 transition-colors py-1"
           >
             Dev login (skip Google)
           </button>

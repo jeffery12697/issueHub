@@ -32,19 +32,19 @@ export default function ProjectPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-        <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">Workspaces</Link>
-        <span className="text-gray-300">/</span>
-        <span className="text-sm font-medium text-gray-800">{workspace?.name}</span>
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Workspaces</Link>
+        <span className="text-slate-300">/</span>
+        <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
       </header>
 
-      <main className="max-w-3xl mx-auto py-10 px-6">
+      <main className="max-w-4xl mx-auto py-10 px-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Projects</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Projects</h2>
           <button
             onClick={() => setCreatingProject(true)}
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
           >
             New project
           </button>
@@ -60,15 +60,15 @@ export default function ProjectPage() {
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
               placeholder="Project name"
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
-            <button type="submit" className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg">Create</button>
-            <button type="button" onClick={() => setCreatingProject(false)} className="text-sm px-3 py-2 text-gray-500">Cancel</button>
+            <button type="submit" className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create</button>
+            <button type="button" onClick={() => setCreatingProject(false)} className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
           </form>
         )}
 
         {isLoading ? (
-          <p className="text-gray-400 text-sm">Loading...</p>
+          <p className="text-slate-400 text-sm">Loading...</p>
         ) : (
           <div className="space-y-4">
             {projects.map((project: Project) => (
@@ -101,12 +101,15 @@ function ProjectCard({ project, workspaceId }: { project: Project; workspaceId: 
   })
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-900">{project.name}</h3>
+        <h3 className="font-semibold text-slate-900 text-base flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-violet-400 inline-block shrink-0" />
+          {project.name}
+        </h3>
         <button
           onClick={() => setCreatingList(true)}
-          className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+          className="text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
         >
           + New list
         </button>
@@ -122,31 +125,44 @@ function ProjectCard({ project, workspaceId }: { project: Project; workspaceId: 
             value={newListName}
             onChange={(e) => setNewListName(e.target.value)}
             placeholder="List name"
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
-          <button type="submit" className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg">Create</button>
-          <button type="button" onClick={() => setCreatingList(false)} className="text-xs px-2 text-gray-500">Cancel</button>
+          <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Create</button>
+          <button type="button" onClick={() => setCreatingList(false)} className="text-xs px-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
         </form>
       )}
 
       {lists.length === 0 ? (
-        <p className="text-gray-400 text-xs">No lists yet.</p>
+        <p className="text-slate-400 text-xs">No lists yet.</p>
       ) : (
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {lists.map((list: List) => (
-            <li key={list.id} className="flex items-center gap-2">
+            <li key={list.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-slate-50 group transition-colors">
+              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 16 16">
+                <rect x="2" y="3" width="12" height="1.5" rx="0.75" fill="currentColor" />
+                <rect x="2" y="7.25" width="12" height="1.5" rx="0.75" fill="currentColor" />
+                <rect x="2" y="11.5" width="8" height="1.5" rx="0.75" fill="currentColor" />
+              </svg>
               <Link
                 to={`/projects/${project.id}/lists/${list.id}`}
-                className="text-sm text-gray-700 hover:text-blue-600"
+                className="flex-1 text-sm text-slate-700 hover:text-slate-900 transition-colors"
               >
                 {list.name}
               </Link>
-              <Link
-                to={`/projects/${project.id}/lists/${list.id}/board`}
-                className="text-xs text-gray-400 hover:text-blue-500"
-              >
-                Board
-              </Link>
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                <Link
+                  to={`/projects/${project.id}/lists/${list.id}`}
+                  className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-700 transition-colors"
+                >
+                  List
+                </Link>
+                <Link
+                  to={`/projects/${project.id}/lists/${list.id}/board`}
+                  className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-700 transition-colors"
+                >
+                  Board
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

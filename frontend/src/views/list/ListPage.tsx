@@ -4,12 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 
-const PRIORITY_COLORS: Record<Priority, string> = {
-  none: 'text-gray-400',
-  low: 'text-blue-400',
-  medium: 'text-yellow-500',
-  high: 'text-orange-500',
-  urgent: 'text-red-500',
+const PRIORITY_DOT_COLORS: Record<Priority, string> = {
+  none: '#cbd5e1',
+  low: '#38bdf8',
+  medium: '#fbbf24',
+  high: '#f97316',
+  urgent: '#ef4444',
 }
 
 export default function ListPage() {
@@ -47,27 +47,30 @@ export default function ListPage() {
   const statusMap = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-        <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">Home</Link>
-        <span className="text-gray-300">/</span>
-        <span className="text-sm font-medium text-gray-800">{list?.name}</span>
-        <div className="ml-auto flex gap-2">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">Home</Link>
+        <span className="text-slate-300">/</span>
+        <span className="text-sm font-medium text-slate-800">{list?.name}</span>
+        <div className="ml-auto flex rounded-lg border border-slate-200 overflow-hidden">
+          <span className="bg-violet-600 text-white px-3 py-1.5 text-xs font-medium">
+            List
+          </span>
           <Link
             to={`/projects/${projectId}/lists/${listId}/board`}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="bg-white text-slate-500 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 transition-colors"
           >
-            Board view
+            Board
           </Link>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto py-8 px-6">
+      <main className="max-w-5xl mx-auto py-8 px-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">{list?.name}</h2>
+          <h2 className="text-xl font-semibold text-slate-900">{list?.name}</h2>
           <button
             onClick={() => setCreating(true)}
-            className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
           >
             + New task
           </button>
@@ -83,35 +86,35 @@ export default function ListPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Task title"
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
-            <button type="submit" className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg">Create</button>
-            <button type="button" onClick={() => setCreating(false)} className="text-sm px-3 py-2 text-gray-500">Cancel</button>
+            <button type="submit" className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create</button>
+            <button type="button" onClick={() => setCreating(false)} className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
           </form>
         )}
 
         {isLoading ? (
-          <p className="text-gray-400 text-sm">Loading...</p>
+          <p className="text-slate-400 text-sm">Loading...</p>
         ) : tasks.length === 0 ? (
-          <p className="text-gray-400 text-sm">No tasks yet.</p>
+          <p className="text-slate-400 text-sm">No tasks yet.</p>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Title</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Priority</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Priority</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {tasks.map((task: Task) => (
-                  <tr key={task.id} className="hover:bg-gray-50">
+                  <tr key={task.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3">
                       <button
                         onClick={() => navigate(`/tasks/${task.id}`)}
-                        className="text-left text-gray-800 hover:text-blue-600 font-medium"
+                        className="text-left font-medium text-slate-800 hover:text-violet-600 transition-colors"
                       >
                         {task.title}
                       </button>
@@ -125,18 +128,22 @@ export default function ListPage() {
                           {statusMap[task.status_id].name}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-xs">—</span>
+                        <span className="text-slate-400 text-xs">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-medium capitalize ${PRIORITY_COLORS[task.priority]}`}>
+                      <span className="flex items-center gap-1.5 text-xs font-medium capitalize text-slate-600">
+                        <span
+                          className="w-2 h-2 rounded-full inline-block shrink-0"
+                          style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
+                        />
                         {task.priority === 'none' ? '—' : task.priority}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => deleteTask.mutate(task.id)}
-                        className="text-gray-300 hover:text-red-400 text-xs"
+                        className="text-slate-300 hover:text-red-400 text-xs transition-colors"
                       >
                         Delete
                       </button>

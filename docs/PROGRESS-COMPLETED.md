@@ -4,6 +4,18 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## UI Visual Overhaul (slate/violet design system)
+_Completed: 2026-03-12_
+
+- [x] `frontend/src/views/auth/LoginPage.tsx` — gradient bg, violet logo square, tagline, refined Google button
+- [x] `frontend/src/views/workspace/WorkspacePage.tsx` — violet header logo, avatar initials, grid workspace cards with colored initials
+- [x] `frontend/src/views/project/ProjectPage.tsx` — breadcrumb header, violet dot on project names, list rows with hover pill buttons (List/Board)
+- [x] `frontend/src/views/list/ListPage.tsx` — pill toggle (List/Board), priority dot colors, slate table with shadow-sm
+- [x] `frontend/src/views/board/BoardPage.tsx` — pill toggle (Board/List), violet drag-over ring, priority dot indicators on cards
+- [x] `frontend/src/views/task/TaskDetailPage.tsx` — two-column layout (left: title/desc/subtasks/deps, right: status/priority/history/comments)
+
+---
+
 ## Phase 2: Comments (A-02)
 _Completed: 2026-03-12_
 
