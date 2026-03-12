@@ -57,7 +57,6 @@ async def create_task(
     service: TaskService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
-    # Resolve workspace_id and project_id from the list
     list_repo = ListRepository(session)
     project_repo = ProjectRepository(session)
 
@@ -87,6 +86,29 @@ async def get_task(
     service: TaskService = Depends(get_service),
 ):
     task = await service.get_or_404(task_id)
+    return TaskResponse.model_validate(task)
+
+
+@router.get("/tasks/{task_id}/subtasks", response_model=list[TaskResponse])
+async def list_subtasks(
+    task_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+):
+    subtasks = await service.list_subtasks(task_id, user_id=current_user.id)
+    return [TaskResponse.model_validate(t) for t in subtasks]
+
+
+@router.post("/tasks/{task_id}/subtasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+async def create_subtask(
+    task_id: UUID,
+    body: CreateTaskRequest,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    task = await service.create_subtask(task_id, body, actor_id=current_user.id)
+    await session.commit()
     return TaskResponse.model_validate(task)
 
 

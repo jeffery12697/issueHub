@@ -22,8 +22,16 @@ export default function TaskDetailPage() {
     enabled: !!task?.list_id,
   })
 
+  const { data: subtasks = [] } = useQuery({
+    queryKey: ['subtasks', taskId],
+    queryFn: () => tasksApi.listSubtasks(taskId!),
+    enabled: !!taskId,
+  })
+
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [addingSubtask, setAddingSubtask] = useState(false)
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) =>
@@ -34,6 +42,15 @@ export default function TaskDetailPage() {
   const deleteTask = useMutation({
     mutationFn: () => tasksApi.delete(taskId!),
     onSuccess: () => navigate(-1),
+  })
+
+  const createSubtask = useMutation({
+    mutationFn: (title: string) => tasksApi.createSubtask(taskId!, { title }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['subtasks', taskId] })
+      setNewSubtaskTitle('')
+      setAddingSubtask(false)
+    },
   })
 
   if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-400">Loading...</div>
@@ -130,6 +147,61 @@ export default function TaskDetailPage() {
               rows={4}
               className="mt-2 w-full text-sm text-gray-700 border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Subtasks */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Subtasks {subtasks.length > 0 && <span className="text-gray-400">({subtasks.length})</span>}
+              </label>
+              <button
+                onClick={() => setAddingSubtask(true)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                + Add subtask
+              </button>
+            </div>
+
+            {addingSubtask && (
+              <form
+                className="flex gap-2 mb-2"
+                onSubmit={(e) => { e.preventDefault(); createSubtask.mutate(newSubtaskTitle) }}
+              >
+                <input
+                  autoFocus
+                  value={newSubtaskTitle}
+                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                  placeholder="Subtask title"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button type="submit" className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg">Add</button>
+                <button type="button" onClick={() => setAddingSubtask(false)} className="text-xs px-2 text-gray-500">Cancel</button>
+              </form>
+            )}
+
+            {subtasks.length > 0 && (
+              <ul className="space-y-1">
+                {subtasks.map((sub) => (
+                  <li key={sub.id}>
+                    <button
+                      onClick={() => navigate(`/tasks/${sub.id}`)}
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 text-sm text-gray-700 transition-colors"
+                    >
+                      <span className="text-gray-300">↳</span>
+                      <span className="flex-1">{sub.title}</span>
+                      {sub.priority !== 'none' && (
+                        <span className="text-xs text-gray-400 capitalize">{sub.priority}</span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {subtasks.length === 0 && !addingSubtask && (
+              <p className="text-xs text-gray-400">No subtasks yet.</p>
+            )}
           </div>
 
           {/* Delete */}

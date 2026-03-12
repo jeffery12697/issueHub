@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
@@ -21,6 +21,7 @@ class CreateTaskDTO:
     assignee_ids: tuple[UUID, ...] = ()
     reviewer_id: UUID | None = None
     due_date: datetime | None = None
+    parent_task_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,7 @@ class CreateTaskRequest(BaseModel):
         workspace_id: UUID,
         project_id: UUID,
         reporter_id: UUID,
+        parent_task_id: UUID | None = None,
     ) -> CreateTaskDTO:
         return CreateTaskDTO(
             title=self.title,
@@ -63,6 +65,7 @@ class CreateTaskRequest(BaseModel):
             workspace_id=workspace_id,
             project_id=project_id,
             reporter_id=reporter_id,
+            parent_task_id=parent_task_id,
         )
 
 
@@ -105,5 +108,6 @@ class TaskResponse(BaseModel):
     due_date: datetime | None
     order_index: float
     depth: int
+    subtask_count: int = 0
 
     model_config = {"from_attributes": True}

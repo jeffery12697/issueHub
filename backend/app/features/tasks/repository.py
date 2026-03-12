@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task, Priority
@@ -12,6 +12,15 @@ class TaskRepository:
         self.session = session
 
     async def create(self, dto: CreateTaskDTO, order_index: float) -> Task:
+        depth = 0
+        parent_path = None
+
+        if dto.parent_task_id:
+            parent = await self.get_by_id(dto.parent_task_id)
+            if parent:
+                depth = parent.depth + 1
+                parent_path = parent.path
+
         task = Task(
             title=dto.title,
             description=dto.description,
@@ -23,15 +32,16 @@ class TaskRepository:
             reviewer_id=dto.reviewer_id,
             assignee_ids=list(dto.assignee_ids),
             due_date=dto.due_date,
+            parent_task_id=dto.parent_task_id,
             order_index=order_index,
-            depth=0,
-            path="placeholder",  # updated after flush once id is known
+            depth=depth,
+            path="placeholder",
         )
         self.session.add(task)
         await self.session.flush()
 
-        # Set ltree path to task's own id (root task)
-        task.path = str(task.id).replace("-", "_")
+        task_segment = str(task.id).replace("-", "_")
+        task.path = f"{parent_path}.{task_segment}" if parent_path else task_segment
         await self.session.flush()
         return task
 
@@ -54,7 +64,7 @@ class TaskRepository:
             select(Task)
             .where(Task.list_id == list_id)
             .where(Task.deleted_at.is_(None))
-            .where(Task.parent_task_id.is_(None))  # root tasks only
+            .where(Task.parent_task_id.is_(None))
         )
         if status_id:
             q = q.where(Task.status_id == status_id)
@@ -67,8 +77,25 @@ class TaskRepository:
         result = await self.session.execute(q)
         return list(result.scalars().all())
 
+    async def list_subtasks(self, parent_task_id: UUID) -> list[Task]:
+        result = await self.session.execute(
+            select(Task)
+            .where(Task.parent_task_id == parent_task_id)
+            .where(Task.deleted_at.is_(None))
+            .order_by(Task.order_index)
+        )
+        return list(result.scalars().all())
+
+    async def count_subtasks(self, parent_task_id: UUID) -> int:
+        result = await self.session.execute(
+            select(func.count())
+            .select_from(Task)
+            .where(Task.parent_task_id == parent_task_id)
+            .where(Task.deleted_at.is_(None))
+        )
+        return result.scalar_one()
+
     async def get_max_order_index(self, list_id: UUID) -> float:
-        from sqlalchemy import func
         result = await self.session.execute(
             select(func.max(Task.order_index))
             .where(Task.list_id == list_id)

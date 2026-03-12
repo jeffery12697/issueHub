@@ -18,6 +18,7 @@ export type Task = {
   due_date: string | null
   order_index: number
   depth: number
+  subtask_count: number
 }
 
 export type CreateTaskData = {
@@ -41,4 +42,8 @@ export const tasksApi = {
   update: (id: string, data: UpdateTaskData) =>
     apiClient.patch<Task>(`/tasks/${id}`, data).then((r) => r.data),
   delete: (id: string) => apiClient.delete(`/tasks/${id}`),
+  listSubtasks: (taskId: string) =>
+    apiClient.get<Task[]>(`/tasks/${taskId}/subtasks`).then((r) => r.data),
+  createSubtask: (taskId: string, data: CreateTaskData) =>
+    apiClient.post<Task>(`/tasks/${taskId}/subtasks`, data).then((r) => r.data),
 }

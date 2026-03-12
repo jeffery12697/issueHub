@@ -28,6 +28,19 @@ class TaskService:
         order_index = await self.repo.get_max_order_index(dto.list_id) + 100.0
         return await self.repo.create(dto, order_index=order_index)
 
+    async def create_subtask(self, parent_task_id: UUID, body, actor_id: UUID) -> Task:
+        parent = await self.get_or_404(parent_task_id)
+        await self._require_workspace_member(parent.workspace_id, actor_id)
+        order_index = await self.repo.get_max_order_index(parent.list_id) + 100.0
+        dto = body.to_dto(
+            list_id=parent.list_id,
+            workspace_id=parent.workspace_id,
+            project_id=parent.project_id,
+            reporter_id=actor_id,
+            parent_task_id=parent_task_id,
+        )
+        return await self.repo.create(dto, order_index=order_index)
+
     async def get_or_404(self, task_id: UUID) -> Task:
         task = await self.repo.get_by_id(task_id)
         if not task:
@@ -48,6 +61,11 @@ class TaskService:
         project = await self.project_repo.get_by_id(list_.project_id)
         await self._require_workspace_member(project.workspace_id, user_id)
         return await self.repo.list_for_list(list_id, status_id, priority, assignee_id)
+
+    async def list_subtasks(self, parent_task_id: UUID, user_id: UUID) -> list[Task]:
+        parent = await self.get_or_404(parent_task_id)
+        await self._require_workspace_member(parent.workspace_id, user_id)
+        return await self.repo.list_subtasks(parent_task_id)
 
     async def update(self, task_id: UUID, dto: UpdateTaskDTO, actor_id: UUID) -> Task:
         task = await self.get_or_404(task_id)
