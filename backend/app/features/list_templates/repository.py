@@ -30,6 +30,7 @@ class ListTemplateRepository:
             workspace_id=dto.workspace_id,
             name=dto.name,
             default_statuses=dto.default_statuses,
+            default_custom_fields=dto.default_custom_fields,
         )
         self.session.add(template)
         await self.session.flush()
@@ -44,5 +45,7 @@ class ListTemplateRepository:
             template.name = dto.name
         if dto.default_statuses is not None:
             template.default_statuses = dto.default_statuses
+        if dto.default_custom_fields is not None:
+            template.default_custom_fields = dto.default_custom_fields
         await self.session.flush()
         return template

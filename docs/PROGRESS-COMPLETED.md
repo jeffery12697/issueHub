@@ -181,3 +181,21 @@ _Completed: 2026-03-12_
 - [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — new settings page at /workspaces/:workspaceId/settings with create/edit/delete template UI
 - [x] `frontend/src/router/index.tsx` — added /workspaces/:workspaceId/settings route
 - [x] `frontend/src/views/project/ProjectPage.tsx` — removed inline templates section, added "⚙ Templates" header link to settings page
+
+---
+
+## Phase 3 Addendum: default_custom_fields on list templates
+_Completed: 2026-03-12_
+
+### Backend
+- [x] `backend/alembic/versions/0007_add_template_custom_fields.py` — migration adds JSONB default_custom_fields column (server_default=[])
+- [x] `backend/app/models/list_template.py` — added default_custom_fields mapped_column
+- [x] `backend/app/features/list_templates/schemas.py` — added default_custom_fields to CreateTemplateDTO, UpdateTemplateDTO, CreateTemplateRequest, UpdateTemplateRequest, TemplateResponse
+- [x] `backend/app/features/list_templates/repository.py` — create() passes default_custom_fields; update() handles default_custom_fields patch
+- [x] `backend/app/features/list_templates/service.py` — create_template passes field, create_list_from_template instantiates CustomFieldRepository and creates fields from template
+- [x] `backend/app/features/list_templates/router.py` — create/update DTOs pass default_custom_fields
+- Migration ran successfully; 83 tests still passing
+
+### Frontend
+- [x] `frontend/src/api/listTemplates.ts` — added TemplateField type; updated ListTemplate, listTemplatesApi.create/update, useCreateTemplate, useUpdateTemplate
+- [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — added field pills preview row + inline field editor (name, type, required, dropdown options textarea) with Save fields button

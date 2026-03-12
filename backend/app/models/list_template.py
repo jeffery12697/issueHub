@@ -16,3 +16,4 @@ class ListTemplate(Base, TimestampMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     default_statuses: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    default_custom_fields: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)

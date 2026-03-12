@@ -62,6 +62,7 @@ async def create_template(
         workspace_id=workspace_id,
         name=body.name,
         default_statuses=body.default_statuses,
+        default_custom_fields=body.default_custom_fields,
     )
     template = await service.create_template(workspace_id, dto, actor_id=current_user.id)
     await session.commit()
@@ -96,7 +97,7 @@ async def update_template(
     session: AsyncSession = Depends(get_session),
 ):
     from app.features.list_templates.schemas import UpdateTemplateDTO
-    dto = UpdateTemplateDTO(name=body.name, default_statuses=body.default_statuses)
+    dto = UpdateTemplateDTO(name=body.name, default_statuses=body.default_statuses, default_custom_fields=body.default_custom_fields)
     template = await service.update_template(workspace_id, template_id, dto, actor_id=current_user.id)
     await session.commit()
     return TemplateResponse.model_validate(template)

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { workspacesApi } from '@/api/workspaces'
 import {
   useListTemplates, useCreateTemplate, useDeleteTemplate, useUpdateTemplate,
-  type ListTemplate, type TemplateStatus,
+  type ListTemplate, type TemplateStatus, type TemplateField,
 } from '@/api/listTemplates'
 
 const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
@@ -22,6 +22,8 @@ const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
   ],
   Empty: [],
 }
+
+const FIELD_TYPES: TemplateField['field_type'][] = ['text', 'number', 'date', 'dropdown', 'checkbox', 'url']
 
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -74,7 +76,7 @@ export default function WorkspaceSettingsPage() {
               e.preventDefault()
               if (!templateName.trim()) return
               createTemplate.mutate(
-                { name: templateName.trim(), default_statuses: PRESET_STATUSES[templatePreset] },
+                { name: templateName.trim(), default_statuses: PRESET_STATUSES[templatePreset], default_custom_fields: [] },
                 {
                   onSuccess: () => {
                     setShowNewTemplate(false)
@@ -141,6 +143,7 @@ export default function WorkspaceSettingsPage() {
 }
 
 type EditableStatus = TemplateStatus & { _key: string }
+type EditableField = TemplateField & { _key: string }
 
 function TemplateCard({
   template,
@@ -149,7 +152,7 @@ function TemplateCard({
 }: {
   template: ListTemplate
   onDelete: () => void
-  onUpdate: (data: { name?: string; default_statuses?: TemplateStatus[] }) => void
+  onUpdate: (data: { name?: string; default_statuses?: TemplateStatus[]; default_custom_fields?: TemplateField[] }) => void
 }) {
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState(template.name)
@@ -159,6 +162,15 @@ function TemplateCard({
   )
   const [newStatusName, setNewStatusName] = useState('')
   const [newStatusColor, setNewStatusColor] = useState('#94a3b8')
+
+  const [showFieldEditor, setShowFieldEditor] = useState(false)
+  const [fields, setFields] = useState<EditableField[]>(() =>
+    (template.default_custom_fields ?? []).map((f, i) => ({ ...f, _key: `f${i}-${Date.now()}` }))
+  )
+  const [newFieldName, setNewFieldName] = useState('')
+  const [newFieldType, setNewFieldType] = useState<TemplateField['field_type']>('text')
+  const [newFieldRequired, setNewFieldRequired] = useState(false)
+  const [newFieldOptions, setNewFieldOptions] = useState('')
 
   function handleNameBlur() {
     setEditingName(false)
@@ -201,6 +213,51 @@ function TemplateCard({
     setShowStatusEditor(false)
   }
 
+  function handleFieldChange(key: string, field: keyof TemplateField, value: string | boolean | number | string[] | null) {
+    setFields((prev) =>
+      prev.map((f) => (f._key === key ? { ...f, [field]: value } : f))
+    )
+  }
+
+  function handleFieldOptionsChange(key: string, raw: string) {
+    const opts = raw.split('\n').map((s) => s.trim()).filter(Boolean)
+    setFields((prev) =>
+      prev.map((f) => (f._key === key ? { ...f, options_json: opts.length > 0 ? opts : null } : f))
+    )
+  }
+
+  function handleDeleteField(key: string) {
+    setFields((prev) => prev.filter((f) => f._key !== key))
+  }
+
+  function handleAddField() {
+    if (!newFieldName.trim()) return
+    const newField: EditableField = {
+      name: newFieldName.trim(),
+      field_type: newFieldType,
+      is_required: newFieldRequired,
+      options_json: newFieldType === 'dropdown' && newFieldOptions.trim()
+        ? newFieldOptions.split('\n').map((s) => s.trim()).filter(Boolean)
+        : null,
+      order_index: fields.length,
+      _key: `fnew-${Date.now()}`,
+    }
+    setFields((prev) => [...prev, newField])
+    setNewFieldName('')
+    setNewFieldType('text')
+    setNewFieldRequired(false)
+    setNewFieldOptions('')
+  }
+
+  function handleSaveFields() {
+    const cleaned: TemplateField[] = fields.map(({ _key: _k, ...f }, i) => ({
+      ...f,
+      order_index: i,
+    }))
+    onUpdate({ default_custom_fields: cleaned })
+    setShowFieldEditor(false)
+  }
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-2">
@@ -229,6 +286,12 @@ function TemplateCard({
             {showStatusEditor ? 'Hide statuses' : 'Edit statuses'}
           </button>
           <button
+            onClick={() => setShowFieldEditor((v) => !v)}
+            className="text-xs text-slate-500 hover:text-violet-600 transition-colors font-medium"
+          >
+            {showFieldEditor ? 'Hide fields' : 'Edit fields'}
+          </button>
+          <button
             onClick={onDelete}
             className="text-xs text-slate-300 hover:text-red-400 transition-colors"
           >
@@ -249,6 +312,23 @@ function TemplateCard({
               style={{ backgroundColor: s.color }}
             >
               {s.name}
+            </span>
+          ))
+        )}
+      </div>
+
+      {/* Custom field pills preview */}
+      <div className="flex flex-wrap gap-1.5 mb-1">
+        {(template.default_custom_fields ?? []).length === 0 ? (
+          <span className="text-xs text-slate-400">No custom fields</span>
+        ) : (
+          (template.default_custom_fields ?? []).map((f, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600"
+            >
+              {f.name}
+              <span className="text-slate-400">{f.field_type}</span>
             </span>
           ))
         )}
@@ -321,6 +401,113 @@ function TemplateCard({
               className="bg-violet-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
             >
               Save
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Inline field editor */}
+      {showFieldEditor && (
+        <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">
+          {fields.map((f) => (
+            <div key={f._key} className="space-y-1">
+              <div className="flex items-center gap-2">
+                <input
+                  value={f.name}
+                  onChange={(e) => handleFieldChange(f._key, 'name', e.target.value)}
+                  className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  placeholder="Field name"
+                />
+                <select
+                  value={f.field_type}
+                  onChange={(e) => handleFieldChange(f._key, 'field_type', e.target.value as TemplateField['field_type'])}
+                  className="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  {FIELD_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={f.is_required}
+                    onChange={(e) => handleFieldChange(f._key, 'is_required', e.target.checked)}
+                    className="accent-violet-600"
+                  />
+                  Req
+                </label>
+                <button
+                  onClick={() => handleDeleteField(f._key)}
+                  className="text-slate-300 hover:text-red-400 text-xs transition-colors shrink-0"
+                  title="Remove field"
+                >
+                  ✕
+                </button>
+              </div>
+              {f.field_type === 'dropdown' && (
+                <textarea
+                  value={(f.options_json ?? []).join('\n')}
+                  onChange={(e) => handleFieldOptionsChange(f._key, e.target.value)}
+                  placeholder="One option per line"
+                  rows={3}
+                  className="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                />
+              )}
+            </div>
+          ))}
+
+          {/* Add field row */}
+          <div className="space-y-1 pt-1">
+            <div className="flex items-center gap-2">
+              <input
+                value={newFieldName}
+                onChange={(e) => setNewFieldName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddField() }}
+                placeholder="New field name"
+                className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <select
+                value={newFieldType}
+                onChange={(e) => setNewFieldType(e.target.value as TemplateField['field_type'])}
+                className="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                {FIELD_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <label className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+                <input
+                  type="checkbox"
+                  checked={newFieldRequired}
+                  onChange={(e) => setNewFieldRequired(e.target.checked)}
+                  className="accent-violet-600"
+                />
+                Req
+              </label>
+              <button
+                onClick={handleAddField}
+                className="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors font-medium"
+              >
+                Add
+              </button>
+            </div>
+            {newFieldType === 'dropdown' && (
+              <textarea
+                value={newFieldOptions}
+                onChange={(e) => setNewFieldOptions(e.target.value)}
+                placeholder="One option per line"
+                rows={3}
+                className="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+              />
+            )}
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleSaveFields}
+              className="bg-violet-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            >
+              Save fields
             </button>
           </div>
         </div>

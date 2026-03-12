@@ -2,6 +2,8 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
+from app.features.custom_fields.repository import CustomFieldRepository
+from app.features.custom_fields.schemas import CreateFieldDTO, FieldType
 from app.features.list_templates.repository import ListTemplateRepository
 from app.features.list_templates.schemas import CreateListFromTemplateDTO, CreateTemplateDTO, UpdateTemplateDTO
 from app.features.lists.repository import ListRepository
@@ -40,6 +42,7 @@ class ListTemplateService:
             workspace_id=workspace_id,
             name=dto.name,
             default_statuses=dto.default_statuses,
+            default_custom_fields=dto.default_custom_fields,
         )
         return await self.repo.create(full_dto)
 
@@ -96,6 +99,23 @@ class ListTemplateService:
                 order_index=float(status_def.get("order_index", 100.0)),
             )
             await self.list_repo.create_status(status_dto)
+
+        # Create custom fields from template
+        cf_repo = CustomFieldRepository(self.list_repo.session)
+        for i, field_def in enumerate(template.default_custom_fields):
+            try:
+                field_type = FieldType(field_def.get("field_type", "text"))
+            except ValueError:
+                field_type = FieldType.text
+            field_dto = CreateFieldDTO(
+                list_id=list_.id,
+                name=field_def.get("name", "Field"),
+                field_type=field_type,
+                is_required=field_def.get("is_required", False),
+                options_json=field_def.get("options_json"),
+                order_index=float(field_def.get("order_index", i)),
+            )
+            await cf_repo.create_field(field_dto)
 
         return list_
 
