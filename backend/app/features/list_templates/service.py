@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 
 from app.features.list_templates.repository import ListTemplateRepository
-from app.features.list_templates.schemas import CreateListFromTemplateDTO, CreateTemplateDTO
+from app.features.list_templates.schemas import CreateListFromTemplateDTO, CreateTemplateDTO, UpdateTemplateDTO
 from app.features.lists.repository import ListRepository
 from app.features.lists.schemas import CreateListDTO, CreateStatusDTO
 from app.features.projects.repository import ProjectRepository
@@ -42,6 +42,13 @@ class ListTemplateService:
             default_statuses=dto.default_statuses,
         )
         return await self.repo.create(full_dto)
+
+    async def update_template(
+        self, workspace_id: UUID, template_id: UUID, dto: UpdateTemplateDTO, actor_id: UUID
+    ) -> ListTemplate:
+        await self._require_workspace_member(workspace_id, actor_id)
+        template = await self._get_template_or_404(template_id, workspace_id)
+        return await self.repo.update(template, dto)
 
     async def delete_template(
         self, workspace_id: UUID, template_id: UUID, actor_id: UUID

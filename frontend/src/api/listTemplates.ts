@@ -23,6 +23,8 @@ export const listTemplatesApi = {
     apiClient.post<ListTemplate>(`/workspaces/${workspaceId}/list-templates`, data).then(r => r.data),
   delete: (workspaceId: string, templateId: string) =>
     apiClient.delete(`/workspaces/${workspaceId}/list-templates/${templateId}`),
+  update: (workspaceId: string, templateId: string, data: { name?: string; default_statuses?: TemplateStatus[] }) =>
+    apiClient.patch<ListTemplate>(`/workspaces/${workspaceId}/list-templates/${templateId}`, data).then(r => r.data),
   createListFromTemplate: (projectId: string, data: { name: string; template_id: string }) =>
     apiClient.post(`/projects/${projectId}/lists/from-template`, data).then(r => r.data),
 }
@@ -48,6 +50,15 @@ export function useDeleteTemplate(workspaceId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (templateId: string) => listTemplatesApi.delete(workspaceId, templateId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['list-templates', workspaceId] }),
+  })
+}
+
+export function useUpdateTemplate(workspaceId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ templateId, data }: { templateId: string; data: { name?: string; default_statuses?: TemplateStatus[] } }) =>
+      listTemplatesApi.update(workspaceId!, templateId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['list-templates', workspaceId] }),
   })
 }

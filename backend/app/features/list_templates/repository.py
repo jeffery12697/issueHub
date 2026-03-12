@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.list_template import ListTemplate
-from app.features.list_templates.schemas import CreateTemplateDTO
+from app.features.list_templates.schemas import CreateTemplateDTO, UpdateTemplateDTO
 
 
 class ListTemplateRepository:
@@ -38,3 +38,11 @@ class ListTemplateRepository:
     async def delete(self, template: ListTemplate) -> None:
         await self.session.delete(template)
         await self.session.flush()
+
+    async def update(self, template: ListTemplate, dto: UpdateTemplateDTO) -> ListTemplate:
+        if dto.name is not None:
+            template.name = dto.name
+        if dto.default_statuses is not None:
+            template.default_statuses = dto.default_statuses
+        await self.session.flush()
+        return template

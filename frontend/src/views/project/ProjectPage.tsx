@@ -4,23 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { workspacesApi } from '@/api/workspaces'
 import { projectsApi, type Project } from '@/api/projects'
 import { listsApi, type List } from '@/api/lists'
-import { useListTemplates, useCreateTemplate, useDeleteTemplate, listTemplatesApi, type ListTemplate, type TemplateStatus } from '@/api/listTemplates'
-
-const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
-  Basic: [
-    { name: 'Todo', color: '#94a3b8', is_complete: false, category: 'not_started', order_index: 0 },
-    { name: 'In Progress', color: '#3b82f6', is_complete: false, category: 'active', order_index: 1 },
-    { name: 'Done', color: '#22c55e', is_complete: true, category: 'done', order_index: 2 },
-  ],
-  'Dev workflow': [
-    { name: 'Todo', color: '#94a3b8', is_complete: false, category: 'not_started', order_index: 0 },
-    { name: 'In Dev', color: '#3b82f6', is_complete: false, category: 'active', order_index: 1 },
-    { name: 'Review', color: '#f59e0b', is_complete: false, category: 'active', order_index: 2 },
-    { name: 'Done', color: '#22c55e', is_complete: true, category: 'done', order_index: 3 },
-    { name: 'Cancelled', color: '#ef4444', is_complete: true, category: 'cancelled', order_index: 4 },
-  ],
-  Empty: [],
-}
+import { useListTemplates, listTemplatesApi, type ListTemplate } from '@/api/listTemplates'
 
 export default function ProjectPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -37,14 +21,9 @@ export default function ProjectPage() {
   })
 
   const { data: templates = [] } = useListTemplates(workspaceId)
-  const createTemplate = useCreateTemplate(workspaceId!)
-  const deleteTemplate = useDeleteTemplate(workspaceId!)
 
   const [newProjectName, setNewProjectName] = useState('')
   const [creatingProject, setCreatingProject] = useState(false)
-  const [showNewTemplate, setShowNewTemplate] = useState(false)
-  const [templateName, setTemplateName] = useState('')
-  const [templatePreset, setTemplatePreset] = useState('Basic')
 
   const createProject = useMutation({
     mutationFn: (name: string) => projectsApi.create(workspaceId!, { name }),
@@ -61,6 +40,14 @@ export default function ProjectPage() {
         <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Workspaces</Link>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
+        <div className="ml-auto">
+          <Link
+            to={`/workspaces/${workspaceId}/settings`}
+            className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
+          >
+            ⚙ Templates
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-4xl mx-auto py-10 px-6">
@@ -101,85 +88,6 @@ export default function ProjectPage() {
           </div>
         )}
 
-        {/* Templates section */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">List Templates</h2>
-            <button
-              onClick={() => setShowNewTemplate(true)}
-              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
-            >
-              + New template
-            </button>
-          </div>
-
-          {showNewTemplate && (
-            <form
-              className="mb-4 bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3"
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (!templateName.trim()) return
-                createTemplate.mutate(
-                  { name: templateName.trim(), default_statuses: PRESET_STATUSES[templatePreset] },
-                  {
-                    onSuccess: () => {
-                      setShowNewTemplate(false)
-                      setTemplateName('')
-                      setTemplatePreset('Basic')
-                    },
-                  }
-                )
-              }}
-            >
-              <div className="flex gap-2">
-                <input
-                  autoFocus
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder="Template name"
-                  className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-                <select
-                  value={templatePreset}
-                  onChange={(e) => setTemplatePreset(e.target.value)}
-                  className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                >
-                  {Object.keys(PRESET_STATUSES).map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setShowNewTemplate(false)} className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
-                <button type="submit" className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create</button>
-              </div>
-            </form>
-          )}
-
-          {templates.length === 0 ? (
-            <p className="text-slate-400 text-sm">No templates yet.</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {templates.map((t: ListTemplate) => (
-                <div
-                  key={t.id}
-                  className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-start justify-between gap-2"
-                >
-                  <div>
-                    <p className="font-medium text-sm text-slate-800">{t.name}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{t.default_statuses.length} statuses</p>
-                  </div>
-                  <button
-                    onClick={() => deleteTemplate.mutate(t.id)}
-                    className="text-slate-300 hover:text-red-400 text-xs transition-colors shrink-0"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </main>
     </div>
   )

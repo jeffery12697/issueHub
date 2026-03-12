@@ -164,3 +164,20 @@ _Completed: 2026-03-12_
 - [x] `frontend/src/router/index.tsx` — added /projects/:projectId/lists/:listId/settings route
 - [x] `frontend/src/views/task/TaskDetailPage.tsx` — Custom Fields card in left column with CustomFieldInput component (text/number/date/dropdown/checkbox/url)
 - [x] `frontend/src/views/project/ProjectPage.tsx` — List Templates section (create from preset/delete), ProjectCard from-template creation (Blank | From template toggle)
+
+---
+
+## Phase 3 Addendum: PATCH list-template + WorkspaceSettingsPage
+_Completed: 2026-03-12_
+
+### Backend
+- [x] `backend/app/features/list_templates/schemas.py` — added UpdateTemplateDTO + UpdateTemplateRequest
+- [x] `backend/app/features/list_templates/repository.py` — added update() method
+- [x] `backend/app/features/list_templates/service.py` — added update_template() method
+- [x] `backend/app/features/list_templates/router.py` — added PATCH /workspaces/{id}/list-templates/{id} endpoint
+
+### Frontend
+- [x] `frontend/src/api/listTemplates.ts` — added listTemplatesApi.update + useUpdateTemplate hook
+- [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — new settings page at /workspaces/:workspaceId/settings with create/edit/delete template UI
+- [x] `frontend/src/router/index.tsx` — added /workspaces/:workspaceId/settings route
+- [x] `frontend/src/views/project/ProjectPage.tsx` — removed inline templates section, added "⚙ Templates" header link to settings page

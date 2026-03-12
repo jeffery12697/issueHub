@@ -82,7 +82,7 @@
 - [x] `views/project/ProjectPage.tsx` — Templates section + from-template list creation
 
 ## Currently Working On
-- Phase 3 complete — starting Phase 4 (WebSocket real-time, file attachments, notifications)
+- Phase 3 complete — added PATCH /list-templates/{id} endpoint + WorkspaceSettingsPage for managing templates
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

@@ -12,6 +12,7 @@ from app.features.list_templates.schemas import (
     CreateTemplateDTO,
     CreateTemplateRequest,
     TemplateResponse,
+    UpdateTemplateRequest,
 )
 from app.features.list_templates.service import ListTemplateService
 from app.features.lists.repository import ListRepository
@@ -80,6 +81,25 @@ async def delete_template(
 ):
     await service.delete_template(workspace_id, template_id, actor_id=current_user.id)
     await session.commit()
+
+
+@router.patch(
+    "/workspaces/{workspace_id}/list-templates/{template_id}",
+    response_model=TemplateResponse,
+)
+async def update_template(
+    workspace_id: UUID,
+    template_id: UUID,
+    body: UpdateTemplateRequest,
+    current_user: User = Depends(get_current_user),
+    service: ListTemplateService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    from app.features.list_templates.schemas import UpdateTemplateDTO
+    dto = UpdateTemplateDTO(name=body.name, default_statuses=body.default_statuses)
+    template = await service.update_template(workspace_id, template_id, dto, actor_id=current_user.id)
+    await session.commit()
+    return TemplateResponse.model_validate(template)
 
 
 @router.post(
