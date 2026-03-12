@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { toast } from '@/store/toastStore'
 
 export const apiClient = axios.create({
   baseURL: '/api/v1',
@@ -29,6 +30,24 @@ apiClient.interceptors.response.use(
         window.location.href = '/login'
       }
     }
+    // Extract a readable message from the error response
+    const data = error.response?.data
+    const status = error.response?.status
+
+    // Don't show a toast for 401 (handled above) or if no response
+    if (status && status !== 401) {
+      let message = 'Something went wrong.'
+      if (typeof data?.detail === 'string') {
+        message = data.detail
+      } else if (Array.isArray(data?.detail)) {
+        // FastAPI 422 validation errors: [{loc, msg, type}]
+        message = data.detail.map((e: { loc: string[]; msg: string }) =>
+          `${e.loc.at(-1)}: ${e.msg}`
+        ).join('\n')
+      }
+      toast.error(message)
+    }
+
     return Promise.reject(error)
   },
 )
