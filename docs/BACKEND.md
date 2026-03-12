@@ -32,6 +32,13 @@ app/features/{Module}/
 - **Thin** — validate input, call service, return response schema. Nothing else.
 - Inject concrete service/repository classes via FastAPI `Depends()` — no abstract interfaces unless a proven second implementation exists
 - Never contain business logic or query logic
+- **Every mutating endpoint (POST/PATCH/DELETE) MUST call `await session.commit()` before returning.** Repositories only call `flush()` — without an explicit commit the transaction rolls back when the session closes, and data vanishes on reload. Pattern:
+  ```python
+  async def create_foo(..., session: AsyncSession = Depends(get_session)):
+      result = await service.create(...)
+      await session.commit()
+      return result
+  ```
 
 ### Services
 - Orchestrate repositories + business rules
