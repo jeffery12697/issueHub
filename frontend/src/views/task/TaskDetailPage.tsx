@@ -398,8 +398,10 @@ export default function TaskDetailPage() {
               onSubmit={(e) => {
                 e.preventDefault()
                 if (!commentBody.trim()) return
-                createComment.mutate({ body: commentBody.trim() })
-                setCommentBody('')
+                createComment.mutate(
+                  { body: commentBody.trim() },
+                  { onSuccess: () => setCommentBody('') },
+                )
               }}
             >
               <textarea

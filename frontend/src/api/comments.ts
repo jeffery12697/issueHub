@@ -38,8 +38,9 @@ export function useCreateComment(taskId: string) {
   return useMutation({
     mutationFn: ({ body, parent_comment_id }: { body: string; parent_comment_id?: string | null }) =>
       commentsApi.create(taskId, body, parent_comment_id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['comments', taskId] })
+    onSuccess: (newComment) => {
+      // Update cache immediately so the comment appears without waiting for a refetch
+      qc.setQueryData<Comment[]>(['comments', taskId], (old = []) => [...old, newComment])
       qc.invalidateQueries({ queryKey: ['audit', taskId] })
     },
   })
