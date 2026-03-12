@@ -98,3 +98,31 @@ _Completed: 2026-03-12_
 - [x] Defined S-01 ~ S-06: Per-list statuses, kanban, cross-list mapping, templates (`docs/stories/STATUS.md`)
 - [x] Defined M-01 ~ M-04: Organization, Team hierarchy, Space/List visibility (`docs/stories/ORG_TEAM.md`)
 - [x] Defined M-05 ~ M-08: Multi-assignee, My Tasks, workload view, reviewer role (`docs/stories/ASSIGNEE.md`)
+
+---
+
+## Phase 3 Backend — Custom Fields + List Templates
+_Completed: 2026-03-12_
+
+### Custom Fields (C-01, C-02, C-03)
+- [x] `backend/app/models/custom_field.py` — CustomFieldDefinition (SoftDelete) + CustomFieldValue (UniqueConstraint)
+- [x] `backend/alembic/versions/0005_add_custom_fields.py` — migration for both tables
+- [x] `backend/app/features/custom_fields/schemas.py` — FieldType enum, DTOs, request/response Pydantic models
+- [x] `backend/app/features/custom_fields/repository.py` — CRUD + PostgreSQL ON CONFLICT upsert
+- [x] `backend/app/features/custom_fields/service.py` — auth checks, required field validation (422)
+- [x] `backend/app/features/custom_fields/router.py` — 6 endpoints
+- [x] `backend/tests/test_custom_fields.py` — 11 tests (all passing)
+
+### List Templates (S-06)
+- [x] `backend/app/models/list_template.py` — ListTemplate with JSONB default_statuses
+- [x] `backend/alembic/versions/0006_add_list_templates.py` — migration
+- [x] `backend/app/features/list_templates/schemas.py` — DTOs, request/response models
+- [x] `backend/app/features/list_templates/repository.py` — CRUD
+- [x] `backend/app/features/list_templates/service.py` — template management + create-list-from-template
+- [x] `backend/app/features/list_templates/router.py` — 4 endpoints
+- [x] `backend/tests/test_list_templates.py` — 5 tests (all passing)
+
+### Infrastructure
+- [x] `backend/app/main.py` — registered both new routers
+- [x] `backend/tests/conftest.py` — added model imports + truncate order entries
+- Full test suite: 83 tests, all passing

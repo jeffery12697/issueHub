@@ -26,6 +26,8 @@ import app.models.audit_log  # noqa — register with metadata
 import app.models.task_dependency  # noqa
 import app.models.task  # noqa
 import app.models.comment  # noqa
+import app.models.custom_field  # noqa
+import app.models.list_template  # noqa
 
 _base_url = settings.database_url.rsplit("/", 1)[0]
 TEST_DATABASE_URL = f"{_base_url}/issuehub_test"
@@ -34,6 +36,9 @@ _TRUNCATE_ORDER = [
     "comments",
     "audit_logs",
     "task_dependencies",
+    "custom_field_values",
+    "custom_field_definitions",
+    "list_templates",
     "tasks",
     "list_statuses",
     "lists",

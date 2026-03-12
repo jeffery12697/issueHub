@@ -9,7 +9,7 @@
 | **Phase 0** | ✅ Done | Planning, architecture, documentation, user stories |
 | **Phase 1** | ✅ Done | Task CRUD, list status config, Board + List views |
 | **Phase 2** | ✅ Done | Subtasks, dependencies, promote, audit trail, comments |
-| **Phase 3** | ⏳ Not Started | Custom fields, status mapping, list templates |
+| **Phase 3** | 🔄 In Progress | Custom fields, status mapping, list templates |
 | **Phase 4** | ⏳ Not Started | WebSocket real-time, file attachments, notifications |
 | **Phase 5** | ⏳ Not Started | Full-text search, bulk ops, export, analytics |
 
@@ -56,8 +56,28 @@
 - [x] Pill view toggles (List ↔ Board), priority dot indicators
 - [x] Colored drag-over highlight on board
 
+## Phase 3 Checklist
+
+### Backend
+- [x] Custom field definitions model + migration (0005)
+- [x] Custom field values model (UniqueConstraint on task_id+field_id)
+- [x] List templates model + migration (0006)
+- [x] Custom fields feature: schemas, repository (upsert via ON CONFLICT), service, router
+- [x] List templates feature: schemas, repository, service, router
+- [x] Required field validation (422 with missing field names)
+- [x] Endpoints: GET/POST/PATCH/DELETE /lists/{id}/custom-fields, GET/PUT /tasks/{id}/field-values
+- [x] Endpoints: GET/POST /workspaces/{id}/list-templates, DELETE /workspaces/{id}/list-templates/{id}
+- [x] Endpoint: POST /projects/{id}/lists/from-template
+- [x] Registered both routers in main.py
+- [x] Updated conftest.py (model imports + truncate order)
+- [x] 11 custom fields tests, 5 list templates tests — all passing (83 total, all green)
+
+### Frontend
+- [ ] Custom field UI on task detail
+- [ ] List template management UI
+
 ## Currently Working On
-- Phase 2 + UI overhaul complete — ready for Phase 3 (custom fields, status mapping, list templates)
+- Phase 3 backend complete — ready for Phase 3 frontend (custom field UI + list template UI)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

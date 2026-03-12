@@ -11,6 +11,8 @@ from app.features.tasks.router import router as tasks_router
 from app.features.audit.router import router as audit_router
 from app.features.dependencies.router import router as dependencies_router
 from app.features.comments.router import router as comments_router
+from app.features.custom_fields.router import router as custom_fields_router
+from app.features.list_templates.router import router as list_templates_router
 
 app = FastAPI(title="IssueHub API", version="0.1.0")
 
@@ -31,6 +33,8 @@ app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
 app.include_router(dependencies_router, prefix="/api/v1")
 app.include_router(comments_router, prefix="/api/v1")
+app.include_router(custom_fields_router, prefix="/api/v1")
+app.include_router(list_templates_router, prefix="/api/v1")
 
 
 @app.get("/health")
