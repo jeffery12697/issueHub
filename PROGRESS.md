@@ -82,7 +82,7 @@
 - [x] `views/project/ProjectPage.tsx` — Templates section + from-template list creation
 
 ## Currently Working On
-- Phase 3 complete — added default_custom_fields to list templates (migration 0007, model, schemas, repo, service, router, frontend types + UI editor)
+- Phase 3 complete — UI/UX polish and bug fixes done, Phase 4 up next
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

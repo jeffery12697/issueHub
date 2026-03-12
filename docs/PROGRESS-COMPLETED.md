@@ -4,6 +4,20 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 3 Polish & Bug Fixes
+_Completed: 2026-03-12_
+
+- [x] List templates moved to dedicated `WorkspaceSettingsPage` (`/workspaces/:id/settings`)
+- [x] Template status editor — inline add/edit/delete statuses per template
+- [x] Template custom fields — add `default_custom_fields` to list templates (migration 0007); fields applied on from-template list creation; inline field editor in WorkspaceSettingsPage
+- [x] `PATCH /workspaces/{id}/list-templates/{id}` — update template name, statuses, and custom fields
+- [x] History section collapsed to 5 entries with "Show N more / Show less" toggle
+- [x] Comments show author name; Comments section moved above History
+- [x] Audit log resolves `status_id` → status name (shows "In Progress" not a UUID)
+- [x] Bulk INSERT for statuses + custom fields in `create_list_from_template` (N+1 fix)
+
+---
+
 ## Phase 3: Custom Fields + List Templates
 _Completed: 2026-03-12_
 
