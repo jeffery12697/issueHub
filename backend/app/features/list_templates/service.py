@@ -2,16 +2,16 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from app.features.custom_fields.repository import CustomFieldRepository
-from app.features.custom_fields.schemas import CreateFieldDTO, FieldType
+from app.features.custom_fields.schemas import FieldType
 from app.features.list_templates.repository import ListTemplateRepository
 from app.features.list_templates.schemas import CreateListFromTemplateDTO, CreateTemplateDTO, UpdateTemplateDTO
 from app.features.lists.repository import ListRepository
-from app.features.lists.schemas import CreateListDTO, CreateStatusDTO
+from app.features.lists.schemas import CreateListDTO
 from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
+from app.models.custom_field import CustomFieldDefinition
 from app.models.list_ import List
-from app.models.list_status import StatusCategory
+from app.models.list_status import ListStatus, StatusCategory
 from app.models.list_template import ListTemplate
 
 
@@ -83,39 +83,44 @@ class ListTemplateService:
         )
         list_ = await self.list_repo.create(list_dto)
 
-        # Create statuses from template
+        # Bulk-insert statuses from template (single flush)
+        session = self.list_repo.session
+        status_objects = []
         for status_def in template.default_statuses:
             category_str = status_def.get("category", "not_started")
             try:
                 category = StatusCategory(category_str)
             except ValueError:
                 category = StatusCategory.not_started
-
-            status_dto = CreateStatusDTO(
+            status_objects.append(ListStatus(
                 list_id=list_.id,
                 name=status_def.get("name", "Status"),
                 color=status_def.get("color", "#6b7280"),
                 category=category,
                 order_index=float(status_def.get("order_index", 100.0)),
-            )
-            await self.list_repo.create_status(status_dto)
+            ))
+        if status_objects:
+            session.add_all(status_objects)
+            await session.flush()
 
-        # Create custom fields from template
-        cf_repo = CustomFieldRepository(self.list_repo.session)
+        # Bulk-insert custom fields from template (single flush)
+        field_objects = []
         for i, field_def in enumerate(template.default_custom_fields):
             try:
                 field_type = FieldType(field_def.get("field_type", "text"))
             except ValueError:
                 field_type = FieldType.text
-            field_dto = CreateFieldDTO(
+            field_objects.append(CustomFieldDefinition(
                 list_id=list_.id,
                 name=field_def.get("name", "Field"),
                 field_type=field_type,
                 is_required=field_def.get("is_required", False),
                 options_json=field_def.get("options_json"),
                 order_index=float(field_def.get("order_index", i)),
-            )
-            await cf_repo.create_field(field_dto)
+            ))
+        if field_objects:
+            session.add_all(field_objects)
+            await session.flush()
 
         return list_
 
