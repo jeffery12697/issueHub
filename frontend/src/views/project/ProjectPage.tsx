@@ -72,7 +72,7 @@ export default function ProjectPage() {
         ) : (
           <div className="space-y-4">
             {projects.map((project: Project) => (
-              <ProjectCard key={project.id} project={project} workspaceId={workspaceId!} />
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         )}
@@ -81,7 +81,7 @@ export default function ProjectPage() {
   )
 }
 
-function ProjectCard({ project, workspaceId }: { project: Project; workspaceId: string }) {
+function ProjectCard({ project }: { project: Project }) {
   const qc = useQueryClient()
   const [newListName, setNewListName] = useState('')
   const [creatingList, setCreatingList] = useState(false)
