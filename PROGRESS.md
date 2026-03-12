@@ -20,7 +20,7 @@
 - [x] Alembic + initial schema migration
 - [x] Core models: User, Workspace, Project, List, ListStatus, Task (with SoftDeleteMixin)
 - [x] Google OAuth (authlib) + JWT issue/refresh
-- [ ] Workspace & Project CRUD
+- [x] Workspace & Project CRUD
 - [ ] List CRUD + status management (create, reorder, mark complete)
 - [ ] Task CRUD endpoints
 
@@ -33,7 +33,7 @@
 - [ ] Task detail page (view/edit)
 
 ## Currently Working On
-- Phase 1 backend: Workspace & Project CRUD endpoints
+- Phase 1 backend: List CRUD + status management
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

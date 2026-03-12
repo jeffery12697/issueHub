@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.features.auth.router import router as auth_router
+from app.features.workspaces.router import router as workspaces_router
+from app.features.projects.router import router as projects_router
 
 app = FastAPI(title="IssueHub API", version="0.1.0")
 
@@ -15,6 +17,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(workspaces_router, prefix="/api/v1")
+app.include_router(projects_router, prefix="/api/v1")
 
 
 @app.get("/health")
