@@ -25,15 +25,15 @@
 - [x] Task CRUD endpoints
 
 ### Frontend
-- [ ] Vite + React + TypeScript scaffold
-- [ ] Google OAuth login page
-- [ ] Workspace / Project navigation
-- [ ] Board view (kanban columns by status)
-- [ ] List view (table rows)
-- [ ] Task detail page (view/edit)
+- [x] Vite + React + TypeScript scaffold
+- [x] Google OAuth login page
+- [x] Workspace / Project navigation
+- [x] Board view (kanban columns by status)
+- [x] List view (table rows)
+- [x] Task detail page (view/edit)
 
 ## Currently Working On
-- Phase 1 backend: COMPLETE ✅ — moving to frontend scaffold
+- Phase 1 complete — ready for Phase 2 (subtasks, dependencies, audit trail)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

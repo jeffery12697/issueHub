@@ -4,6 +4,26 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 1: Frontend Scaffold
+_Completed: 2026-03-12_
+
+- [x] `frontend/package.json` — Vite, React, TypeScript, TanStack Query v5, Zustand, React Router v6, Axios, Tailwind CSS
+- [x] `frontend/vite.config.ts` — path alias @/*, proxy /api → localhost:8000
+- [x] `frontend/src/api/client.ts` — Axios instance with JWT Bearer interceptor + 401 auto-refresh
+- [x] `frontend/src/api/` — auth, workspaces, projects, lists (+ statuses), tasks
+- [x] `frontend/src/store/authStore.ts` — Zustand: user, accessToken, setUser, setAccessToken, logout
+- [x] `frontend/src/store/uiStore.ts` — Zustand: sidebarOpen, activeTaskId
+- [x] `frontend/src/router/index.tsx` — RequireAuth wrapper, all routes (login, callback, workspace, project, list, board, task)
+- [x] `frontend/src/views/auth/LoginPage.tsx` — Google OAuth redirect button
+- [x] `frontend/src/views/auth/AuthCallbackPage.tsx` — token extraction from URL, redirect to /
+- [x] `frontend/src/views/workspace/WorkspacePage.tsx` — list + create workspaces
+- [x] `frontend/src/views/project/ProjectPage.tsx` — list + create projects; create lists per project
+- [x] `frontend/src/views/list/ListPage.tsx` — table view: create/delete tasks, status + priority columns
+- [x] `frontend/src/views/board/BoardPage.tsx` — kanban columns by status, native HTML5 drag-drop
+- [x] `frontend/src/views/task/TaskDetailPage.tsx` — inline title edit, status/priority picker, description, delete
+
+---
+
 ## Phase 1: Backend Scaffold
 _Completed: 2026-03-12_
 

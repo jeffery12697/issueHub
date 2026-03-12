@@ -1,0 +1,50 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { authApi } from '@/api/auth'
+import { useAuthStore } from '@/store/authStore'
+
+import LoginPage from '@/views/auth/LoginPage'
+import AuthCallbackPage from '@/views/auth/AuthCallbackPage'
+import WorkspacePage from '@/views/workspace/WorkspacePage'
+import ProjectPage from '@/views/project/ProjectPage'
+import ListPage from '@/views/list/ListPage'
+import BoardPage from '@/views/board/BoardPage'
+import TaskDetailPage from '@/views/task/TaskDetailPage'
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { accessToken, setUser } = useAuthStore()
+
+  const { isLoading, isError } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const user = await authApi.me()
+      setUser(user)
+      return user
+    },
+    enabled: !!accessToken,
+    retry: false,
+  })
+
+  if (!accessToken) return <Navigate to="/login" replace />
+  if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500">Loading...</div>
+  if (isError) return <Navigate to="/login" replace />
+
+  return <>{children}</>
+}
+
+export default function AppRouter() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+      <Route path="/" element={<RequireAuth><WorkspacePage /></RequireAuth>} />
+      <Route path="/workspaces/:workspaceId" element={<RequireAuth><ProjectPage /></RequireAuth>} />
+      <Route path="/projects/:projectId/lists/:listId" element={<RequireAuth><ListPage /></RequireAuth>} />
+      <Route path="/projects/:projectId/lists/:listId/board" element={<RequireAuth><BoardPage /></RequireAuth>} />
+      <Route path="/tasks/:taskId" element={<RequireAuth><TaskDetailPage /></RequireAuth>} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
