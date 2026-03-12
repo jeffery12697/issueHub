@@ -15,6 +15,10 @@ _Completed: 2026-03-12_
 - [x] `backend/app/models/` — base (SoftDeleteMixin, TimestampMixin), User, Workspace, WorkspaceMember, Project, List, ListStatus, Task (ltree path)
 - [x] `backend/alembic/` — env.py + initial migration (0001): all tables, ltree extension, GiST index on path
 - [x] `backend/app/features/auth/` — Google OAuth router, service (upsert user), schemas
+- [x] `backend/app/features/workspaces/` — full CRUD + member management (invite, role update, remove)
+- [x] `backend/app/features/projects/` — full CRUD scoped to workspace
+- [x] `backend/app/features/lists/` — full CRUD + status management (create, update, reorder, soft delete)
+- [x] `backend/app/features/tasks/` — full CRUD with ltree path, fractional order_index, filters
 
 ---
 

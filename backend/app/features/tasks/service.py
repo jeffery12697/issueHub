@@ -1,0 +1,65 @@
+from uuid import UUID
+
+from fastapi import HTTPException, status
+
+from app.features.tasks.repository import TaskRepository
+from app.features.tasks.schemas import CreateTaskDTO, UpdateTaskDTO
+from app.features.lists.repository import ListRepository
+from app.features.projects.repository import ProjectRepository
+from app.features.workspaces.repository import WorkspaceRepository
+from app.models.task import Task, Priority
+
+
+class TaskService:
+    def __init__(
+        self,
+        repo: TaskRepository,
+        list_repo: ListRepository,
+        project_repo: ProjectRepository,
+        workspace_repo: WorkspaceRepository,
+    ):
+        self.repo = repo
+        self.list_repo = list_repo
+        self.project_repo = project_repo
+        self.workspace_repo = workspace_repo
+
+    async def create(self, dto: CreateTaskDTO) -> Task:
+        await self._require_workspace_member(dto.workspace_id, dto.reporter_id)
+        order_index = await self.repo.get_max_order_index(dto.list_id) + 100.0
+        return await self.repo.create(dto, order_index=order_index)
+
+    async def get_or_404(self, task_id: UUID) -> Task:
+        task = await self.repo.get_by_id(task_id)
+        if not task:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        return task
+
+    async def list_for_list(
+        self,
+        list_id: UUID,
+        user_id: UUID,
+        status_id: UUID | None = None,
+        priority: Priority | None = None,
+        assignee_id: UUID | None = None,
+    ) -> list[Task]:
+        list_ = await self.list_repo.get_by_id(list_id)
+        if not list_:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+        project = await self.project_repo.get_by_id(list_.project_id)
+        await self._require_workspace_member(project.workspace_id, user_id)
+        return await self.repo.list_for_list(list_id, status_id, priority, assignee_id)
+
+    async def update(self, task_id: UUID, dto: UpdateTaskDTO, actor_id: UUID) -> Task:
+        task = await self.get_or_404(task_id)
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        return await self.repo.update(task, dto)
+
+    async def delete(self, task_id: UUID, actor_id: UUID) -> None:
+        task = await self.get_or_404(task_id)
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        await self.repo.soft_delete(task)
+
+    async def _require_workspace_member(self, workspace_id: UUID, user_id: UUID) -> None:
+        member = await self.workspace_repo.get_member(workspace_id, user_id)
+        if not member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")

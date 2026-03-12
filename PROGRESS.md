@@ -7,7 +7,7 @@
 | Phase | Status | Description |
 |-------|--------|-------------|
 | **Phase 0** | ✅ Done | Planning, architecture, documentation, user stories |
-| **Phase 1** | ⏳ Not Started | Task CRUD, list status config, Board + List views |
+| **Phase 1** | 🔄 In Progress | Task CRUD, list status config, Board + List views |
 | **Phase 2** | ⏳ Not Started | Subtasks, dependencies, promote, full audit trail |
 | **Phase 3** | ⏳ Not Started | Custom fields, status mapping, list templates |
 | **Phase 4** | ⏳ Not Started | WebSocket real-time, file attachments, notifications |
@@ -22,7 +22,7 @@
 - [x] Google OAuth (authlib) + JWT issue/refresh
 - [x] Workspace & Project CRUD
 - [x] List CRUD + status management (create, reorder, mark complete)
-- [ ] Task CRUD endpoints
+- [x] Task CRUD endpoints
 
 ### Frontend
 - [ ] Vite + React + TypeScript scaffold
@@ -33,7 +33,7 @@
 - [ ] Task detail page (view/edit)
 
 ## Currently Working On
-- Phase 1 backend: Task CRUD endpoints
+- Phase 1 backend: COMPLETE ✅ — moving to frontend scaffold
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

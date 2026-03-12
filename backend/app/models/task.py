@@ -1,7 +1,8 @@
 import enum
-from uuid import uuid4
+from datetime import datetime
+from uuid import UUID as PyUUID, uuid4
 
-from sqlalchemy import ARRAY, Boolean, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy_utils import LtreeType
@@ -48,10 +49,10 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
     priority: Mapped[Priority] = mapped_column(
         Enum(Priority), nullable=False, default=Priority.none
     )
-    assignee_ids: Mapped[list[str]] = mapped_column(
+    assignee_ids: Mapped[list[PyUUID]] = mapped_column(
         ARRAY(UUID(as_uuid=True)), nullable=False, default=list
     )
-    due_date: Mapped[str | None] = mapped_column(nullable=True)
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     order_index: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     path: Mapped[str] = mapped_column(LtreeType, nullable=False)
