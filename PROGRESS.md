@@ -21,7 +21,7 @@
 - [x] Core models: User, Workspace, Project, List, ListStatus, Task (with SoftDeleteMixin)
 - [x] Google OAuth (authlib) + JWT issue/refresh
 - [x] Workspace & Project CRUD
-- [ ] List CRUD + status management (create, reorder, mark complete)
+- [x] List CRUD + status management (create, reorder, mark complete)
 - [ ] Task CRUD endpoints
 
 ### Frontend
@@ -33,7 +33,7 @@
 - [ ] Task detail page (view/edit)
 
 ## Currently Working On
-- Phase 1 backend: List CRUD + status management
+- Phase 1 backend: Task CRUD endpoints
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
