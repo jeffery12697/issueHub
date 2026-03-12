@@ -80,7 +80,12 @@ export default function TaskDetailPage() {
 
   const deleteTask = useMutation({
     mutationFn: () => tasksApi.delete(taskId!),
-    onSuccess: () => navigate(-1),
+    onSuccess: () => {
+      if (task?.list_id) {
+        qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
+      }
+      navigate(-1)
+    },
   })
 
   const createSubtask = useMutation({
