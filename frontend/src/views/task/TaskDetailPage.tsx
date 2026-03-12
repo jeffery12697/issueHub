@@ -81,6 +81,7 @@ export default function TaskDetailPage() {
   const promoteTask = useMutation({
     mutationFn: () => tasksApi.promote(taskId!),
     onSuccess: () => {
+      if (task?.parent_task_id) qc.invalidateQueries({ queryKey: ['subtasks', task.parent_task_id] })
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       if (task?.list_id) qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
     },
