@@ -1,4 +1,21 @@
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/authStore'
+import axios from 'axios'
+
 export default function LoginPage() {
+  const navigate = useNavigate()
+  const { setAccessToken, setUser } = useAuthStore()
+
+  const devLogin = async () => {
+    const { data: { access_token } } = await axios.post('/api/v1/dev/token')
+    setAccessToken(access_token)
+    const { data: user } = await axios.get('/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    })
+    setUser(user)
+    navigate('/')
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 w-full max-w-sm text-center">
@@ -12,6 +29,15 @@ export default function LoginPage() {
           <GoogleIcon />
           Continue with Google
         </a>
+
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <button
+            onClick={devLogin}
+            className="w-full text-sm text-gray-400 hover:text-gray-600 py-2"
+          >
+            Dev login (skip Google)
+          </button>
+        </div>
       </div>
     </div>
   )
