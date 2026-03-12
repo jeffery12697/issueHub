@@ -123,6 +123,13 @@ class TaskRepository:
         await self.session.flush()
         return task
 
+    async def promote(self, task: Task) -> Task:
+        task.parent_task_id = None
+        task.depth = 0
+        task.path = Ltree(str(task.id).replace("-", "_"))
+        await self.session.flush()
+        return task
+
     async def soft_delete(self, task: Task) -> None:
         task.soft_delete()
         await self.session.flush()

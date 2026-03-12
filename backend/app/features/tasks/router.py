@@ -114,6 +114,18 @@ async def create_subtask(
     return TaskResponse.model_validate(task)
 
 
+@router.post("/tasks/{task_id}/promote", response_model=TaskResponse)
+async def promote_task(
+    task_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    task = await service.promote(task_id, actor_id=current_user.id)
+    await session.commit()
+    return TaskResponse.model_validate(task)
+
+
 @router.patch("/tasks/{task_id}", response_model=TaskResponse)
 async def update_task(
     task_id: UUID,

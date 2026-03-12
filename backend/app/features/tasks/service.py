@@ -83,6 +83,16 @@ class TaskService:
             await self.audit_repo.log(task_id, actor_id=actor_id, action="updated", changes=changes)
         return updated
 
+    async def promote(self, task_id: UUID, actor_id: UUID) -> Task:
+        task = await self.get_or_404(task_id)
+        if not task.parent_task_id:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail="Task is already a top-level task")
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        promoted = await self.repo.promote(task)
+        await self.audit_repo.log(task_id, actor_id=actor_id, action="promoted")
+        return promoted
+
     async def delete(self, task_id: UUID, actor_id: UUID) -> None:
         task = await self.get_or_404(task_id)
         await self._require_workspace_member(task.workspace_id, actor_id)

@@ -78,6 +78,14 @@ export default function TaskDetailPage() {
     },
   })
 
+  const promoteTask = useMutation({
+    mutationFn: () => tasksApi.promote(taskId!),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['task', taskId] })
+      if (task?.list_id) qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
+    },
+  })
+
   const deleteTask = useMutation({
     mutationFn: () => tasksApi.delete(taskId!),
     onSuccess: () => {
@@ -344,8 +352,16 @@ export default function TaskDetailPage() {
             </div>
           )}
 
-          {/* Delete */}
-          <div className="pt-2 border-t border-gray-100">
+          {/* Actions */}
+          <div className="pt-2 border-t border-gray-100 flex items-center gap-4">
+            {task.parent_task_id && (
+              <button
+                onClick={() => promoteTask.mutate()}
+                className="text-sm text-blue-400 hover:text-blue-600"
+              >
+                ↑ Promote to top-level task
+              </button>
+            )}
             <button
               onClick={() => deleteTask.mutate()}
               className="text-sm text-red-400 hover:text-red-600"
