@@ -1,14 +1,14 @@
 # IssueHub - Project Progress
 
-## Current Phase: Phase 1 (MVP)
+## Current Phase: Phase 2 complete / Phase 3 up next
 
 ## Phase Status
 
 | Phase | Status | Description |
 |-------|--------|-------------|
 | **Phase 0** | ✅ Done | Planning, architecture, documentation, user stories |
-| **Phase 1** | 🔄 In Progress | Task CRUD, list status config, Board + List views |
-| **Phase 2** | ⏳ Not Started | Subtasks, dependencies, promote, full audit trail |
+| **Phase 1** | ✅ Done | Task CRUD, list status config, Board + List views |
+| **Phase 2** | ✅ Done | Subtasks, dependencies, promote, audit trail, comments |
 | **Phase 3** | ⏳ Not Started | Custom fields, status mapping, list templates |
 | **Phase 4** | ⏳ Not Started | WebSocket real-time, file attachments, notifications |
 | **Phase 5** | ⏳ Not Started | Full-text search, bulk ops, export, analytics |
@@ -32,11 +32,35 @@
 - [x] List view (table rows)
 - [x] Task detail page (view/edit)
 
+## Phase 2 Checklist
+
+### Backend
+- [x] Subtasks — create, list (ltree path)
+- [x] Task dependencies — blocked by / blocking
+- [x] Promote subtask to top-level task
+- [x] Audit trail — log and display task history with actor name
+- [x] Comments — create, list, delete, @mention resolution
+- [x] Backend test suite — 67 tests, all passing
+
+### Frontend
+- [x] Subtask tree on task detail
+- [x] Dependency badges (blocked by / blocking)
+- [x] Promote button
+- [x] History timeline (audit log with actor name)
+- [x] Comments section with @mention hint and delete
+
+## UI
+- [x] Full visual overhaul — slate/violet design system
+- [x] Two-column task detail layout
+- [x] Grid workspace/project cards with initials avatars
+- [x] Pill view toggles (List ↔ Board), priority dot indicators
+- [x] Colored drag-over highlight on board
+
 ## Currently Working On
-- Phase 2 complete — ready for Phase 3 (custom fields, status mapping, list templates)
+- Phase 2 + UI overhaul complete — ready for Phase 3 (custom fields, status mapping, list templates)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
 
 ## Notes
-<!-- Add progress notes, blockers, or decisions here -->
+- Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
