@@ -8,8 +8,7 @@ class AuditLogResponse(BaseModel):
     id: UUID
     task_id: UUID
     actor_id: UUID
+    actor_name: str
     action: str
     changes: dict | None
     created_at: datetime
-
-    model_config = {"from_attributes": True}

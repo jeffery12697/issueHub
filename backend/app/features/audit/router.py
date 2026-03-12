@@ -20,4 +20,16 @@ async def get_task_audit(
     session: AsyncSession = Depends(get_session),
 ):
     repo = AuditRepository(session)
-    return await repo.list_for_task(task_id)
+    rows = await repo.list_for_task(task_id)
+    return [
+        AuditLogResponse(
+            id=log.id,
+            task_id=log.task_id,
+            actor_id=log.actor_id,
+            actor_name=display_name,
+            action=log.action,
+            changes=log.changes,
+            created_at=log.created_at,
+        )
+        for log, display_name in rows
+    ]

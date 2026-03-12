@@ -348,7 +348,9 @@ export default function TaskDetailPage() {
                       {new Date(log.created_at).toLocaleString()}
                     </span>
                     <span>
-                      <span className="font-medium capitalize">{log.action}</span>
+                      <span className="font-medium text-gray-700">{log.actor_name}</span>
+                      {' '}
+                      <span className="capitalize">{log.action}</span>
                       {log.changes && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
                         <span key={field} className="ml-1">
                           · {field}: <span className="line-through text-gray-400">{oldVal ?? '—'}</span>

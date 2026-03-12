@@ -4,6 +4,7 @@ export type AuditLog = {
   id: string
   task_id: string
   actor_id: string
+  actor_name: string
   action: string
   changes: Record<string, [string | null, string]> | null
   created_at: string

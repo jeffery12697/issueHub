@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.audit_log import AuditLog
+from app.models.user import User
 
 
 class AuditRepository:
@@ -27,10 +28,11 @@ class AuditRepository:
         await self.session.flush()
         return entry
 
-    async def list_for_task(self, task_id: UUID) -> list[AuditLog]:
+    async def list_for_task(self, task_id: UUID) -> list[tuple[AuditLog, str]]:
         result = await self.session.execute(
-            select(AuditLog)
+            select(AuditLog, User.display_name)
+            .join(User, User.id == AuditLog.actor_id)
             .where(AuditLog.task_id == task_id)
             .order_by(AuditLog.created_at.desc())
         )
-        return list(result.scalars().all())
+        return list(result.all())
