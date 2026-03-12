@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy_utils.types.ltree import Ltree
 
 from app.models.task import Task, Priority
 from app.features.tasks.schemas import CreateTaskDTO, UpdateTaskDTO
@@ -19,7 +20,7 @@ class TaskRepository:
             parent = await self.get_by_id(dto.parent_task_id)
             if parent:
                 depth = parent.depth + 1
-                parent_path = parent.path
+                parent_path = str(parent.path)
 
         task = Task(
             title=dto.title,
@@ -35,13 +36,14 @@ class TaskRepository:
             parent_task_id=dto.parent_task_id,
             order_index=order_index,
             depth=depth,
-            path="placeholder",
+            path=Ltree("placeholder"),
         )
         self.session.add(task)
         await self.session.flush()
 
         task_segment = str(task.id).replace("-", "_")
-        task.path = f"{parent_path}.{task_segment}" if parent_path else task_segment
+        path_str = f"{parent_path}.{task_segment}" if parent_path else task_segment
+        task.path = Ltree(path_str)
         await self.session.flush()
         return task
 
