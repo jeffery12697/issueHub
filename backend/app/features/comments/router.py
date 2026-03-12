@@ -35,7 +35,17 @@ async def create_comment(
 ):
     comment = await service.create(task_id, body.body, body.parent_comment_id, current_user.id)
     await session.commit()
-    return comment
+    return CommentResponse(
+        id=comment.id,
+        task_id=comment.task_id,
+        author_id=comment.author_id,
+        author_name=current_user.display_name,
+        body=comment.body,
+        parent_comment_id=comment.parent_comment_id,
+        mentions=comment.mentions,
+        created_at=comment.created_at,
+        updated_at=comment.updated_at,
+    )
 
 
 @router.get("/tasks/{task_id}/comments", response_model=list[CommentResponse])
@@ -44,7 +54,21 @@ async def list_comments(
     current_user: User = Depends(get_current_user),
     service: CommentService = Depends(_get_service),
 ):
-    return await service.list_for_task(task_id, current_user.id)
+    rows = await service.list_for_task(task_id, current_user.id)
+    return [
+        CommentResponse(
+            id=c.id,
+            task_id=c.task_id,
+            author_id=c.author_id,
+            author_name=author_name,
+            body=c.body,
+            parent_comment_id=c.parent_comment_id,
+            mentions=c.mentions,
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+        )
+        for c, author_name in rows
+    ]
 
 
 @router.delete("/tasks/{task_id}/comments/{comment_id}", status_code=204)

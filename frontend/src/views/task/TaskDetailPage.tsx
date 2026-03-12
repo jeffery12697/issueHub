@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
 import { listsApi } from '@/api/lists'
-import { auditApi } from '@/api/audit'
+import { auditApi, type AuditLog } from '@/api/audit'
 import { dependenciesApi } from '@/api/dependencies'
 import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
 import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinition, type FieldValue } from '@/api/customFields'
@@ -395,30 +395,6 @@ export default function TaskDetailPage() {
               </div>
             </div>
 
-            {/* History */}
-            {auditLogs.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">History</label>
-                <ul className="space-y-2.5">
-                  {auditLogs.map((log) => (
-                    <li key={log.id} className="flex gap-2 text-xs">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
-                      <div>
-                        <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
-                        <span className="text-slate-500 capitalize">{log.action}</span>
-                        {log.changes && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
-                          <div key={field} className="text-slate-400 mt-0.5">
-                            {field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal as string}</span>
-                          </div>
-                        ))}
-                        <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString()}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {/* Comments */}
             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
               <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">
@@ -435,6 +411,7 @@ export default function TaskDetailPage() {
                   {comments.map((c) => (
                     <li key={c.id} className="flex gap-2 text-sm">
                       <div className="flex-1 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                        <p className="text-xs font-medium text-violet-700 mb-1">{c.author_name}</p>
                         <p className="text-slate-800 whitespace-pre-wrap">{c.body}</p>
                         <p className="text-xs text-slate-400 mt-1">
                           {new Date(c.created_at).toLocaleString()}
@@ -480,6 +457,11 @@ export default function TaskDetailPage() {
                 </button>
               </form>
             </div>
+
+            {/* History */}
+            {auditLogs.length > 0 && (
+              <HistorySection logs={auditLogs} />
+            )}
 
           </div>
 
@@ -561,6 +543,45 @@ function CustomFieldInput({ field, value, onSave }: {
           </select>
         )}
       </div>
+    </div>
+  )
+}
+
+const HISTORY_INITIAL = 5
+
+function HistorySection({ logs }: { logs: AuditLog[] }) {
+  const [expanded, setExpanded] = useState(false)
+  const visible = expanded ? logs : logs.slice(0, HISTORY_INITIAL)
+  const hidden = logs.length - HISTORY_INITIAL
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">History</label>
+      <ul className="space-y-2.5">
+        {visible.map((log) => (
+          <li key={log.id} className="flex gap-2 text-xs">
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
+            <div>
+              <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
+              <span className="text-slate-500 capitalize">{log.action}</span>
+              {log.changes && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
+                <div key={field} className="text-slate-400 mt-0.5">
+                  {field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal as string}</span>
+                </div>
+              ))}
+              <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString()}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {hidden > 0 && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-3 text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
+        >
+          {expanded ? '↑ Show less' : `↓ Show ${hidden} more`}
+        </button>
+      )}
     </div>
   )
 }

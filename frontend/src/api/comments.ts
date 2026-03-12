@@ -5,6 +5,7 @@ export type Comment = {
   id: string
   task_id: string
   author_id: string
+  author_name: string
   body: string
   parent_comment_id: string | null
   mentions: string[]

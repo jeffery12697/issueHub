@@ -50,7 +50,7 @@ class CommentService:
         await self.audit_repo.log(task_id, actor_id=author_id, action="commented")
         return comment
 
-    async def list_for_task(self, task_id: UUID, user_id: UUID) -> list[Comment]:
+    async def list_for_task(self, task_id: UUID, user_id: UUID) -> list[tuple[Comment, str]]:
         task = await self.task_repo.get_by_id(task_id)
         if not task:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")

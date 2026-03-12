@@ -23,10 +23,9 @@ class CommentResponse(BaseModel):
     id: UUID
     task_id: UUID
     author_id: UUID
+    author_name: str
     body: str
     parent_comment_id: UUID | None
     mentions: list[UUID]
     created_at: datetime
     updated_at: datetime
-
-    model_config = {"from_attributes": True}

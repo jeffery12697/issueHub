@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.comments.schemas import CreateCommentDTO
 from app.models.comment import Comment
+from app.models.user import User
 
 
 class CommentRepository:
@@ -23,14 +24,15 @@ class CommentRepository:
         await self.session.flush()
         return comment
 
-    async def list_for_task(self, task_id: UUID) -> list[Comment]:
+    async def list_for_task(self, task_id: UUID) -> list[tuple[Comment, str]]:
         result = await self.session.execute(
-            select(Comment)
+            select(Comment, User.display_name)
+            .join(User, User.id == Comment.author_id)
             .where(Comment.task_id == task_id)
             .where(Comment.deleted_at.is_(None))
             .order_by(Comment.created_at.asc())
         )
-        return list(result.scalars().all())
+        return list(result.all())
 
     async def get_by_id(self, comment_id: UUID) -> Comment | None:
         result = await self.session.execute(
