@@ -15,6 +15,7 @@ from app.features.tasks.schemas import (
 from app.features.lists.repository import ListRepository
 from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
+from app.features.audit.repository import AuditRepository
 from app.models.task import Priority
 from app.models.user import User
 
@@ -27,6 +28,7 @@ def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
         list_repo=ListRepository(session),
         project_repo=ProjectRepository(session),
         workspace_repo=WorkspaceRepository(session),
+        audit_repo=AuditRepository(session),
     )
 
 

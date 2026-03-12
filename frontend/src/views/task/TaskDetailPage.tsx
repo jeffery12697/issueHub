@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
 import { listsApi } from '@/api/lists'
+import { auditApi } from '@/api/audit'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -22,6 +23,12 @@ export default function TaskDetailPage() {
     enabled: !!task?.list_id,
   })
 
+  const { data: auditLogs = [] } = useQuery({
+    queryKey: ['audit', taskId],
+    queryFn: () => auditApi.listForTask(taskId!),
+    enabled: !!taskId,
+  })
+
   const { data: subtasks = [] } = useQuery({
     queryKey: ['subtasks', taskId],
     queryFn: () => tasksApi.listSubtasks(taskId!),
@@ -36,7 +43,10 @@ export default function TaskDetailPage() {
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) =>
       tasksApi.update(taskId!, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['task', taskId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['task', taskId] })
+      qc.invalidateQueries({ queryKey: ['audit', taskId] })
+    },
   })
 
   const deleteTask = useMutation({
@@ -203,6 +213,31 @@ export default function TaskDetailPage() {
               <p className="text-xs text-gray-400">No subtasks yet.</p>
             )}
           </div>
+
+          {/* Audit history */}
+          {auditLogs.length > 0 && (
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">History</label>
+              <ul className="mt-2 space-y-2">
+                {auditLogs.map((log) => (
+                  <li key={log.id} className="text-xs text-gray-500 flex gap-2">
+                    <span className="text-gray-300 shrink-0">
+                      {new Date(log.created_at).toLocaleString()}
+                    </span>
+                    <span>
+                      <span className="font-medium capitalize">{log.action}</span>
+                      {log.changes && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
+                        <span key={field} className="ml-1">
+                          · {field}: <span className="line-through text-gray-400">{oldVal ?? '—'}</span>
+                          {' → '}<span className="text-gray-700">{newVal}</span>
+                        </span>
+                      ))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Delete */}
           <div className="pt-2 border-t border-gray-100">

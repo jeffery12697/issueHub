@@ -1,0 +1,36 @@
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.audit_log import AuditLog
+
+
+class AuditRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def log(
+        self,
+        task_id: UUID,
+        actor_id: UUID,
+        action: str,
+        changes: dict | None = None,
+    ) -> AuditLog:
+        entry = AuditLog(
+            task_id=task_id,
+            actor_id=actor_id,
+            action=action,
+            changes=changes,
+        )
+        self.session.add(entry)
+        await self.session.flush()
+        return entry
+
+    async def list_for_task(self, task_id: UUID) -> list[AuditLog]:
+        result = await self.session.execute(
+            select(AuditLog)
+            .where(AuditLog.task_id == task_id)
+            .order_by(AuditLog.created_at.desc())
+        )
+        return list(result.scalars().all())

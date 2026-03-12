@@ -15,6 +15,7 @@ import app.models.project  # noqa
 import app.models.list_  # noqa
 import app.models.list_status  # noqa
 import app.models.task  # noqa
+import app.models.audit_log  # noqa
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
