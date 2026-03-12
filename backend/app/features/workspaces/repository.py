@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember, WorkspaceRole
 from app.features.workspaces.schemas import (
     CreateWorkspaceDTO,
@@ -93,3 +94,12 @@ class WorkspaceRepository:
         if member:
             await self.session.delete(member)
             await self.session.flush()
+
+    async def list_member_users(self, workspace_id: UUID) -> list[User]:
+        result = await self.session.execute(
+            select(User)
+            .join(WorkspaceMember, WorkspaceMember.user_id == User.id)
+            .where(WorkspaceMember.workspace_id == workspace_id)
+            .where(User.deleted_at.is_(None))
+        )
+        return list(result.scalars().all())

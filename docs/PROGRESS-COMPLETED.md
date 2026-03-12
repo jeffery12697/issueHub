@@ -4,6 +4,19 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 2: Comments (A-02)
+_Completed: 2026-03-12_
+
+- [x] `backend/app/models/comment.py` — Comment model (task_id, author_id, body, parent_comment_id, mentions UUID[])
+- [x] `backend/alembic/versions/0004_add_comments.py` — migration
+- [x] `backend/app/features/comments/` — full feature module (schemas, repository, service, router)
+- [x] `WorkspaceRepository.list_member_users()` — added for @mention resolution
+- [x] `backend/tests/test_comments.py` — 10 tests, all passing (67 total)
+- [x] `frontend/src/api/comments.ts` — API + useComments, useCreateComment, useDeleteComment hooks
+- [x] `frontend/src/views/task/TaskDetailPage.tsx` — comments section with post form, delete, @mention hint
+
+---
+
 ## Phase 1: Frontend Scaffold
 _Completed: 2026-03-12_
 

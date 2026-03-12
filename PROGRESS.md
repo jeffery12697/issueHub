@@ -33,7 +33,7 @@
 - [x] Task detail page (view/edit)
 
 ## Currently Working On
-- Phase 1 complete — ready for Phase 2 (subtasks, dependencies, audit trail)
+- Phase 2 complete — ready for Phase 3 (custom fields, status mapping, list templates)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

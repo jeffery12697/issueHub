@@ -5,6 +5,8 @@ import { tasksApi, type Priority } from '@/api/tasks'
 import { listsApi } from '@/api/lists'
 import { auditApi } from '@/api/audit'
 import { dependenciesApi } from '@/api/dependencies'
+import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
+import { useAuthStore } from '@/store/authStore'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -62,12 +64,19 @@ export default function TaskDetailPage() {
     enabled: !!taskId,
   })
 
+  const currentUser = useAuthStore((s) => s.user)
+
+  const { data: comments = [] } = useComments(taskId!)
+  const createComment = useCreateComment(taskId!)
+  const deleteComment = useDeleteComment(taskId!)
+
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [addingSubtask, setAddingSubtask] = useState(false)
   const [blockingInput, setBlockingInput] = useState('')
   const [addingBlockedBy, setAddingBlockedBy] = useState(false)
+  const [commentBody, setCommentBody] = useState('')
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) =>
@@ -352,6 +361,61 @@ export default function TaskDetailPage() {
               </ul>
             </div>
           )}
+
+          {/* Comments */}
+          <div>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Comments {comments.length > 0 && <span className="text-gray-400">({comments.length})</span>}
+            </label>
+
+            {comments.length > 0 && (
+              <ul className="mt-3 space-y-3">
+                {comments.map((c) => (
+                  <li key={c.id} className="flex gap-3 text-sm">
+                    <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                      <p className="text-gray-800 whitespace-pre-wrap">{c.body}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(c.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    {currentUser?.id === c.author_id && (
+                      <button
+                        onClick={() => deleteComment.mutate(c.id)}
+                        className="text-gray-300 hover:text-red-400 text-xs self-start mt-2"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <form
+              className="mt-3 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!commentBody.trim()) return
+                createComment.mutate({ body: commentBody.trim() })
+                setCommentBody('')
+              }}
+            >
+              <textarea
+                value={commentBody}
+                onChange={(e) => setCommentBody(e.target.value)}
+                placeholder="Add a comment... Use @name to mention someone"
+                rows={2}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                disabled={!commentBody.trim()}
+                className="self-end bg-blue-600 text-white text-xs px-3 py-2 rounded-lg disabled:opacity-40"
+              >
+                Post
+              </button>
+            </form>
+          </div>
 
           {/* Actions */}
           <div className="pt-2 border-t border-gray-100 flex items-center gap-4">
