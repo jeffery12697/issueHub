@@ -1,6 +1,6 @@
 # IssueHub - Project Progress
 
-## Current Phase: Phase 2 complete / Phase 3 up next
+## Current Phase: Phase 4
 
 ## Phase Status
 
@@ -10,8 +10,11 @@
 | **Phase 1** | ✅ Done | Task CRUD, list status config, Board + List views |
 | **Phase 2** | ✅ Done | Subtasks, dependencies, promote, audit trail, comments |
 | **Phase 3** | ✅ Done | Custom fields, status mapping, list templates |
-| **Phase 4** | ⏳ Not Started | WebSocket real-time, file attachments, notifications |
+| **Phase 4** | 🔄 In Progress | WebSocket real-time, notifications |
 | **Phase 5** | ⏳ Not Started | Full-text search, bulk ops, export, analytics |
+| **Phase 6** | ⏳ Not Started | Teams + team roles (M-01, M-03) — no email invite |
+| **Phase 7** | ⏳ Not Started | List visibility by team (M-04), multi-assignee & workload (M-05~M-08) |
+| **Later** | ⏳ Deferred | Email invite flow (M-02) — needs SMTP infra, do when deploying for real users |
 
 ## Phase 1 Checklist
 
@@ -81,8 +84,23 @@
 - [x] `views/task/TaskDetailPage.tsx` — Custom Fields card in left column
 - [x] `views/project/ProjectPage.tsx` — Templates section + from-template list creation
 
+## Phase 4 Checklist
+
+### Backend
+- [ ] WebSocket connection manager (Redis Pub/Sub broadcast)
+- [ ] Task update events — broadcast on PATCH /tasks/{id}
+- [ ] Notification model + migration
+- [ ] Notification endpoints: GET /users/me/notifications, PATCH (mark read)
+- [ ] Trigger notifications on: @mention in comment, task assigned to you, blocked task unblocked
+
+### Frontend
+- [ ] WebSocket client hook (useTaskSocket)
+- [ ] Live task updates on board/list view without refresh
+- [ ] Notification bell in header with unread count
+- [ ] Notification dropdown (mark read, link to task)
+
 ## Currently Working On
-- Phase 3 complete — UI/UX polish and bug fixes done, Phase 4 up next
+- Starting Phase 4 — WebSocket real-time + notifications
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
