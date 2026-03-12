@@ -100,7 +100,30 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 - Float fractional indexing for `order_index`; rebalance when gap < 0.001
 
 ## Testing
-- Use `pytest` + `httpx.AsyncClient` for integration tests
-- Each test uses a separate DB transaction rolled back after the test
-- Never hit external services in unit tests (mock Redis, S3)
-- Construct DTOs directly in tests — no factories or fixtures for simple cases
+
+### Rules
+- **Every new feature must include tests.** Adding an endpoint, service method, or repository query without a corresponding test is not acceptable.
+- Test files live in `backend/tests/test_{feature}.py`
+- Use `pytest` + `httpx.AsyncClient` (via `ASGITransport`) for full integration tests — test through the HTTP layer, not service classes directly
+- Test database: `issuehub_test` (separate from dev DB). Schema is created once per session; tables are truncated between tests for isolation.
+- Run with: `docker compose exec backend pytest -v`
+
+### What to test per feature
+For each new feature, cover:
+1. **Happy path** — the endpoint works and returns the expected shape
+2. **Auth / access control** — unauthenticated → 403, non-member → 403
+3. **Validation / edge cases** — invalid input, duplicate records, constraint violations
+4. **Side effects** — e.g. audit log written, soft delete excludes from list queries
+
+### Shared fixtures (`tests/conftest.py`)
+| Fixture | What it provides |
+|---------|-----------------|
+| `db` | `AsyncSession` for the test, tables truncated after |
+| `client` | `httpx.AsyncClient` with `get_session` overridden to use `db` |
+| `user` | A persisted `User` row |
+| `workspace` | A `Workspace` with `user` as owner |
+| `project` | A `Project` in `workspace` |
+| `list_` | A `List` in `project` |
+| `headers` | `Authorization: Bearer <token>` for `user` |
+
+Helper functions `make_user()`, `make_workspace()`, `make_project()`, `make_list()`, and `auth_headers()` are available for creating additional objects within a test.

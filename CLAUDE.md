@@ -4,6 +4,7 @@
 > **IMPORTANT**: Always update `PROGRESS.md` to reflect what task you are currently working on.
 > **IMPORTANT**: Always append completed tasks to `docs/PROGRESS-COMPLETED.md` after finishing any task.
 > **IMPORTANT**: Auto-commit after meaningful changes. Always inform the user what was committed.
+> **IMPORTANT**: Every new backend feature must include tests in `backend/tests/test_{feature}.py`. See `docs/BACKEND.md` → Testing section for rules and fixtures.
 
 ## Project Overview
 Issue tracking system — React.js frontend, FastAPI (Python) backend. Inspired by ClickUp / Jira / Linear.
