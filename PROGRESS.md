@@ -73,11 +73,16 @@
 - [x] 11 custom fields tests, 5 list templates tests — all passing (83 total, all green)
 
 ### Frontend
-- [ ] Custom field UI on task detail
-- [ ] List template management UI
+- [x] `api/customFields.ts` — field definition + field value hooks
+- [x] `api/listTemplates.ts` — list template hooks
+- [x] `views/list/ListSettingsPage.tsx` — Statuses tab + Custom Fields tab
+- [x] `views/list/ListPage.tsx` — Settings link in header
+- [x] `router/index.tsx` — /settings route added
+- [x] `views/task/TaskDetailPage.tsx` — Custom Fields card in left column
+- [x] `views/project/ProjectPage.tsx` — Templates section + from-template list creation
 
 ## Currently Working On
-- Phase 3 backend complete — ready for Phase 3 frontend (custom field UI + list template UI)
+- Phase 3 complete — Phase 4 up next (WebSocket real-time, file attachments, notifications)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

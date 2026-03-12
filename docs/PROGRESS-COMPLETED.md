@@ -126,3 +126,16 @@ _Completed: 2026-03-12_
 - [x] `backend/app/main.py` — registered both new routers
 - [x] `backend/tests/conftest.py` — added model imports + truncate order entries
 - Full test suite: 83 tests, all passing
+
+---
+
+## Phase 3 Frontend: Custom Fields + List Templates UI
+_Completed: 2026-03-12_
+
+- [x] `frontend/src/api/customFields.ts` — FieldDefinition/FieldValue types, customFieldsApi, useFieldDefinitions, useFieldValues, useCreateField, useUpdateField, useDeleteField, useUpsertValues hooks
+- [x] `frontend/src/api/listTemplates.ts` — ListTemplate/TemplateStatus types, listTemplatesApi, useListTemplates, useCreateTemplate, useDeleteTemplate hooks
+- [x] `frontend/src/views/list/ListSettingsPage.tsx` — two-tab settings page (Statuses + Custom Fields) with inline editing, color picker, create/delete for both
+- [x] `frontend/src/views/list/ListPage.tsx` — added Settings link in header
+- [x] `frontend/src/router/index.tsx` — added /projects/:projectId/lists/:listId/settings route
+- [x] `frontend/src/views/task/TaskDetailPage.tsx` — Custom Fields card in left column with CustomFieldInput component (text/number/date/dropdown/checkbox/url)
+- [x] `frontend/src/views/project/ProjectPage.tsx` — List Templates section (create from preset/delete), ProjectCard from-template creation (Blank | From template toggle)

@@ -6,6 +6,7 @@ import { listsApi } from '@/api/lists'
 import { auditApi } from '@/api/audit'
 import { dependenciesApi } from '@/api/dependencies'
 import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
+import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinition, type FieldValue } from '@/api/customFields'
 import { useAuthStore } from '@/store/authStore'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
@@ -65,6 +66,10 @@ export default function TaskDetailPage() {
   })
 
   const currentUser = useAuthStore((s) => s.user)
+
+  const { data: fieldDefs = [] } = useFieldDefinitions(task?.list_id ?? undefined)
+  const { data: fieldValues = [] } = useFieldValues(taskId!)
+  const upsertValues = useUpsertValues(taskId!)
 
   const { data: comments = [] } = useComments(taskId!)
   const createComment = useCreateComment(taskId!)
@@ -190,6 +195,26 @@ export default function TaskDetailPage() {
                 className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               />
             </div>
+
+            {/* Custom Fields */}
+            {fieldDefs.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Custom Fields</label>
+                <div className="space-y-3">
+                  {fieldDefs.map(field => {
+                    const valueMap = Object.fromEntries(fieldValues.map(v => [v.field_id, v]))
+                    return (
+                      <CustomFieldInput
+                        key={field.id}
+                        field={field}
+                        value={valueMap[field.id]}
+                        onSave={(val) => upsertValues.mutate({ [field.id]: val })}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Subtasks */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
@@ -460,6 +485,82 @@ export default function TaskDetailPage() {
 
         </div>
       </main>
+    </div>
+  )
+}
+
+function CustomFieldInput({ field, value, onSave }: {
+  field: FieldDefinition
+  value: FieldValue | undefined
+  onSave: (val: unknown) => void
+}) {
+  // Get current value based on field type
+  const currentVal = (() => {
+    if (!value) return null
+    switch (field.field_type) {
+      case 'text': case 'url': return value.value_text
+      case 'number': return value.value_number
+      case 'date': return value.value_date?.slice(0, 10) ?? null
+      case 'checkbox': return value.value_boolean
+      case 'dropdown': return value.value_json?.selected ?? null
+      default: return null
+    }
+  })()
+
+  return (
+    <div className="flex items-start gap-3">
+      <label className="text-sm font-medium text-slate-600 w-32 shrink-0 pt-1.5">
+        {field.name}
+        {field.is_required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      <div className="flex-1">
+        {field.field_type === 'checkbox' && (
+          <input
+            type="checkbox"
+            checked={!!currentVal}
+            onChange={(e) => onSave(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 text-violet-600 mt-1.5"
+          />
+        )}
+        {(field.field_type === 'text' || field.field_type === 'url') && (
+          <input
+            type={field.field_type === 'url' ? 'url' : 'text'}
+            defaultValue={currentVal as string ?? ''}
+            onBlur={(e) => onSave(e.target.value || null)}
+            placeholder={field.is_required ? 'Required' : 'Empty'}
+            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        )}
+        {field.field_type === 'number' && (
+          <input
+            type="number"
+            defaultValue={currentVal as number ?? ''}
+            onBlur={(e) => onSave(e.target.value ? Number(e.target.value) : null)}
+            placeholder={field.is_required ? 'Required' : 'Empty'}
+            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        )}
+        {field.field_type === 'date' && (
+          <input
+            type="date"
+            defaultValue={currentVal as string ?? ''}
+            onChange={(e) => onSave(e.target.value || null)}
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        )}
+        {field.field_type === 'dropdown' && (
+          <select
+            value={(currentVal as string) ?? ''}
+            onChange={(e) => onSave(e.target.value ? { selected: e.target.value } : null)}
+            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          >
+            <option value="">— Select —</option>
+            {(field.options_json ?? []).map((opt: string) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        )}
+      </div>
     </div>
   )
 }

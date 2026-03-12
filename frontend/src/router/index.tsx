@@ -8,6 +8,7 @@ import AuthCallbackPage from '@/views/auth/AuthCallbackPage'
 import WorkspacePage from '@/views/workspace/WorkspacePage'
 import ProjectPage from '@/views/project/ProjectPage'
 import ListPage from '@/views/list/ListPage'
+import ListSettingsPage from '@/views/list/ListSettingsPage'
 import BoardPage from '@/views/board/BoardPage'
 import TaskDetailPage from '@/views/task/TaskDetailPage'
 
@@ -42,6 +43,7 @@ export default function AppRouter() {
       <Route path="/workspaces/:workspaceId" element={<RequireAuth><ProjectPage /></RequireAuth>} />
       <Route path="/projects/:projectId/lists/:listId" element={<RequireAuth><ListPage /></RequireAuth>} />
       <Route path="/projects/:projectId/lists/:listId/board" element={<RequireAuth><BoardPage /></RequireAuth>} />
+      <Route path="/projects/:projectId/lists/:listId/settings" element={<RequireAuth><ListSettingsPage /></RequireAuth>} />
       <Route path="/tasks/:taskId" element={<RequireAuth><TaskDetailPage /></RequireAuth>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
