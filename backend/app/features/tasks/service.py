@@ -78,6 +78,20 @@ class TaskService:
         task = await self.get_or_404(task_id)
         await self._require_workspace_member(task.workspace_id, actor_id)
         changes = _diff(task, dto)
+        # Resolve status UUIDs to human-readable names in the audit log
+        if "status_id" in changes:
+            old_id, new_id = changes["status_id"]
+            async def _status_name(sid: str | None) -> str | None:
+                if not sid:
+                    return None
+                from uuid import UUID as _UUID
+                s = await self.list_repo.get_status_by_id(_UUID(sid))
+                return s.name if s else sid
+            changes["status"] = [
+                await _status_name(old_id),
+                await _status_name(new_id),
+            ]
+            del changes["status_id"]
         updated = await self.repo.update(task, dto)
         if changes:
             await self.audit_repo.log(task_id, actor_id=actor_id, action="updated", changes=changes)
