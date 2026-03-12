@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
 import { listsApi } from '@/api/lists'
 import { auditApi } from '@/api/audit'
+import { dependenciesApi } from '@/api/dependencies'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -23,6 +24,32 @@ export default function TaskDetailPage() {
     enabled: !!task?.list_id,
   })
 
+  const { data: blockedBy = [] } = useQuery({
+    queryKey: ['blocked-by', taskId],
+    queryFn: () => dependenciesApi.getBlockedBy(taskId!),
+    enabled: !!taskId,
+  })
+
+  const { data: blocking = [] } = useQuery({
+    queryKey: ['blocking', taskId],
+    queryFn: () => dependenciesApi.getBlocking(taskId!),
+    enabled: !!taskId,
+  })
+
+  const addBlockedBy = useMutation({
+    mutationFn: (dependsOnId: string) => dependenciesApi.addBlockedBy(taskId!, dependsOnId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['blocked-by', taskId] })
+      setBlockingInput('')
+      setAddingBlockedBy(false)
+    },
+  })
+
+  const removeBlockedBy = useMutation({
+    mutationFn: (dependsOnId: string) => dependenciesApi.removeBlockedBy(taskId!, dependsOnId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['blocked-by', taskId] }),
+  })
+
   const { data: auditLogs = [] } = useQuery({
     queryKey: ['audit', taskId],
     queryFn: () => auditApi.listForTask(taskId!),
@@ -39,6 +66,8 @@ export default function TaskDetailPage() {
   const [title, setTitle] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [addingSubtask, setAddingSubtask] = useState(false)
+  const [blockingInput, setBlockingInput] = useState('')
+  const [addingBlockedBy, setAddingBlockedBy] = useState(false)
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) =>
@@ -211,6 +240,77 @@ export default function TaskDetailPage() {
 
             {subtasks.length === 0 && !addingSubtask && (
               <p className="text-xs text-gray-400">No subtasks yet.</p>
+            )}
+          </div>
+
+          {/* Dependencies */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Blocked by</label>
+              <button
+                onClick={() => setAddingBlockedBy(true)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                + Add
+              </button>
+            </div>
+
+            {addingBlockedBy && (
+              <form
+                className="flex gap-2 mb-2"
+                onSubmit={(e) => { e.preventDefault(); addBlockedBy.mutate(blockingInput) }}
+              >
+                <input
+                  autoFocus
+                  value={blockingInput}
+                  onChange={(e) => setBlockingInput(e.target.value)}
+                  placeholder="Paste task ID"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button type="submit" className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg">Add</button>
+                <button type="button" onClick={() => setAddingBlockedBy(false)} className="text-xs px-2 text-gray-500">Cancel</button>
+              </form>
+            )}
+
+            {blockedBy.length > 0 ? (
+              <ul className="space-y-1">
+                {blockedBy.map((t) => (
+                  <li key={t.id} className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => navigate(`/tasks/${t.id}`)}
+                      className="flex-1 text-left px-3 py-1.5 rounded-lg border border-gray-100 hover:border-red-200 hover:bg-red-50 text-gray-700 transition-colors"
+                    >
+                      <span className="text-red-400 mr-2">⊘</span>{t.title}
+                    </button>
+                    <button
+                      onClick={() => removeBlockedBy.mutate(t.id)}
+                      className="text-gray-300 hover:text-red-400 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : !addingBlockedBy && (
+              <p className="text-xs text-gray-400">No blockers.</p>
+            )}
+
+            {blocking.length > 0 && (
+              <div className="mt-3">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Blocking</label>
+                <ul className="mt-2 space-y-1">
+                  {blocking.map((t) => (
+                    <li key={t.id}>
+                      <button
+                        onClick={() => navigate(`/tasks/${t.id}`)}
+                        className="w-full text-left px-3 py-1.5 rounded-lg border border-gray-100 hover:border-orange-200 hover:bg-orange-50 text-sm text-gray-700 transition-colors"
+                      >
+                        <span className="text-orange-400 mr-2">⚡</span>{t.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 

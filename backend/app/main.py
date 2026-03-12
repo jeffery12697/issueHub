@@ -9,6 +9,7 @@ from app.features.projects.router import router as projects_router
 from app.features.lists.router import router as lists_router
 from app.features.tasks.router import router as tasks_router
 from app.features.audit.router import router as audit_router
+from app.features.dependencies.router import router as dependencies_router
 
 app = FastAPI(title="IssueHub API", version="0.1.0")
 
@@ -27,6 +28,7 @@ app.include_router(projects_router, prefix="/api/v1")
 app.include_router(lists_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
+app.include_router(dependencies_router, prefix="/api/v1")
 
 
 @app.get("/health")
