@@ -19,10 +19,14 @@ class WorkspaceService:
     async def create(self, dto: CreateWorkspaceDTO) -> Workspace:
         return await self.repo.create(dto)
 
-    async def get_or_404(self, workspace_id: UUID) -> Workspace:
+    async def get_or_404(self, workspace_id: UUID, user_id: UUID | None = None) -> Workspace:
         workspace = await self.repo.get_by_id(workspace_id)
         if not workspace:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
+        if user_id is not None:
+            member = await self.repo.get_member(workspace_id, user_id)
+            if not member:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
         return workspace
 
     async def list_for_user(self, user_id: UUID) -> list[Workspace]:

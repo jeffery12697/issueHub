@@ -103,8 +103,11 @@ def _diff(task: Task, dto: UpdateTaskDTO) -> dict:
         new_val = getattr(dto, field)
         if new_val is not None:
             old_val = getattr(task, field)
-            if str(old_val) != str(new_val):
-                changes[field] = [str(old_val) if old_val is not None else None, str(new_val)]
+            # Use .value for enums to get the string representation
+            old_str = old_val.value if hasattr(old_val, "value") else (str(old_val) if old_val is not None else None)
+            new_str = new_val.value if hasattr(new_val, "value") else str(new_val)
+            if old_str != new_str:
+                changes[field] = [old_str, new_str]
     if dto.assignee_ids is not None:
         old_ids = [str(i) for i in task.assignee_ids]
         new_ids = [str(i) for i in dto.assignee_ids]

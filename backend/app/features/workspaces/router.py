@@ -51,7 +51,7 @@ async def get_workspace(
     current_user: User = Depends(get_current_user),
     service: WorkspaceService = Depends(get_service),
 ):
-    workspace = await service.get_or_404(workspace_id)
+    workspace = await service.get_or_404(workspace_id, user_id=current_user.id)
     return WorkspaceResponse.model_validate(workspace)
 
 
