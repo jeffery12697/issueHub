@@ -12,6 +12,7 @@ from app.features.comments.schemas import CommentResponse, CreateCommentRequest
 from app.features.comments.service import CommentService
 from app.features.notifications.repository import NotificationRepository
 from app.features.tasks.repository import TaskRepository
+from app.features.watchers.repository import WatcherRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.models.user import User
 
@@ -41,10 +42,13 @@ async def create_comment(
     # Publish real-time event
     await publish_task_event(task_id, actor_id=current_user.id, event="task.comment_added", data={"comment_id": str(comment.id)})
 
+    notif_repo = NotificationRepository(session)
+    mentioned_ids: set[str] = set()
+
     # Create mention notifications
     if comment.mentions:
-        notif_repo = NotificationRepository(session)
         for user_id in comment.mentions:
+            mentioned_ids.add(str(user_id))
             await notif_repo.create(
                 user_id=user_id,
                 task_id=task_id,
@@ -52,6 +56,23 @@ async def create_comment(
                 body=f"{current_user.display_name} mentioned you in a comment",
                 meta={"comment_id": str(comment.id)},
             )
+
+    # Notify watchers (skip author and already-mentioned users)
+    watcher_repo = WatcherRepository(session)
+    watcher_ids = await watcher_repo.list_watcher_ids(task_id)
+    task_obj = await TaskRepository(session).get_by_id(task_id)
+    task_title = task_obj.title if task_obj else "a task"
+    for watcher_id in watcher_ids:
+        if watcher_id != current_user.id and str(watcher_id) not in mentioned_ids:
+            await notif_repo.create(
+                user_id=watcher_id,
+                task_id=task_id,
+                type_="task_updated",
+                body=f"{current_user.display_name} commented on \"{task_title}\"",
+                meta={"comment_id": str(comment.id)},
+            )
+
+    if comment.mentions or watcher_ids:
         await session.commit()
 
     return CommentResponse(

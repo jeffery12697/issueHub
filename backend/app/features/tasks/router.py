@@ -24,6 +24,8 @@ from app.features.lists.repository import ListRepository
 from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.features.audit.repository import AuditRepository
+from app.features.notifications.repository import NotificationRepository
+from app.features.watchers.repository import WatcherRepository
 from app.models.task import Priority
 from app.models.user import User
 
@@ -154,8 +156,44 @@ async def update_task(
     service: TaskService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
+    # Capture old assignees before update for diff
+    old_task = await service.get_or_404(task_id)
+    old_assignee_ids = {str(i) for i in old_task.assignee_ids}
+
     task = await service.update(task_id, body.to_dto(), actor_id=current_user.id)
     await session.commit()
+
+    notif_repo = NotificationRepository(session)
+
+    # Notify newly added assignees
+    if body.assignee_ids is not None:
+        new_assignee_ids = {str(i) for i in body.assignee_ids}
+        for uid_str in new_assignee_ids - old_assignee_ids:
+            if uid_str != str(current_user.id):
+                await notif_repo.create(
+                    user_id=UUID(uid_str),
+                    task_id=task_id,
+                    type_="assigned",
+                    body=f"{current_user.display_name} assigned you to \"{task.title}\"",
+                    meta={"task_id": str(task_id)},
+                )
+
+    # Notify watchers (except the actor)
+    watcher_repo = WatcherRepository(session)
+    watcher_ids = await watcher_repo.list_watcher_ids(task_id)
+    for watcher_id in watcher_ids:
+        if watcher_id != current_user.id:
+            await notif_repo.create(
+                user_id=watcher_id,
+                task_id=task_id,
+                type_="task_updated",
+                body=f"{current_user.display_name} updated \"{task.title}\"",
+                meta={"task_id": str(task_id)},
+            )
+
+    if watcher_ids or (body.assignee_ids is not None):
+        await session.commit()
+
     response = TaskResponse.model_validate(task)
     await publish_task_event(task_id, actor_id=current_user.id, event="task.updated", data={"task": response.model_dump(mode="json")})
     if task.list_id:

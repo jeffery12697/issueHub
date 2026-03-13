@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
 import { listsApi, useWorkspaceLists } from '@/api/lists'
+import { useWatchStatus, useWatchTask, useUnwatchTask } from '@/api/watchers'
 import { auditApi, type AuditLog } from '@/api/audit'
 import { dependenciesApi } from '@/api/dependencies'
 import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
@@ -100,6 +101,9 @@ export default function TaskDetailPage() {
   const deleteComment = useDeleteComment(taskId!)
   const { data: members = [] } = useWorkspaceMembers(task?.workspace_id)
   const { data: workspaceLists = [] } = useWorkspaceLists(task?.workspace_id)
+  const { data: watchStatus } = useWatchStatus(taskId)
+  const watchTask = useWatchTask(taskId!)
+  const unwatchTask = useUnwatchTask(taskId!)
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -643,6 +647,32 @@ export default function TaskDetailPage() {
                   </select>
                 </div>
               )}
+
+              {/* Watch */}
+              <div className="px-4 py-3">
+                {watchStatus?.watching ? (
+                  <button
+                    onClick={() => unwatchTask.mutate()}
+                    className="w-full flex items-center justify-center gap-2 text-xs font-medium text-violet-600 bg-violet-50 border border-violet-200 hover:bg-violet-100 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                    </svg>
+                    Watching
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => watchTask.mutate()}
+                    className="w-full flex items-center justify-center gap-2 text-xs font-medium text-slate-500 bg-white border border-slate-200 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Watch
+                  </button>
+                )}
+              </div>
 
             </div>
           </div>
