@@ -95,6 +95,7 @@ export default function TaskDetailPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       qc.invalidateQueries({ queryKey: ['audit', taskId] })
+      if (task?.list_id) qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
     },
   })
 
