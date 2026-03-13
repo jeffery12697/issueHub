@@ -186,7 +186,11 @@ def _diff(task: Task, dto: UpdateTaskDTO) -> dict:
         old_str = old_val.value if hasattr(old_val, "value") else (str(old_val) if old_val is not None else None)
         new_str = new_val.value if hasattr(new_val, "value") else str(new_val)
         if old_str != new_str:
-            changes[field] = [old_str, new_str]
+            # Don't store raw HTML for description — just flag it as edited
+            if field == "description":
+                changes[field] = ["edited"]
+            else:
+                changes[field] = [old_str, new_str]
     if dto.assignee_ids is not None:
         old_ids = [str(i) for i in task.assignee_ids]
         new_ids = [str(i) for i in dto.assignee_ids]

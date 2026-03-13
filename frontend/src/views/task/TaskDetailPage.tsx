@@ -870,11 +870,17 @@ function HistorySection({ logs }: { logs: AuditLog[] }) {
               <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
               <span className="text-slate-500 capitalize">{log.action.replace(/_/g, ' ')}</span>
               {log.changes && !['link_added', 'link_removed'].includes(log.action) &&
-                Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
-                  <div key={field} className="text-slate-400 mt-0.5">
-                    {field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal as string}</span>
-                  </div>
-                ))
+                Object.entries(log.changes).map(([field, val]) => {
+                  const [oldVal, newVal] = val as [string, string?]
+                  return (
+                    <div key={field} className="text-slate-400 mt-0.5">
+                      {newVal === undefined
+                        ? <span>{field}: <span className="text-slate-500">edited</span></span>
+                        : <span>{field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal}</span></span>
+                      }
+                    </div>
+                  )
+                })
               }
               <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString('en-US')}</div>
             </div>
