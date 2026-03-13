@@ -139,6 +139,7 @@ _Completed: 2026-03-13_
 ## Phase 5 — Multi-Assignee, Reviewer, My Tasks (M-05, M-06, M-08)
 _Completed: 2026-03-13_
 
+
 ### Backend
 - [x] `assignee_ids UUID[]` + `reviewer_id UUID FK` — already in initial migration
 - [x] `_UNSET` sentinel in `UpdateTaskDTO` so `reviewer_id=None` clears the field (not ignored)
@@ -154,3 +155,19 @@ _Completed: 2026-03-13_
 - [x] `ListPage`: Assignees column (overlapping avatar circles, up to 4 + overflow) + Reviewer column
 - [x] `MyTasksPage` at `/workspaces/:id/my-tasks` — cross-list tasks grouped by overdue / upcoming / no due date
 - [x] "My Tasks" nav link in workspace (ProjectPage) header
+
+---
+
+## Phase 6 — Custom Field Filtering, Role Visibility, Task Links (C-04, C-05, A-04)
+_Completed: 2026-03-13_
+
+### Backend
+- [x] C-04: `cf[field_id]=value` query param filtering in `GET /lists/{id}/tasks` — text ilike, number exact, dropdown selected
+- [x] C-05: `visibility_roles TEXT[]` + `editable_roles TEXT[]` on `CustomFieldDefinition` — migration 0009; `list_fields` filters by role; `upsert_task_values` rejects 403 if caller's role not in `editable_roles`
+- [x] A-04: `TaskLink` model + migration 0010; `/tasks/{id}/links` (POST 201, GET, DELETE 204); audit log entries `link_added` / `link_removed`
+- [x] Fix: workspace `invite_member` / `update_member_role` responses look up `User.display_name` for `MemberResponse` (was 500)
+- [x] 108 tests — all passing
+
+### Frontend
+- [x] `api/links.ts` — `useTaskLinks`, `useAddLink`, `useDeleteLink` hooks
+- [x] `TaskDetailPage`: Links card — add URL + optional title, clickable links, delete

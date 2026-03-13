@@ -12,7 +12,7 @@
 | **Phase 3** | ✅ Done | C-01~C-03, S-04, S-06 | Custom fields, status mapping, list templates |
 | **Phase 4** | ✅ Done | A-02 (real-time) | WebSocket real-time, @mention notifications |
 | **Phase 5** | ✅ Done | M-05, M-06, M-08 | Multi-assignee, reviewer, My Tasks page |
-| **Phase 6** | ⏳ Not Started | C-04, C-05, A-04 | Custom field filtering, role-based field visibility, attachments & links |
+| **Phase 6** | ✅ Done | C-04, C-05, A-04 | Custom field filtering, role-based field visibility, task links |
 | **Phase 7** | ⏳ Not Started | M-01, M-03, M-04 | Teams, team roles, list visibility by team |
 | **Phase 8** | ⏳ Not Started | M-07 | Workload view, full-text search, bulk ops, export, analytics |
 | **Later** | ⏳ Deferred | M-02 | Email invite flow — needs SMTP infra, do when deploying for real users |
@@ -119,7 +119,7 @@
 - [x] Nav link to My Tasks in workspace header
 
 ## Currently Working On
-- Phase 5 complete — ready for Phase 6
+- Phase 6 complete — ready for Phase 7
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
