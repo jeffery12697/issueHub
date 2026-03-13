@@ -294,6 +294,12 @@ _Completed: 2026-03-13_
 - **English locale for all dates** — all `toLocaleDateString`/`toLocaleString` calls now use `'en-US'`
 - **Delete button beautification** — new `DeleteButton` component (icon / text / button variants) with confirm modal dialog (warning icon, context-specific message, Cancel + Delete); replaces all bare text deletes and window.confirm() across ListPage, TaskDetailPage, ListSettingsPage, WorkspaceSettingsPage
 
+## Phase 10 — Time Management Basics (2026-03-13)
+- **TM-01 start_date** — migration 0013 adds `start_date` column to tasks; model, schemas (CreateTaskDTO, UpdateTaskDTO, CreateTaskRequest, UpdateTaskRequest, TaskResponse), repository create/update all updated
+- **TM-04 story_points** — migration 0013 adds `story_points` column to tasks; same schema/repo plumbing as start_date
+- **TM-03 time tracking** — migration 0014 creates `time_entries` table; `TimeEntry` model; full CRUD feature (`repository.py`, `schemas.py`, `router.py`); endpoints: `POST /tasks/{id}/time-entries`, `GET /tasks/{id}/time-entries`, `DELETE /tasks/{id}/time-entries/{entry_id}`; ownership check (403 for other users' entries)
+- 11 backend tests all passing (`tests/test_time_entries.py`)
+
 ## Phase 9 — Notifications & Watchers (2026-03-13)
 - **N-01 Task Watchers** — `TaskWatcher` model + migration; `POST/DELETE/GET /tasks/{id}/watch`; Watch/Unwatch button in TaskDetailPage sidebar
 - **N-01 Watcher notifications** — watchers receive `task_updated` notification on task updates and new comments (actor excluded from own notifications)

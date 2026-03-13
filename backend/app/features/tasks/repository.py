@@ -41,6 +41,8 @@ class TaskRepository:
             reviewer_id=dto.reviewer_id,
             assignee_ids=list(dto.assignee_ids),
             due_date=dto.due_date,
+            start_date=dto.start_date,
+            story_points=dto.story_points,
             parent_task_id=dto.parent_task_id,
             order_index=order_index,
             depth=depth,
@@ -148,6 +150,10 @@ class TaskRepository:
             task.reviewer_id = dto.reviewer_id  # None clears it, UUID sets it
         if dto.due_date is not None:
             task.due_date = dto.due_date
+        if dto.start_date is not None:
+            task.start_date = dto.start_date
+        if dto.story_points is not None:
+            task.story_points = dto.story_points
         await self.session.flush()
         return task
 

@@ -53,6 +53,8 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
         ARRAY(UUID(as_uuid=True)), nullable=False, default=list
     )
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    start_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    story_points: Mapped[int | None] = mapped_column(Integer, nullable=True)
     order_index: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     path: Mapped[str] = mapped_column(LtreeType, nullable=False)

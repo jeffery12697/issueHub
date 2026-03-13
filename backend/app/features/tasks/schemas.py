@@ -24,6 +24,8 @@ class CreateTaskDTO:
     assignee_ids: tuple[UUID, ...] = ()
     reviewer_id: UUID | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
+    story_points: int | None = None
     parent_task_id: UUID | None = None
 
 
@@ -36,6 +38,8 @@ class UpdateTaskDTO:
     assignee_ids: tuple[UUID, ...] | None = None
     reviewer_id: object = None  # _UNSET=not provided, None=clear, UUID=set; default _UNSET
     due_date: datetime | None = None
+    start_date: datetime | None = None
+    story_points: int | None = None
 
     def __post_init__(self):
         # Can't set default to _UNSET in frozen dataclass easily; caller must pass _UNSET explicitly
@@ -51,6 +55,8 @@ class CreateTaskRequest(BaseModel):
     assignee_ids: list[UUID] = []
     reviewer_id: UUID | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
+    story_points: int | None = None
     status_id: UUID | None = None
 
     def to_dto(
@@ -68,6 +74,8 @@ class CreateTaskRequest(BaseModel):
             assignee_ids=tuple(self.assignee_ids),
             reviewer_id=self.reviewer_id,
             due_date=self.due_date,
+            start_date=self.start_date,
+            story_points=self.story_points,
             list_id=list_id,
             workspace_id=workspace_id,
             project_id=project_id,
@@ -84,6 +92,8 @@ class UpdateTaskRequest(BaseModel):
     assignee_ids: list[UUID] | None = None
     reviewer_id: UUID | None = None
     due_date: datetime | None = None
+    start_date: datetime | None = None
+    story_points: int | None = None
 
     def to_dto(self) -> "UpdateTaskDTO":
         return UpdateTaskDTO(
@@ -94,6 +104,8 @@ class UpdateTaskRequest(BaseModel):
             assignee_ids=tuple(self.assignee_ids) if self.assignee_ids is not None else None,
             reviewer_id=self.reviewer_id if 'reviewer_id' in self.model_fields_set else _UNSET,
             due_date=self.due_date,
+            start_date=self.start_date,
+            story_points=self.story_points,
         )
 
 
@@ -139,6 +151,8 @@ class TaskResponse(BaseModel):
     priority: Priority
     assignee_ids: list[UUID]
     due_date: datetime | None
+    start_date: datetime | None
+    story_points: int | None
     order_index: float
     depth: int
     subtask_count: int = 0

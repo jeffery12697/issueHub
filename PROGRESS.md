@@ -21,7 +21,7 @@
 | Phase | Status | Stories | Description |
 |-------|--------|---------|-------------|
 | **Phase 9** | ✅ Done | N-01, N-03 | Task watchers (watch/unwatch button, watcher notifications on update/comment), assignee notifications, @mention confirmed working. N-02 digest deferred (needs SMTP) |
-| **Phase 10** | 🔲 Not started | TM-01, TM-03, TM-04 | Time management basics — start date, time tracking, story points |
+| **Phase 10** | ✅ Done | TM-01, TM-03, TM-04 | Time management basics — start date, time tracking, story points |
 | **Phase 11** | 🔲 Not started | AU-02, AU-03 | Simple automation — overdue notifications, auto-close parent on subtasks done |
 | **Phase 12** | 🔲 Not started | AU-01, AU-04 | Advanced automation — trigger-action rules, Git commit keyword integration |
 | **Phase 13** | 🔲 Not started | TM-02 | Timeline / Gantt view |
@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 10 — Time management basics (TM-01 start date, TM-03 time tracking, TM-04 story points)
+- Phase 11 — Simple automation (AU-02, AU-03): overdue notifications, auto-close parent on subtasks done
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
