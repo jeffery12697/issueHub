@@ -38,16 +38,24 @@ export default function ListPage() {
   const [priorityFilter, setPriorityFilter] = useState<Priority | ''>('')
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 50
 
-  const { data: allTasks = [], isLoading } = useQuery({
-    queryKey: ['tasks', listId, statusFilter, priorityFilter, cfFilters],
-    queryFn: () => tasksApi.list(listId!, {
+  const { data: pagedResult, isLoading } = useQuery({
+    queryKey: ['tasks', listId, statusFilter, priorityFilter, cfFilters, page],
+    queryFn: () => tasksApi.listPaged(listId!, {
+      page,
+      page_size: PAGE_SIZE,
       status_id: statusFilter || undefined,
       priority: (priorityFilter as Priority) || undefined,
       cf: cfFilters,
       include_subtasks: true,
     }),
   })
+
+  const allTasks = pagedResult?.items ?? []
+  const totalCount = pagedResult?.total ?? 0
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
   // Group: parent tasks in order, each followed by its subtasks
   const tasks = (() => {
@@ -71,9 +79,6 @@ export default function ListPage() {
   })()
 
   const { sorted: sortedTasks, taskMap } = tasks
-  const parentCount = allTasks.filter((t) => !t.parent_task_id).length
-  const subtaskCount = allTasks.filter((t) => !!t.parent_task_id).length
-
   const createTask = useMutation({
     mutationFn: (title: string) => tasksApi.create(listId!, { title }),
     onSuccess: () => {
@@ -147,8 +152,8 @@ export default function ListPage() {
           <div>
             <h2 className="text-2xl font-bold text-slate-900">{list?.name}</h2>
             <p className="text-sm text-slate-400 mt-0.5">
-              {parentCount} task{parentCount === 1 ? '' : 's'}
-              {subtaskCount > 0 && <span> · {subtaskCount} subtask{subtaskCount === 1 ? '' : 's'}</span>}
+              {totalCount} item{totalCount === 1 ? '' : 's'}
+              {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -217,7 +222,7 @@ export default function ListPage() {
           {/* Status */}
           <FilterSelect
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(v) => { setStatusFilter(v); setPage(1) }}
             label="Status"
             active={!!statusFilter}
             activeLabel={(list?.statuses ?? []).find((s) => s.id === statusFilter)?.name}
@@ -231,7 +236,7 @@ export default function ListPage() {
           {/* Priority */}
           <FilterSelect
             value={priorityFilter}
-            onChange={(v) => setPriorityFilter(v as Priority | '')}
+            onChange={(v) => { setPriorityFilter(v as Priority | ''); setPage(1) }}
             label="Priority"
             active={!!priorityFilter}
             activeLabel={priorityFilter || undefined}
@@ -245,11 +250,7 @@ export default function ListPage() {
           {/* Custom fields */}
           {fieldDefs.map((field) => {
             const val = cfFilters[field.id] ?? ''
-            const set = (v: string) => setCfFilters((prev) => {
-              const next = { ...prev }
-              if (v) next[field.id] = v; else delete next[field.id]
-              return next
-            })
+            const set = (v: string) => { setCfFilters((prev) => { const next = { ...prev }; if (v) next[field.id] = v; else delete next[field.id]; return next }); setPage(1) }
             if (field.field_type === 'dropdown' || field.field_type === 'checkbox') {
               return (
                 <FilterSelect
@@ -290,7 +291,7 @@ export default function ListPage() {
 
           {(statusFilter || priorityFilter || Object.keys(cfFilters).length > 0) && (
             <button
-              onClick={() => { setStatusFilter(''); setPriorityFilter(''); setCfFilters({}) }}
+              onClick={() => { setStatusFilter(''); setPriorityFilter(''); setCfFilters({}); setPage(1) }}
               className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
             >
               <span>✕</span> Clear
@@ -327,7 +328,7 @@ export default function ListPage() {
             >+ New task</button>
           </div>
         ) : (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="task-table">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -438,6 +439,46 @@ export default function ListPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-slate-400">
+              Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                const p = totalPages <= 7 ? i + 1 : page <= 4 ? i + 1 : page >= totalPages - 3 ? totalPages - 6 + i : page - 3 + i
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 text-sm rounded-lg border transition-colors ${
+                      p === page
+                        ? 'bg-violet-600 text-white border-violet-600'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              })}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next →
+              </button>
+            </div>
           </div>
         )}
       </main>

@@ -73,7 +73,9 @@ class TaskRepository:
         assignee_id: UUID | None = None,
         cf_filters: dict[UUID, str] | None = None,
         include_subtasks: bool = False,
-    ) -> list[Task]:
+        page: int = 1,
+        page_size: int = 0,
+    ) -> tuple[list[Task], int]:
         from sqlalchemy import or_, any_
         from app.models.custom_field import CustomFieldValue
         q = (
@@ -106,9 +108,16 @@ class TaskRepository:
                     .exists()
                 )
 
+        count_result = await self.session.execute(
+            select(func.count()).select_from(q.subquery())
+        )
+        total = count_result.scalar_one()
+
         q = q.order_by(Task.order_index)
+        if page_size > 0:
+            q = q.offset((page - 1) * page_size).limit(page_size)
         result = await self.session.execute(q)
-        return list(result.scalars().all())
+        return list(result.scalars().all()), total
 
     async def list_subtasks(self, parent_task_id: UUID) -> list[Task]:
         result = await self.session.execute(

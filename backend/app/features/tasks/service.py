@@ -65,13 +65,15 @@ class TaskService:
         assignee_id: UUID | None = None,
         cf_filters: dict[UUID, str] | None = None,
         include_subtasks: bool = False,
-    ) -> list[Task]:
+        page: int = 1,
+        page_size: int = 0,
+    ) -> tuple[list[Task], int]:
         list_ = await self.list_repo.get_by_id(list_id)
         if not list_:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
         project = await self.project_repo.get_by_id(list_.project_id)
         await self._require_workspace_member(project.workspace_id, user_id)
-        return await self.repo.list_for_list(list_id, status_id, priority, assignee_id, cf_filters, include_subtasks)
+        return await self.repo.list_for_list(list_id, status_id, priority, assignee_id, cf_filters, include_subtasks, page, page_size)
 
     async def list_subtasks(self, parent_task_id: UUID, user_id: UUID) -> list[Task]:
         parent = await self.get_or_404(parent_task_id)

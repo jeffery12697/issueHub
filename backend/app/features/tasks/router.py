@@ -2,7 +2,7 @@ import csv
 import io
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -93,10 +93,13 @@ def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
 async def list_tasks(
     list_id: UUID,
     request: Request,
+    response: Response,
     status_id: UUID | None = None,
     priority: Priority | None = None,
     assignee_id: UUID | None = None,
     include_subtasks: bool = False,
+    page: int = 1,
+    page_size: int = 0,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
@@ -110,7 +113,7 @@ async def list_tasks(
             except ValueError:
                 pass
 
-    tasks = await service.list_for_list(
+    tasks, total = await service.list_for_list(
         list_id,
         user_id=current_user.id,
         status_id=status_id,
@@ -118,7 +121,10 @@ async def list_tasks(
         assignee_id=assignee_id,
         cf_filters=cf_filters if cf_filters else None,
         include_subtasks=include_subtasks,
+        page=page,
+        page_size=page_size,
     )
+    response.headers["X-Total-Count"] = str(total)
     return [TaskResponse.model_validate(t) for t in tasks]
 
 
@@ -302,7 +308,7 @@ async def export_tasks_csv(
     service: TaskService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
-    tasks = await service.list_for_list(list_id, user_id=current_user.id)
+    tasks, _ = await service.list_for_list(list_id, user_id=current_user.id)
 
     list_repo = ListRepository(session)
     statuses = await list_repo.list_statuses(list_id)

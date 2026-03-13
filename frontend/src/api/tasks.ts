@@ -54,6 +54,21 @@ export const tasksApi = {
     }
     return apiClient.get<Task[]>(`/lists/${listId}/tasks`, { params: p }).then((r) => r.data)
   },
+  listPaged: (listId: string, params: { page: number; page_size: number; status_id?: string; priority?: Priority; cf?: Record<string, string>; include_subtasks?: boolean }) => {
+    const p: Record<string, string> = { page: String(params.page), page_size: String(params.page_size) }
+    if (params.status_id) p.status_id = params.status_id
+    if (params.priority) p.priority = params.priority
+    if (params.include_subtasks) p.include_subtasks = 'true'
+    if (params.cf) {
+      for (const [fieldId, value] of Object.entries(params.cf)) {
+        if (value) p[`cf[${fieldId}]`] = value
+      }
+    }
+    return apiClient.get<Task[]>(`/lists/${listId}/tasks`, { params: p }).then((r) => ({
+      items: r.data,
+      total: parseInt(r.headers['x-total-count'] ?? '0', 10),
+    }))
+  },
   get: (id: string) => apiClient.get<Task>(`/tasks/${id}`).then((r) => r.data),
   create: (listId: string, data: CreateTaskData) =>
     apiClient.post<Task>(`/lists/${listId}/tasks`, data).then((r) => r.data),
