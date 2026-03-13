@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from app.models.task import Priority
 
@@ -95,6 +95,28 @@ class UpdateTaskRequest(BaseModel):
             reviewer_id=self.reviewer_id if 'reviewer_id' in self.model_fields_set else _UNSET,
             due_date=self.due_date,
         )
+
+
+# --- Bulk Operation Schemas ---
+
+class BulkUpdateRequest(BaseModel):
+    task_ids: list[UUID]
+    status_id: UUID | None = None
+    priority: Priority | None = None
+
+    @model_validator(mode='after')
+    def at_least_one_field(self) -> 'BulkUpdateRequest':
+        if self.status_id is None and self.priority is None:
+            raise ValueError("At least one of status_id or priority must be set")
+        return self
+
+
+class BulkDeleteRequest(BaseModel):
+    task_ids: list[UUID]
+
+
+class BulkOperationResponse(BaseModel):
+    updated: int
 
 
 # --- Response Schemas ---

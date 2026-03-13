@@ -124,6 +124,28 @@ class TaskService:
         await self._require_workspace_member(workspace_id, user_id)
         return await self.repo.list_my_tasks(workspace_id, user_id, status_id, priority)
 
+    async def search(self, workspace_id: UUID, q: str, actor_id: UUID) -> list[Task]:
+        await self._require_workspace_member(workspace_id, actor_id)
+        return await self.repo.search(workspace_id, q)
+
+    async def bulk_update(self, task_ids: list[UUID], status_id: UUID | None, priority: str | None, actor_id: UUID) -> int:
+        if not task_ids:
+            raise HTTPException(422, "task_ids cannot be empty")
+        task = await self.repo.get_by_id(task_ids[0])
+        if not task:
+            raise HTTPException(404, "Task not found")
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        return await self.repo.bulk_update(task_ids, status_id, priority)
+
+    async def bulk_delete(self, task_ids: list[UUID], actor_id: UUID) -> int:
+        if not task_ids:
+            raise HTTPException(422, "task_ids cannot be empty")
+        task = await self.repo.get_by_id(task_ids[0])
+        if not task:
+            raise HTTPException(404, "Task not found")
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        return await self.repo.bulk_soft_delete(task_ids)
+
     async def _require_workspace_member(self, workspace_id: UUID, user_id: UUID) -> None:
         member = await self.workspace_repo.get_member(workspace_id, user_id)
         if not member:

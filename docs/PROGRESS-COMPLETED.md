@@ -243,3 +243,27 @@ _Completed: 2026-03-13_
 - [x] `TaskDetailPage.tsx` full redesign — 2-column layout: left (borderless title, description textarea with border, tabbed card Subtasks/Dependencies/Links/Fields, Comments, History); right sidebar `w-64` (Status pills, Priority pills with color dots, Assignees, Reviewer)
 - [x] `ListPage.tsx` filter bar redesign — pill-shaped `FilterSelect` component (`appearance-none` + custom chevron), active violet highlight, ✕ Clear button
 - [x] `docs/FRONTEND.md` updated — TaskDetailPage layout, ListPage filter bar, WorkspaceMember management, Dev login sections; corrected TaskLinks + ActivityTimeline descriptions
+
+---
+
+## Phase 8 — Workload View, Full-Text Search, Bulk Ops, Export, Analytics
+_Completed: 2026-03-13_
+
+### Backend
+- [x] **Export CSV**: `GET /lists/{id}/tasks/export` — streams CSV with id/title/status/priority/assignees/created_at columns; resolves status names and assignee display names inline; no new migration
+- [x] **Full-text search**: `TaskRepository.search()` — ILIKE on title + description; `GET /workspaces/{id}/search?q=` returns `list[TaskResponse]`; empty/short query returns `[]`; workspace-member gated
+- [x] **Bulk update**: `POST /tasks/bulk-update` — `BulkUpdateRequest` (task_ids + optional status_id/priority, at least one required); `TaskRepository.bulk_update()` uses `update().where(Task.id.in_(ids))`
+- [x] **Bulk delete**: `POST /tasks/bulk-delete` — `TaskRepository.bulk_soft_delete()` sets `deleted_at` for all matched IDs
+- [x] **Analytics**: `GET /workspaces/{id}/analytics` — total task count, overdue count (due_date < now Asia/Taipei), tasks grouped by status with resolved names; returns `AnalyticsResponse`
+- [x] **Workload view**: `GET /workspaces/{id}/workload` — per-member open task list; returns `list[MemberWorkloadResponse]` with `user_id`, `display_name`, `open_task_count`, `tasks`
+- [x] 19 tests across `test_export.py`, `test_search.py`, `test_bulk.py`, `test_analytics.py`, `test_workload.py` — all passing
+
+### Frontend
+- [x] `api/tasks.ts` — added `exportCsv(listId)` (blob download), `search(workspaceId, q)`, `bulkUpdate(taskIds, data)`, `bulkDelete(taskIds)`
+- [x] `api/workspaces.ts` — added `getAnalytics`, `getWorkload`; `useAnalytics`, `useWorkload` hooks; `AnalyticsResponse`, `MemberWorkloadResponse` types
+- [x] `components/GlobalSearch.tsx` — debounced search input (300ms), dropdown overlay with results, Escape/click-outside to close, navigates to `/tasks/:id`
+- [x] `views/workspace/AnalyticsPage.tsx` — stat cards (total, overdue, status count), CSS bar chart for tasks-by-status breakdown
+- [x] `views/workspace/WorkloadPage.tsx` — per-member cards with avatar, task count badge, collapsible task list
+- [x] `views/list/ListPage.tsx` — checkbox column, `selectedIds` state, sticky bulk action bar (status/priority selects + Delete), "⬇ Export CSV" button
+- [x] `views/project/ProjectPage.tsx` — added "Analytics" + "Workload" nav links; embedded `<GlobalSearch>`
+- [x] Router — added `/workspaces/:id/analytics` and `/workspaces/:id/workload` routes

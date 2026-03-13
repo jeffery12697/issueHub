@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
+import type { Task } from './tasks'
 
 export type Workspace = {
   id: string
@@ -10,6 +11,25 @@ export type Member = {
   user_id: string
   display_name: string
   role: 'owner' | 'admin' | 'member' | 'guest'
+}
+
+export type StatusCount = {
+  status_id: string | null
+  status_name: string | null
+  count: number
+}
+
+export type AnalyticsResponse = {
+  total_tasks: number
+  overdue_tasks: number
+  tasks_by_status: StatusCount[]
+}
+
+export type MemberWorkloadResponse = {
+  user_id: string
+  display_name: string
+  open_task_count: number
+  tasks: Task[]
 }
 
 export type UserSearchResult = {
@@ -33,6 +53,10 @@ export const workspacesApi = {
     apiClient.delete(`/workspaces/${id}/members/${userId}`),
   searchUser: (email: string) =>
     apiClient.get<UserSearchResult | null>('/auth/users/search', { params: { email } }).then((r) => r.data),
+  getAnalytics: (workspaceId: string) =>
+    apiClient.get<AnalyticsResponse>(`/workspaces/${workspaceId}/analytics`).then((r) => r.data),
+  getWorkload: (workspaceId: string) =>
+    apiClient.get<MemberWorkloadResponse[]>(`/workspaces/${workspaceId}/workload`).then((r) => r.data),
 }
 
 export function useWorkspaceMembers(workspaceId: string | undefined) {
@@ -66,5 +90,21 @@ export function useRemoveMember(workspaceId: string) {
   return useMutation({
     mutationFn: (userId: string) => workspacesApi.removeMember(workspaceId, userId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace-members', workspaceId] }),
+  })
+}
+
+export function useAnalytics(workspaceId: string | undefined) {
+  return useQuery({
+    queryKey: ['analytics', workspaceId],
+    queryFn: () => workspacesApi.getAnalytics(workspaceId!),
+    enabled: !!workspaceId,
+  })
+}
+
+export function useWorkload(workspaceId: string | undefined) {
+  return useQuery({
+    queryKey: ['workload', workspaceId],
+    queryFn: () => workspacesApi.getWorkload(workspaceId!),
+    enabled: !!workspaceId,
   })
 }

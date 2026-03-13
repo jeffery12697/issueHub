@@ -14,6 +14,9 @@ from app.features.workspaces.schemas import (
     UpdateMemberRoleRequest,
     WorkspaceResponse,
     MemberResponse,
+    AnalyticsResponse,
+    StatusCount,
+    MemberWorkloadResponse,
 )
 from app.models.user import User
 
@@ -142,3 +145,86 @@ async def remove_member(
 ):
     await service.remove_member(workspace_id, user_id, actor_id=current_user.id)
     await session.commit()
+
+
+@router.get("/{workspace_id}/analytics", response_model=AnalyticsResponse)
+async def get_analytics(
+    workspace_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    from app.features.tasks.repository import TaskRepository
+    from app.features.lists.repository import ListRepository
+
+    workspace_repo = WorkspaceRepository(session)
+    member = await workspace_repo.get_member(workspace_id, current_user.id)
+    if not member:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Not a workspace member")
+
+    task_repo = TaskRepository(session)
+    list_repo = ListRepository(session)
+
+    data = await task_repo.analytics_for_workspace(workspace_id)
+
+    # Resolve status names
+    status_ids = [row["status_id"] for row in data["by_status"] if row["status_id"] is not None]
+    status_name_map: dict = {}
+    for sid in status_ids:
+        s = await list_repo.get_status_by_id(sid)
+        if s:
+            status_name_map[str(sid)] = s.name
+
+    tasks_by_status = [
+        StatusCount(
+            status_id=row["status_id"],
+            status_name=status_name_map.get(str(row["status_id"])) if row["status_id"] else None,
+            count=row["count"],
+        )
+        for row in data["by_status"]
+    ]
+
+    return AnalyticsResponse(
+        total_tasks=data["total"],
+        overdue_tasks=data["overdue"],
+        tasks_by_status=tasks_by_status,
+    )
+
+
+@router.get("/{workspace_id}/workload", response_model=list[MemberWorkloadResponse])
+async def get_workload(
+    workspace_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    from sqlalchemy import select
+    from app.models.workspace import WorkspaceMember
+    from app.models.user import User as UserModel
+    from app.features.tasks.repository import TaskRepository
+    from app.features.tasks.schemas import TaskResponse
+
+    workspace_repo = WorkspaceRepository(session)
+    member = await workspace_repo.get_member(workspace_id, current_user.id)
+    if not member:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Not a workspace member")
+
+    # Get members with display names
+    result = await session.execute(
+        select(UserModel.id, UserModel.display_name)
+        .join(WorkspaceMember, WorkspaceMember.user_id == UserModel.id)
+        .where(WorkspaceMember.workspace_id == workspace_id)
+    )
+    members = result.all()
+
+    task_repo = TaskRepository(session)
+    workload = []
+    for row in members:
+        tasks = await task_repo.list_my_tasks(workspace_id, row.id)
+        workload.append(MemberWorkloadResponse(
+            user_id=row.id,
+            display_name=row.display_name,
+            open_task_count=len(tasks),
+            tasks=[TaskResponse.model_validate(t) for t in tasks],
+        ))
+    return workload

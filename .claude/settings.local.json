@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(cd \"/c/Users/Jeffery Huang/Documents/issueHub/backend\" && python -m pytest tests/test_notifications.py -p no:randomly -s 2>&1 | cat; echo \"DONE\")",
+      "Bash(python -m pytest tests/test_notifications.py --tb=long)",
+      "Bash(tee /tmp/test_output.txt)",
+      "Read(//tmp/**)",
+      "Bash(cd \"/c/Users/Jeffery Huang/Documents/issueHub/backend\" && python -c \"import pytest; print\\(pytest.__version__\\)\")",
+      "Bash(docker ps:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/Jeffery Huang/Documents/issueHub/**)",
+      "Bash(done)"
     ]
   }
 }

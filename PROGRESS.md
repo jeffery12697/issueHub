@@ -12,11 +12,11 @@
 | **Phase 5** | ✅ Done | M-05, M-06, M-08 | Multi-assignee, reviewer, My Tasks page |
 | **Phase 6** | ✅ Done | C-04, C-05, A-04 | Custom field filtering, role-based field visibility, task links |
 | **Phase 7** | ✅ Done | M-01, M-03, M-04 | Teams, team roles, list visibility by team |
-| **Phase 8** | ⏳ Not Started | M-07 | Workload view, full-text search, bulk ops, export, analytics |
+| **Phase 8** | ✅ Done | M-07 | Workload view, full-text search, bulk ops, export, analytics |
 | **Later** | ⏳ Deferred | M-02 | Email invite flow — needs SMTP infra, do when deploying for real users |
 
 ## Currently Working On
-- Nothing — Phase 7 complete, ready for Phase 8
+- Nothing — Phase 8 complete, all phases done
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

@@ -1,6 +1,9 @@
+import csv
+import io
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
@@ -9,6 +12,9 @@ from app.core.pubsub import publish_task_event, publish_list_event
 from app.features.tasks.repository import TaskRepository
 from app.features.tasks.service import TaskService
 from app.features.tasks.schemas import (
+    BulkUpdateRequest,
+    BulkDeleteRequest,
+    BulkOperationResponse,
     CreateTaskRequest,
     UpdateTaskRequest,
     TaskResponse,
@@ -182,3 +188,88 @@ async def delete_task(
 ):
     await service.delete(task_id, actor_id=current_user.id)
     await session.commit()
+
+
+@router.get("/lists/{list_id}/tasks/export")
+async def export_tasks_csv(
+    list_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    tasks = await service.list_for_list(list_id, user_id=current_user.id)
+
+    list_repo = ListRepository(session)
+    statuses = await list_repo.list_statuses(list_id)
+    status_map = {str(s.id): s.name for s in statuses}
+
+    # Resolve workspace_id from first task (or list)
+    workspace_repo = WorkspaceRepository(session)
+    workspace_id = tasks[0].workspace_id if tasks else None
+    member_map: dict[str, str] = {}
+    if workspace_id:
+        members = await workspace_repo.list_member_users(workspace_id)
+        member_map = {str(m.id): m.display_name for m in members}
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "title", "status", "priority", "assignees", "created_at"])
+    for task in tasks:
+        status_name = status_map.get(str(task.status_id), "") if task.status_id else ""
+        assignees = ", ".join(member_map.get(str(aid), str(aid)) for aid in task.assignee_ids)
+        writer.writerow([
+            str(task.id),
+            task.title,
+            status_name,
+            task.priority.value if hasattr(task.priority, "value") else str(task.priority),
+            assignees,
+            task.created_at.isoformat() if task.created_at else "",
+        ])
+    csv_str = output.getvalue()
+    return StreamingResponse(
+        iter([csv_str]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=tasks.csv"},
+    )
+
+
+@router.get("/workspaces/{workspace_id}/search", response_model=list[TaskResponse])
+async def search_tasks(
+    workspace_id: UUID,
+    q: str = "",
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+):
+    if len(q) < 2:
+        return []
+    tasks = await service.search(workspace_id, q, actor_id=current_user.id)
+    return [TaskResponse.model_validate(t) for t in tasks]
+
+
+@router.post("/tasks/bulk-update", response_model=BulkOperationResponse)
+async def bulk_update_tasks(
+    body: BulkUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    updated = await service.bulk_update(
+        task_ids=body.task_ids,
+        status_id=body.status_id,
+        priority=body.priority.value if body.priority else None,
+        actor_id=current_user.id,
+    )
+    await session.commit()
+    return BulkOperationResponse(updated=updated)
+
+
+@router.post("/tasks/bulk-delete", response_model=BulkOperationResponse)
+async def bulk_delete_tasks(
+    body: BulkDeleteRequest,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    updated = await service.bulk_delete(task_ids=body.task_ids, actor_id=current_user.id)
+    await session.commit()
+    return BulkOperationResponse(updated=updated)

@@ -1,6 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy_utils.types.ltree import Ltree
 
@@ -181,3 +182,74 @@ class TaskRepository:
     async def soft_delete(self, task: Task) -> None:
         task.soft_delete()
         await self.session.flush()
+
+    async def search(self, workspace_id: UUID, q: str, limit: int = 50) -> list[Task]:
+        pattern = f"%{q}%"
+        result = await self.session.execute(
+            select(Task)
+            .where(Task.workspace_id == workspace_id)
+            .where(Task.deleted_at.is_(None))
+            .where(
+                (Task.title.ilike(pattern)) | (Task.description.ilike(pattern))
+            )
+            .order_by(Task.created_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
+    async def bulk_update(self, task_ids: list[UUID], status_id: UUID | None, priority: str | None) -> int:
+        values: dict = {}
+        if status_id is not None:
+            values["status_id"] = status_id
+        if priority is not None:
+            values["priority"] = priority
+        if not values:
+            return 0
+        result = await self.session.execute(
+            update(Task)
+            .where(Task.id.in_(task_ids))
+            .where(Task.deleted_at.is_(None))
+            .values(**values)
+        )
+        await self.session.flush()
+        return result.rowcount
+
+    async def bulk_soft_delete(self, task_ids: list[UUID]) -> int:
+        result = await self.session.execute(
+            update(Task)
+            .where(Task.id.in_(task_ids))
+            .where(Task.deleted_at.is_(None))
+            .values(deleted_at=datetime.utcnow())
+        )
+        await self.session.flush()
+        return result.rowcount
+
+    async def analytics_for_workspace(self, workspace_id: UUID) -> dict:
+        from sqlalchemy import text as sa_text
+
+        total_result = await self.session.execute(
+            select(func.count())
+            .select_from(Task)
+            .where(Task.workspace_id == workspace_id)
+            .where(Task.deleted_at.is_(None))
+        )
+        total = total_result.scalar_one()
+
+        overdue_result = await self.session.execute(
+            select(func.count())
+            .select_from(Task)
+            .where(Task.workspace_id == workspace_id)
+            .where(Task.deleted_at.is_(None))
+            .where(Task.due_date < func.now())
+        )
+        overdue = overdue_result.scalar_one()
+
+        by_status_result = await self.session.execute(
+            select(Task.status_id, func.count().label("count"))
+            .where(Task.workspace_id == workspace_id)
+            .where(Task.deleted_at.is_(None))
+            .group_by(Task.status_id)
+        )
+        by_status = [{"status_id": row.status_id, "count": row.count} for row in by_status_result.all()]
+
+        return {"total": total, "overdue": overdue, "by_status": by_status}

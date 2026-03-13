@@ -89,3 +89,22 @@ class MemberResponse(BaseModel):
     user_id: UUID
     display_name: str
     role: WorkspaceRole
+
+
+class StatusCount(BaseModel):
+    status_id: UUID | None
+    status_name: str | None
+    count: int
+
+
+class AnalyticsResponse(BaseModel):
+    total_tasks: int
+    overdue_tasks: int
+    tasks_by_status: list[StatusCount]
+
+
+class MemberWorkloadResponse(BaseModel):
+    user_id: UUID
+    display_name: str
+    open_task_count: int
+    tasks: list

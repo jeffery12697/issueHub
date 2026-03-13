@@ -63,6 +63,23 @@ export const tasksApi = {
     apiClient.post<Task>(`/tasks/${taskId}/subtasks`, data).then((r) => r.data),
   myTasks: (workspaceId: string, params?: { status_id?: string; priority?: Priority }) =>
     apiClient.get<Task[]>(`/workspaces/${workspaceId}/me/tasks`, { params }).then((r) => r.data),
+  exportCsv: async (listId: string): Promise<void> => {
+    const r = await apiClient.get(`/lists/${listId}/tasks/export`, { responseType: 'blob' })
+    const url = URL.createObjectURL(r.data as Blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'tasks.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  },
+  search: (workspaceId: string, q: string) =>
+    apiClient.get<Task[]>(`/workspaces/${workspaceId}/search`, { params: { q } }).then((r) => r.data),
+  bulkUpdate: (taskIds: string[], data: { status_id?: string; priority?: string }) =>
+    apiClient.post<{ updated: number }>('/tasks/bulk-update', { task_ids: taskIds, ...data }).then((r) => r.data),
+  bulkDelete: (taskIds: string[]) =>
+    apiClient.post<{ updated: number }>('/tasks/bulk-delete', { task_ids: taskIds }).then((r) => r.data),
 }
 
 export function useMyTasks(workspaceId: string | undefined) {

@@ -7,6 +7,7 @@ import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
+import toast from 'react-hot-toast'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -35,6 +36,7 @@ export default function ListPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState<Priority | ''>('')
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks', listId, statusFilter, priorityFilter, cfFilters],
@@ -57,6 +59,25 @@ export default function ListPage() {
   const deleteTask = useMutation({
     mutationFn: tasksApi.delete,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
+  })
+
+  const bulkUpdate = useMutation({
+    mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string } }) =>
+      tasksApi.bulkUpdate(taskIds, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks', listId] })
+      setSelectedIds(new Set())
+    },
+    onError: () => toast.error('Bulk update failed'),
+  })
+
+  const bulkDelete = useMutation({
+    mutationFn: (taskIds: string[]) => tasksApi.bulkDelete(taskIds),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks', listId] })
+      setSelectedIds(new Set())
+    },
+    onError: () => toast.error('Bulk delete failed'),
   })
 
   const { data: fieldDefs = [] } = useFieldDefinitions(listId)
@@ -97,13 +118,68 @@ export default function ListPage() {
       <main className="max-w-5xl mx-auto py-8 px-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-900">{list?.name}</h2>
-          <button
-            onClick={() => setCreating(true)}
-            className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
-          >
-            + New task
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => tasksApi.exportCsv(listId!)}
+              className="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+            >
+              ⬇ Export CSV
+            </button>
+            <button
+              onClick={() => setCreating(true)}
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            >
+              + New task
+            </button>
+          </div>
         </div>
+
+        {selectedIds.size > 0 && (
+          <div className="mb-4 flex items-center gap-3 bg-violet-50 border border-violet-200 rounded-xl px-4 py-2.5">
+            <span className="text-xs font-semibold text-violet-700">{selectedIds.size} selected</span>
+            <div className="w-px h-4 bg-violet-200" />
+            <select
+              className="h-7 text-xs border border-violet-300 rounded-md px-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { status_id: e.target.value } })
+                  e.target.value = ''
+                }
+              }}
+            >
+              <option value="" disabled>Set status…</option>
+              {(list?.statuses ?? []).map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <select
+              className="h-7 text-xs border border-violet-300 rounded-md px-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { priority: e.target.value } })
+                  e.target.value = ''
+                }
+              }}
+            >
+              <option value="" disabled>Set priority…</option>
+              {(['none', 'low', 'medium', 'high', 'urgent'] as Priority[]).map((p) => (
+                <option key={p} value={p} className="capitalize">{p}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => {
+                if (window.confirm(`Delete ${selectedIds.size} task(s)?`)) {
+                  bulkDelete.mutate(Array.from(selectedIds))
+                }
+              }}
+              className="h-7 px-3 text-xs bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-100 transition-colors font-medium"
+            >
+              Delete
+            </button>
+          </div>
+        )}
 
         <div className="mb-5 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-slate-400 font-medium shrink-0">Filter</span>
@@ -219,6 +295,20 @@ export default function ListPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
+                  <th className="px-4 py-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={tasks.length > 0 && selectedIds.size === tasks.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(new Set(tasks.map((t) => t.id)))
+                        } else {
+                          setSelectedIds(new Set())
+                        }
+                      }}
+                      className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                    />
+                  </th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Priority</th>
@@ -229,7 +319,20 @@ export default function ListPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {tasks.map((task: Task) => (
-                  <tr key={task.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''}`}>
+                    <td className="px-4 py-3 w-8">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(task.id)}
+                        onChange={(e) => {
+                          const next = new Set(selectedIds)
+                          if (e.target.checked) next.add(task.id)
+                          else next.delete(task.id)
+                          setSelectedIds(next)
+                        }}
+                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => navigate(`/tasks/${task.id}`)}
