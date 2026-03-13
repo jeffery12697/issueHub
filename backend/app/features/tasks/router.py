@@ -96,6 +96,7 @@ async def list_tasks(
     status_id: UUID | None = None,
     priority: Priority | None = None,
     assignee_id: UUID | None = None,
+    include_subtasks: bool = False,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
@@ -116,6 +117,7 @@ async def list_tasks(
         priority=priority,
         assignee_id=assignee_id,
         cf_filters=cf_filters if cf_filters else None,
+        include_subtasks=include_subtasks,
     )
     return [TaskResponse.model_validate(t) for t in tasks]
 

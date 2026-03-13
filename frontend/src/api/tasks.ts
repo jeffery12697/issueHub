@@ -41,11 +41,12 @@ export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id'>> & {
 }
 
 export const tasksApi = {
-  list: (listId: string, params?: { status_id?: string; priority?: Priority; assignee_id?: string; cf?: Record<string, string> }) => {
+  list: (listId: string, params?: { status_id?: string; priority?: Priority; assignee_id?: string; cf?: Record<string, string>; include_subtasks?: boolean }) => {
     const p: Record<string, string> = {}
     if (params?.status_id) p.status_id = params.status_id
     if (params?.priority) p.priority = params.priority
     if (params?.assignee_id) p.assignee_id = params.assignee_id
+    if (params?.include_subtasks) p.include_subtasks = 'true'
     if (params?.cf) {
       for (const [fieldId, value] of Object.entries(params.cf)) {
         if (value) p[`cf[${fieldId}]`] = value

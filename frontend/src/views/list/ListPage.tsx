@@ -39,14 +39,40 @@ export default function ListPage() {
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: allTasks = [], isLoading } = useQuery({
     queryKey: ['tasks', listId, statusFilter, priorityFilter, cfFilters],
     queryFn: () => tasksApi.list(listId!, {
       status_id: statusFilter || undefined,
       priority: (priorityFilter as Priority) || undefined,
       cf: cfFilters,
+      include_subtasks: true,
     }),
   })
+
+  // Group: parent tasks in order, each followed by its subtasks
+  const tasks = (() => {
+    const taskMap = Object.fromEntries(allTasks.map((t) => [t.id, t]))
+    const subtasksByParent: Record<string, Task[]> = {}
+    allTasks.filter((t) => t.parent_task_id).forEach((t) => {
+      if (!subtasksByParent[t.parent_task_id!]) subtasksByParent[t.parent_task_id!] = []
+      subtasksByParent[t.parent_task_id!].push(t)
+    })
+    const result: Task[] = []
+    for (const t of allTasks.filter((t) => !t.parent_task_id)) {
+      result.push(t)
+      if (subtasksByParent[t.id]) result.push(...subtasksByParent[t.id])
+    }
+    // Orphaned subtasks (parent filtered out) — append at end
+    const listedParentIds = new Set(allTasks.filter((t) => !t.parent_task_id).map((t) => t.id))
+    for (const t of allTasks.filter((t) => t.parent_task_id)) {
+      if (!listedParentIds.has(t.parent_task_id!)) result.push(t)
+    }
+    return { sorted: result, taskMap }
+  })()
+
+  const { sorted: sortedTasks, taskMap } = tasks
+  const parentCount = allTasks.filter((t) => !t.parent_task_id).length
+  const subtaskCount = allTasks.filter((t) => !!t.parent_task_id).length
 
   const createTask = useMutation({
     mutationFn: (title: string) => tasksApi.create(listId!, { title }),
@@ -82,7 +108,7 @@ export default function ListPage() {
   })
 
   const { data: fieldDefs = [] } = useFieldDefinitions(listId)
-  const workspaceId = tasks[0]?.workspace_id
+  const workspaceId = allTasks[0]?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
@@ -120,7 +146,10 @@ export default function ListPage() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">{list?.name}</h2>
-            <p className="text-sm text-slate-400 mt-0.5">{tasks.length} task{tasks.length === 1 ? '' : 's'}</p>
+            <p className="text-sm text-slate-400 mt-0.5">
+              {parentCount} task{parentCount === 1 ? '' : 's'}
+              {subtaskCount > 0 && <span> · {subtaskCount} subtask{subtaskCount === 1 ? '' : 's'}</span>}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -288,7 +317,7 @@ export default function ListPage() {
 
         {isLoading ? (
           <p className="text-slate-400 text-sm">Loading...</p>
-        ) : tasks.length === 0 ? (
+        ) : allTasks.length === 0 ? (
           <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
             <p className="text-slate-700 font-medium mb-1">No tasks yet</p>
             <p className="text-slate-400 text-sm mb-4">Create your first task to get started.</p>
@@ -305,10 +334,10 @@ export default function ListPage() {
                   <th className="px-4 py-3.5 w-10">
                     <input
                       type="checkbox"
-                      checked={tasks.length > 0 && selectedIds.size === tasks.length}
+                      checked={allTasks.length > 0 && selectedIds.size === allTasks.length}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedIds(new Set(tasks.map((t) => t.id)))
+                          setSelectedIds(new Set(allTasks.map((t) => t.id)))
                         } else {
                           setSelectedIds(new Set())
                         }
@@ -326,9 +355,12 @@ export default function ListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {tasks.map((task: Task) => (
-                  <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''}`}>
-                    <td className="px-4 py-4 w-10">
+                {sortedTasks.map((task: Task) => {
+                  const isSubtask = !!task.parent_task_id
+                  const parentTask = isSubtask ? taskMap[task.parent_task_id!] : null
+                  return (
+                  <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''} ${isSubtask ? 'bg-slate-50/60' : ''}`}>
+                    <td className="px-4 py-3 w-10">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(task.id)}
@@ -341,15 +373,26 @@ export default function ListPage() {
                         className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                       />
                     </td>
-                    <td className="px-4 py-4">
+                    <td className={`px-4 py-3 ${isSubtask ? 'pl-10' : ''}`}>
+                      {isSubtask && (
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span className="text-slate-300 text-xs">↳</span>
+                          <button
+                            onClick={() => navigate(`/tasks/${task.parent_task_id}`)}
+                            className="text-xs text-slate-400 hover:text-violet-500 transition-colors truncate max-w-[180px]"
+                          >
+                            {parentTask?.title ?? 'Parent task'}
+                          </button>
+                        </div>
+                      )}
                       <button
                         onClick={() => navigate(`/tasks/${task.id}`)}
-                        className="text-left font-semibold text-slate-800 hover:text-violet-600 transition-colors text-base"
+                        className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
                       >
                         {task.title}
                       </button>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3">
                       {task.status_id && statusMap[task.status_id] ? (
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
@@ -361,7 +404,7 @@ export default function ListPage() {
                         <span className="text-slate-300 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3">
                       <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
                         <span
                           className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
@@ -370,20 +413,20 @@ export default function ListPage() {
                         {task.priority === 'none' ? '—' : task.priority}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3">
                       <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3">
                       {task.reviewer_id && memberMap[task.reviewer_id] ? (
                         <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
                       ) : (
                         <span className="text-slate-300 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-3">
                       <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
                     </td>
-                    <td className="px-4 py-4 text-right">
+                    <td className="px-4 py-3 text-right">
                       <DeleteButton
                         variant="icon"
                         message={`Delete "${task.title}"? This cannot be undone.`}
@@ -391,7 +434,8 @@ export default function ListPage() {
                       />
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>

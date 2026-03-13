@@ -72,6 +72,7 @@ class TaskRepository:
         priority: Priority | None = None,
         assignee_id: UUID | None = None,
         cf_filters: dict[UUID, str] | None = None,
+        include_subtasks: bool = False,
     ) -> list[Task]:
         from sqlalchemy import or_, any_
         from app.models.custom_field import CustomFieldValue
@@ -79,8 +80,9 @@ class TaskRepository:
             select(Task)
             .where(Task.list_id == list_id)
             .where(Task.deleted_at.is_(None))
-            .where(Task.parent_task_id.is_(None))
         )
+        if not include_subtasks:
+            q = q.where(Task.parent_task_id.is_(None))
         if status_id:
             q = q.where(Task.status_id == status_id)
         if priority:
