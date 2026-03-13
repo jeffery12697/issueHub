@@ -4,6 +4,7 @@ import { listsApi, type ListStatus } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useState } from 'react'
 import { useListSocket } from '@/hooks/useTaskSocket'
+import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -55,6 +56,7 @@ export default function BoardPage() {
               Board
             </span>
           </div>
+          <HeaderActions />
         </div>
       </header>
 

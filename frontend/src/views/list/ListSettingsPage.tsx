@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi, type ListStatus } from '@/api/lists'
 import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType } from '@/api/customFields'
+import HeaderActions from '@/components/HeaderActions'
 
 export default function ListSettingsPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
@@ -27,6 +28,7 @@ export default function ListSettingsPage() {
         <span className="text-sm font-medium text-slate-800">{list?.name}</span>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-500">Settings</span>
+        <div className="ml-auto"><HeaderActions /></div>
       </header>
 
       <main className="max-w-3xl mx-auto py-8 px-6">

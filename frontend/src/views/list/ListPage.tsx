@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useListSocket } from '@/hooks/useTaskSocket'
+import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -73,6 +74,7 @@ export default function ListPage() {
               Board
             </Link>
           </div>
+          <HeaderActions />
         </div>
       </header>
 

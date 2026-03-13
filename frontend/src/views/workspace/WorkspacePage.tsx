@@ -3,9 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { workspacesApi, type Workspace } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
+import HeaderActions from '@/components/HeaderActions'
 
 export default function WorkspacePage() {
-  const { user, logout } = useAuthStore()
+  const { user } = useAuthStore()
   const qc = useQueryClient()
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
@@ -45,12 +46,7 @@ export default function WorkspacePage() {
           <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-semibold">
             {initials}
           </div>
-          <button
-            onClick={logout}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            Sign out
-          </button>
+          <HeaderActions />
         </div>
       </header>
 

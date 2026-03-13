@@ -10,6 +10,7 @@ import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinit
 import { useAuthStore } from '@/store/authStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers } from '@/api/workspaces'
+import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -156,6 +157,7 @@ export default function TaskDetailPage() {
         >
           Delete
         </button>
+        <HeaderActions />
       </header>
 
       <main className="max-w-6xl mx-auto py-8 px-6">

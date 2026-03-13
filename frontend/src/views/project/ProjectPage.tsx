@@ -5,6 +5,7 @@ import { workspacesApi } from '@/api/workspaces'
 import { projectsApi, type Project } from '@/api/projects'
 import { listsApi, type List } from '@/api/lists'
 import { useListTemplates, listTemplatesApi, type ListTemplate } from '@/api/listTemplates'
+import HeaderActions from '@/components/HeaderActions'
 
 export default function ProjectPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -47,6 +48,7 @@ export default function ProjectPage() {
           >
             ⚙ Templates
           </Link>
+          <HeaderActions />
         </div>
       </header>
 

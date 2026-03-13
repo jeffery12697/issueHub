@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { workspacesApi } from '@/api/workspaces'
+import HeaderActions from '@/components/HeaderActions'
 import {
   useListTemplates, useCreateTemplate, useDeleteTemplate, useUpdateTemplate,
   type ListTemplate, type TemplateStatus, type TemplateField,
@@ -56,6 +57,7 @@ export default function WorkspaceSettingsPage() {
         <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-500">Settings</span>
+        <div className="ml-auto"><HeaderActions /></div>
       </header>
 
       <main className="max-w-3xl mx-auto py-10 px-6">
