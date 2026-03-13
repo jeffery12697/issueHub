@@ -316,3 +316,10 @@ _Completed: 2026-03-13_
 
 ## Phase 11 — Simple Automation (2026-03-13)
 - **AU-03 auto-close parent** — `maybe_close_parent()` in tasks router; after any subtask status update checks if all siblings have `is_complete=True`; finds first complete status in parent's list and applies it; writes `auto_closed` audit log; skips if parent already closed or list has no complete status; 5 tests passing
+
+## Post-Phase 11 Polish (2026-03-13)
+- **Subtask depth enforcement** — `create_subtask` service raises HTTP 400 if `parent.depth > 0`; test updated to assert 400
+- **Subtasks in list page** — `include_subtasks=true` param on list endpoint; ListPage groups parent tasks + their subtasks interleaved, orphaned subtasks appended at end; subtask rows indented (`pl-10`) with `↳ Parent title` clickable breadcrumb
+- **Board UI/UX redesign** — full rewrite of `BoardPage.tsx`: color accent bars, priority badge + SP badge + due date badge on cards, assignee avatar stack, subtask count; column header with color bar, SP total, colored count badge; drag-drop drop zone highlight; inline "Add task" form per column; "No Status" column; columns centered with `flex justify-center` + `min-w-max`
+- **Rich text editor** — Tiptap editor (`RichTextEditor.tsx`) with full toolbar (Bold, Italic, Underline, Strike, Code, H1/H2/H3, Bullet/Ordered/Task lists, Blockquote, Code block, HR, Undo/Redo); saves on `onBlur` (not per-keystroke); description history shows "edited" instead of raw HTML diff
+- **Task list pagination** — `list_for_list` runs count query, returns `(tasks, total)` tuple; router accepts `page`/`page_size` query params (default 0 = all, keeps BoardPage unaffected); sets `X-Total-Count` response header; CORS exposes that header; `tasksApi.listPaged()` reads header; ListPage uses page_size=50, prev/next + numbered page buttons, filter changes reset to page 1
