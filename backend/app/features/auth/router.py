@@ -65,3 +65,19 @@ async def logout(response: Response):
 @router.get("/me", response_model=UserResponse)
 async def me(current_user=Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
+
+
+@router.get("/users/search", response_model=UserResponse | None)
+async def search_user_by_email(
+    email: str,
+    _current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Look up a user by exact email — used for workspace member invite."""
+    from sqlalchemy import select
+    from app.models.user import User
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if not user:
+        return None
+    return UserResponse.model_validate(user)

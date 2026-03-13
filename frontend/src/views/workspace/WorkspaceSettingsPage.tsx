@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { workspacesApi, useWorkspaceMembers } from '@/api/workspaces'
+import { workspacesApi, useWorkspaceMembers, useInviteMember, useUpdateMemberRole, useRemoveMember } from '@/api/workspaces'
 import { useTeams, useCreateTeam, useDeleteTeam, useTeamMembers, useAddTeamMember, useRemoveTeamMember, type TeamRole } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
 import {
@@ -27,11 +27,11 @@ const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
 
 const FIELD_TYPES: TemplateField['field_type'][] = ['text', 'number', 'date', 'dropdown', 'checkbox', 'url']
 
-type ActiveTab = 'templates' | 'teams'
+type ActiveTab = 'members' | 'templates' | 'teams'
 
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
-  const [activeTab, setActiveTab] = useState<ActiveTab>('templates')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('members')
 
   const { data: workspace } = useQuery({
     queryKey: ['workspace', workspaceId],
@@ -67,27 +67,25 @@ export default function WorkspaceSettingsPage() {
       <main className="max-w-3xl mx-auto py-10 px-6">
         {/* Tab bar */}
         <div className="flex items-center gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('templates')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === 'templates'
-                ? 'bg-violet-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Templates
-          </button>
-          <button
-            onClick={() => setActiveTab('teams')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === 'teams'
-                ? 'bg-violet-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Teams
-          </button>
+          {(['members', 'teams', 'templates'] as ActiveTab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize ${
+                activeTab === tab
+                  ? 'bg-violet-600 text-white'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
+
+        {/* Members tab */}
+        {activeTab === 'members' && workspaceId && (
+          <MembersTab workspaceId={workspaceId} />
+        )}
 
         {/* Templates tab */}
         {activeTab === 'templates' && (
@@ -178,6 +176,139 @@ export default function WorkspaceSettingsPage() {
           <TeamsTab workspaceId={workspaceId} />
         )}
       </main>
+    </div>
+  )
+}
+
+// ── Members Tab ──────────────────────────────────────────────────────────────
+
+const WORKSPACE_ROLES = ['member', 'admin', 'owner']
+
+function MembersTab({ workspaceId }: { workspaceId: string }) {
+  const { data: members = [] } = useWorkspaceMembers(workspaceId)
+  const inviteMember = useInviteMember(workspaceId)
+  const updateRole = useUpdateMemberRole(workspaceId)
+  const removeMember = useRemoveMember(workspaceId)
+
+  const [searchEmail, setSearchEmail] = useState('')
+  const [searchResult, setSearchResult] = useState<{ id: string; email: string; display_name: string } | null | undefined>(undefined)
+  const [inviteRole, setInviteRole] = useState('member')
+  const [searching, setSearching] = useState(false)
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchEmail.trim()) return
+    setSearching(true)
+    setSearchResult(undefined)
+    try {
+      const result = await workspacesApi.searchUser(searchEmail.trim())
+      setSearchResult(result)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const handleInvite = () => {
+    if (!searchResult) return
+    inviteMember.mutate(
+      { user_id: searchResult.id, role: inviteRole },
+      { onSuccess: () => { setSearchEmail(''); setSearchResult(undefined) } }
+    )
+  }
+
+  const alreadyMember = searchResult
+    ? members.some((m) => m.user_id === searchResult.id)
+    : false
+
+  return (
+    <div className="space-y-6">
+      {/* Add member by email */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Add Member</p>
+        <form onSubmit={handleSearch} className="flex gap-2 mb-3">
+          <input
+            type="email"
+            value={searchEmail}
+            onChange={(e) => { setSearchEmail(e.target.value); setSearchResult(undefined) }}
+            placeholder="Search by email"
+            className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            type="submit"
+            disabled={searching}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+          >
+            {searching ? 'Searching…' : 'Search'}
+          </button>
+        </form>
+        {searchResult === null && (
+          <p className="text-sm text-red-400">No user found with that email.</p>
+        )}
+        {searchResult && (
+          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-800">{searchResult.display_name}</p>
+              <p className="text-xs text-slate-400">{searchResult.email}</p>
+            </div>
+            {alreadyMember ? (
+              <span className="text-xs text-slate-400">Already a member</span>
+            ) : (
+              <>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                  className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  {WORKSPACE_ROLES.map((r) => (
+                    <option key={r} value={r} className="capitalize">{r}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleInvite}
+                  className="bg-violet-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+                >
+                  Add
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Current members list */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          Members ({members.length})
+        </p>
+        <div className="space-y-2">
+          {members.map((m) => (
+            <div key={m.user_id} className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100">
+              <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold flex items-center justify-center shrink-0">
+                {m.display_name[0]?.toUpperCase()}
+              </div>
+              <span className="flex-1 text-sm font-medium text-slate-700">{m.display_name}</span>
+              <select
+                value={m.role}
+                onChange={(e) => updateRole.mutate({ userId: m.user_id, role: e.target.value })}
+                disabled={m.role === 'owner'}
+                className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {WORKSPACE_ROLES.map((r) => (
+                  <option key={r} value={r} className="capitalize">{r}</option>
+                ))}
+              </select>
+              {m.role !== 'owner' && (
+                <button
+                  onClick={() => removeMember.mutate(m.user_id)}
+                  className="text-xs text-slate-300 hover:text-red-400 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
