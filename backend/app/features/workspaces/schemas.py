@@ -95,11 +95,13 @@ class StatusCount(BaseModel):
     status_id: UUID | None
     status_name: str | None
     count: int
+    story_points: int = 0
 
 
 class AnalyticsResponse(BaseModel):
     total_tasks: int
     overdue_tasks: int
+    total_story_points: int
     tasks_by_status: list[StatusCount]
 
 

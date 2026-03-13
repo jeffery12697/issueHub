@@ -8,6 +8,7 @@ export default function AnalyticsPage() {
 
   const total = analytics?.total_tasks ?? 0
   const overdue = analytics?.overdue_tasks ?? 0
+  const totalSP = analytics?.total_story_points ?? 0
   const statusCount = (analytics?.tasks_by_status ?? []).length
 
   return (
@@ -25,8 +26,8 @@ export default function AnalyticsPage() {
 
         {isLoading ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
+            <div className="grid grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-white border border-slate-200 rounded-xl h-24 animate-pulse" />
               ))}
             </div>
@@ -35,7 +36,7 @@ export default function AnalyticsPage() {
         ) : (
           <>
             {/* Stat cards */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <StatCard
                 label="Total Tasks"
                 value={total}
@@ -65,6 +66,17 @@ export default function AnalyticsPage() {
                   </svg>
                 }
               />
+              <StatCard
+                label="Story Points"
+                value={totalSP}
+                accent="text-violet-600"
+                bgAccent="bg-violet-50"
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-400">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                }
+              />
             </div>
 
             {/* Tasks by status */}
@@ -86,8 +98,12 @@ export default function AnalyticsPage() {
                             <span className="text-slate-600 font-medium truncate max-w-[60%]">
                               {row.status_name ?? '(No status)'}
                             </span>
-                            <span className="text-slate-400 tabular-nums">
-                              {row.count} · {pct}%
+                            <span className="text-slate-400 tabular-nums flex items-center gap-2">
+                              {row.count} task{row.count !== 1 ? 's' : ''}
+                              {row.story_points > 0 && (
+                                <span className="text-violet-500">{row.story_points} SP</span>
+                              )}
+                              <span>{pct}%</span>
                             </span>
                           </div>
                           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">

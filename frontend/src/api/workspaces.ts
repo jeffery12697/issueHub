@@ -17,11 +17,13 @@ export type StatusCount = {
   status_id: string | null
   status_name: string | null
   count: number
+  story_points: number
 }
 
 export type AnalyticsResponse = {
   total_tasks: number
   overdue_tasks: number
+  total_story_points: number
   tasks_by_status: StatusCount[]
 }
 

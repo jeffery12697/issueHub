@@ -180,6 +180,7 @@ async def get_analytics(
             status_id=row["status_id"],
             status_name=status_name_map.get(str(row["status_id"])) if row["status_id"] else None,
             count=row["count"],
+            story_points=row["story_points"],
         )
         for row in data["by_status"]
     ]
@@ -187,6 +188,7 @@ async def get_analytics(
     return AnalyticsResponse(
         total_tasks=data["total"],
         overdue_tasks=data["overdue"],
+        total_story_points=data["total_story_points"],
         tasks_by_status=tasks_by_status,
     )
 
