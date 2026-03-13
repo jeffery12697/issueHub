@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { workspacesApi } from '@/api/workspaces'
+import { workspacesApi, useWorkspaceMembers } from '@/api/workspaces'
+import { useTeams, useCreateTeam, useDeleteTeam, useTeamMembers, useAddTeamMember, useRemoveTeamMember, type TeamRole } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
 import {
   useListTemplates, useCreateTemplate, useDeleteTemplate, useUpdateTemplate,
@@ -26,8 +27,11 @@ const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
 
 const FIELD_TYPES: TemplateField['field_type'][] = ['text', 'number', 'date', 'dropdown', 'checkbox', 'url']
 
+type ActiveTab = 'templates' | 'teams'
+
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
+  const [activeTab, setActiveTab] = useState<ActiveTab>('templates')
 
   const { data: workspace } = useQuery({
     queryKey: ['workspace', workspaceId],
@@ -61,88 +65,305 @@ export default function WorkspaceSettingsPage() {
       </header>
 
       <main className="max-w-3xl mx-auto py-10 px-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">List Templates</h2>
+        {/* Tab bar */}
+        <div className="flex items-center gap-2 mb-6">
           <button
-            onClick={() => setShowNewTemplate(true)}
-            className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            onClick={() => setActiveTab('templates')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'templates'
+                ? 'bg-violet-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
           >
-            + New template
+            Templates
+          </button>
+          <button
+            onClick={() => setActiveTab('teams')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'teams'
+                ? 'bg-violet-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Teams
           </button>
         </div>
 
-        {showNewTemplate && (
-          <form
-            className="mb-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!templateName.trim()) return
-              createTemplate.mutate(
-                { name: templateName.trim(), default_statuses: PRESET_STATUSES[templatePreset], default_custom_fields: [] },
-                {
-                  onSuccess: () => {
-                    setShowNewTemplate(false)
-                    setTemplateName('')
-                    setTemplatePreset('Basic')
-                  },
-                }
-              )
-            }}
-          >
-            <div className="flex gap-2">
-              <input
-                autoFocus
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="Template name"
-                className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-              <select
-                value={templatePreset}
-                onChange={(e) => setTemplatePreset(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        {/* Templates tab */}
+        {activeTab === 'templates' && (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-slate-900">List Templates</h2>
+              <button
+                onClick={() => setShowNewTemplate(true)}
+                className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
               >
-                {Object.keys(PRESET_STATUSES).map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                + New template
+              </button>
+            </div>
+
+            {showNewTemplate && (
+              <form
+                className="mb-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (!templateName.trim()) return
+                  createTemplate.mutate(
+                    { name: templateName.trim(), default_statuses: PRESET_STATUSES[templatePreset], default_custom_fields: [] },
+                    {
+                      onSuccess: () => {
+                        setShowNewTemplate(false)
+                        setTemplateName('')
+                        setTemplatePreset('Basic')
+                      },
+                    }
+                  )
+                }}
+              >
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    placeholder="Template name"
+                    className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                  <select
+                    value={templatePreset}
+                    onChange={(e) => setTemplatePreset(e.target.value)}
+                    className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  >
+                    {Object.keys(PRESET_STATUSES).map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewTemplate(false)}
+                    className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors"
+                  >
+                    Create
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {templates.length === 0 ? (
+              <p className="text-slate-400 text-sm">No templates yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {templates.map((t: ListTemplate) => (
+                  <TemplateCard
+                    key={t.id}
+                    template={t}
+                    onDelete={() => deleteTemplate.mutate(t.id)}
+                    onUpdate={(data) => updateTemplate.mutate({ templateId: t.id, data })}
+                  />
                 ))}
-              </select>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={() => setShowNewTemplate(false)}
-                className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors"
-              >
-                Create
-              </button>
-            </div>
-          </form>
+              </div>
+            )}
+          </>
         )}
 
-        {templates.length === 0 ? (
-          <p className="text-slate-400 text-sm">No templates yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {templates.map((t: ListTemplate) => (
-              <TemplateCard
-                key={t.id}
-                template={t}
-                onDelete={() => deleteTemplate.mutate(t.id)}
-                onUpdate={(data) => updateTemplate.mutate({ templateId: t.id, data })}
-              />
-            ))}
-          </div>
+        {/* Teams tab */}
+        {activeTab === 'teams' && workspaceId && (
+          <TeamsTab workspaceId={workspaceId} />
         )}
       </main>
     </div>
   )
 }
+
+// ── Teams Tab ────────────────────────────────────────────────────────────────
+
+function TeamsTab({ workspaceId }: { workspaceId: string }) {
+  const { data: teams = [] } = useTeams(workspaceId)
+  const createTeam = useCreateTeam(workspaceId)
+  const deleteTeam = useDeleteTeam(workspaceId)
+  const { data: wsMembers = [] } = useWorkspaceMembers(workspaceId)
+
+  const [newTeamName, setNewTeamName] = useState('')
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null)
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold text-slate-900">Teams</h2>
+      </div>
+
+      {/* Create team form */}
+      <form
+        className="mb-6 flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!newTeamName.trim()) return
+          createTeam.mutate(
+            { name: newTeamName.trim() },
+            { onSuccess: () => setNewTeamName('') }
+          )
+        }}
+      >
+        <input
+          value={newTeamName}
+          onChange={(e) => setNewTeamName(e.target.value)}
+          placeholder="New team name"
+          className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        />
+        <button
+          type="submit"
+          className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+        >
+          + Create team
+        </button>
+      </form>
+
+      {teams.length === 0 ? (
+        <p className="text-slate-400 text-sm">No teams yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {teams.map((team) => (
+            <TeamCard
+              key={team.id}
+              workspaceId={workspaceId}
+              team={team}
+              wsMembers={wsMembers}
+              expanded={expandedTeam === team.id}
+              onToggle={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}
+              onDelete={() => deleteTeam.mutate(team.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type WsMember = { user_id: string; display_name: string; role: string }
+
+function TeamCard({
+  workspaceId,
+  team,
+  wsMembers,
+  expanded,
+  onToggle,
+  onDelete,
+}: {
+  workspaceId: string
+  team: { id: string; name: string }
+  wsMembers: WsMember[]
+  expanded: boolean
+  onToggle: () => void
+  onDelete: () => void
+}) {
+  const { data: members = [] } = useTeamMembers(workspaceId, team.id)
+  const addMember = useAddTeamMember(workspaceId, team.id)
+  const removeMember = useRemoveTeamMember(workspaceId, team.id)
+
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [selectedRole, setSelectedRole] = useState<TeamRole>('team_member')
+
+  const memberUserIds = new Set(members.map((m) => m.user_id))
+  const availableMembers = wsMembers.filter((m) => !memberUserIds.has(m.user_id))
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="flex-1 text-sm font-semibold text-slate-800">{team.name}</span>
+        <span className="text-xs text-slate-400">{members.length} member{members.length !== 1 ? 's' : ''}</span>
+        <button
+          onClick={onToggle}
+          className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
+        >
+          {expanded ? 'Collapse' : 'Manage'}
+        </button>
+        <button
+          onClick={onDelete}
+          className="text-xs text-slate-300 hover:text-red-400 transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="border-t border-slate-100 px-4 py-3 space-y-3">
+          {/* Member list */}
+          {members.length === 0 ? (
+            <p className="text-xs text-slate-400">No members yet.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {members.map((m) => (
+                <div key={m.user_id} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-slate-50">
+                  <span className="flex-1 text-sm text-slate-700">{m.display_name}</span>
+                  <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                    {m.role === 'team_admin' ? 'Admin' : 'Member'}
+                  </span>
+                  <button
+                    onClick={() => removeMember.mutate(m.user_id)}
+                    className="text-xs text-slate-300 hover:text-red-400 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add member form */}
+          {availableMembers.length > 0 && (
+            <form
+              className="flex gap-2 pt-1"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!selectedUserId) return
+                addMember.mutate(
+                  { user_id: selectedUserId, role: selectedRole },
+                  { onSuccess: () => setSelectedUserId('') }
+                )
+              }}
+            >
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="flex-1 border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">Add member…</option>
+                {availableMembers.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.display_name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
+                className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="team_member">Member</option>
+                <option value="team_admin">Admin</option>
+              </select>
+              <button
+                type="submit"
+                className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+              >
+                Add
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Template management (unchanged) ─────────────────────────────────────────
 
 type EditableStatus = TemplateStatus & { _key: string }
 type EditableField = TemplateField & { _key: string }

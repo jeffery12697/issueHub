@@ -23,6 +23,11 @@ class UpdateListDTO:
 
 
 @dataclass(frozen=True)
+class SetVisibilityDTO:
+    team_ids: list[UUID]
+
+
+@dataclass(frozen=True)
 class CreateStatusDTO:
     list_id: UUID
     name: str
@@ -67,6 +72,13 @@ class UpdateListRequest(BaseModel):
 
     def to_dto(self) -> UpdateListDTO:
         return UpdateListDTO(name=self.name, description=self.description)
+
+
+class SetVisibilityRequest(BaseModel):
+    team_ids: list[UUID] = []
+
+    def to_dto(self) -> SetVisibilityDTO:
+        return SetVisibilityDTO(team_ids=self.team_ids)
 
 
 class CreateStatusRequest(BaseModel):
@@ -144,6 +156,7 @@ class ListResponse(BaseModel):
     project_id: UUID
     name: str
     description: str | None
+    team_ids: list[UUID] = []
 
     model_config = {"from_attributes": True}
 

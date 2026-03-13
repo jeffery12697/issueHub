@@ -177,3 +177,24 @@ _Completed: 2026-03-13_
 - [x] C-04 + ListPage: Status and Priority filter dropdowns added to filter bar (always visible, server-side filtering)
 - [x] Validation: only one `is_complete` status allowed per list — `PATCH /lists/{id}/statuses/{sid}` returns 422 if another Done status already exists
 - [x] Test: `test_only_one_done_status_per_list` covering conflict rejection and unset-then-remark flow
+
+## Phase 7 — Teams, Team Roles, List Visibility (M-01, M-03, M-04)
+_Completed: 2026-03-13_
+
+### Backend
+- [x] M-01/M-03: `Team` + `TeamMember` models with `SoftDeleteMixin` + `TimestampMixin` — `app/models/team.py`
+- [x] `TeamRole` enum: `team_admin`, `team_member`
+- [x] Migration 0011: creates `teams`, `team_members` tables and adds `team_ids UUID[]` to `lists`
+- [x] `app/features/teams/` module: `schemas.py`, `repository.py`, `service.py`, `router.py`
+- [x] Endpoints: POST/GET teams, DELETE team, POST/GET/DELETE team members — all under `/workspaces/{workspace_id}/teams`
+- [x] M-04: `PATCH /lists/{list_id}/visibility` — sets `team_ids` on a list (owner/admin only)
+- [x] M-04: `list_for_project` filters out restricted lists for non-admin members; workspace owner/admin bypass
+- [x] `TeamRepository.get_user_team_ids` used for visibility filtering
+- [x] Tests: `backend/tests/test_teams.py` — 9 tests covering CRUD, membership, and all 3 visibility scenarios
+
+### Frontend
+- [x] `frontend/src/api/teams.ts` — `teamsApi`, `useTeams`, `useTeamMembers`, `useCreateTeam`, `useDeleteTeam`, `useAddTeamMember`, `useRemoveTeamMember`
+- [x] `frontend/src/api/lists.ts` — added `team_ids: string[]` to `List` type; added `setVisibility` method
+- [x] `WorkspaceSettingsPage.tsx` — refactored into Templates + Teams tabs; Teams tab shows team list, create team, per-team member management (add/remove, role select)
+- [x] `ListSettingsPage.tsx` — added Visibility tab; multi-select checkboxes for teams, calls `PATCH /lists/{id}/visibility`
+- [x] `ProjectPage.tsx` — updated header link label from "⚙ Templates" to "⚙ Settings"

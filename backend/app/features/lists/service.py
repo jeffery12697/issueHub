@@ -6,6 +6,7 @@ from app.features.lists.repository import ListRepository
 from app.features.lists.schemas import (
     CreateListDTO,
     UpdateListDTO,
+    SetVisibilityDTO,
     CreateStatusDTO,
     UpdateStatusDTO,
     ReorderStatusDTO,
@@ -25,10 +26,12 @@ class ListService:
         repo: ListRepository,
         workspace_repo: WorkspaceRepository,
         project_repo: ProjectRepository,
+        team_repo=None,
     ):
         self.repo = repo
         self.workspace_repo = workspace_repo
         self.project_repo = project_repo
+        self.team_repo = team_repo
 
     async def create(self, dto: CreateListDTO) -> List:
         project = await self.project_repo.get_by_id(dto.project_id)
@@ -47,8 +50,33 @@ class ListService:
         project = await self.project_repo.get_by_id(project_id)
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
-        await self._require_workspace_member(project.workspace_id, user_id)
-        return await self.repo.list_for_project(project_id)
+        ws_member = await self.workspace_repo.get_member(project.workspace_id, user_id)
+        if not ws_member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
+
+        lists = await self.repo.list_for_project(project_id)
+
+        # Workspace owner/admin see all lists; others get filtered by team visibility
+        if ws_member.role in {WorkspaceRole.owner, WorkspaceRole.admin}:
+            return lists
+
+        # Get teams the user belongs to in this workspace
+        user_team_ids: set[UUID] = set()
+        if self.team_repo is not None:
+            user_team_ids = set(
+                await self.team_repo.get_user_team_ids(project.workspace_id, user_id)
+            )
+
+        filtered = []
+        for list_ in lists:
+            team_ids = list_.team_ids or []
+            if not team_ids:
+                # No restriction — visible to all
+                filtered.append(list_)
+            elif user_team_ids & set(team_ids):
+                # User is in at least one of the required teams
+                filtered.append(list_)
+        return filtered
 
     async def update(self, list_id: UUID, dto: UpdateListDTO, actor_id: UUID) -> List:
         list_ = await self.get_or_404(list_id)
@@ -154,6 +182,12 @@ class ListService:
             await self.repo.rebalance_statuses(list_id)
 
         return await self.repo.list_statuses(list_id)
+
+    async def set_visibility(self, list_id: UUID, dto: SetVisibilityDTO, actor_id: UUID) -> List:
+        list_ = await self.get_or_404(list_id)
+        project = await self.project_repo.get_by_id(list_.project_id)
+        await self._require_role(project.workspace_id, actor_id, {WorkspaceRole.owner, WorkspaceRole.admin})
+        return await self.repo.set_visibility(list_, dto.team_ids)
 
     async def _require_workspace_member(self, workspace_id: UUID, user_id: UUID) -> None:
         member = await self.workspace_repo.get_member(workspace_id, user_id)

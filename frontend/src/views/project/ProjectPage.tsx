@@ -52,7 +52,7 @@ export default function ProjectPage() {
             to={`/workspaces/${workspaceId}/settings`}
             className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
           >
-            ⚙ Templates
+            ⚙ Settings
           </Link>
           <HeaderActions />
         </div>

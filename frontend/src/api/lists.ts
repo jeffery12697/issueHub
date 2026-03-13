@@ -15,6 +15,7 @@ export type List = {
   project_id: string
   name: string
   description: string | null
+  team_ids: string[]
   statuses?: ListStatus[]
 }
 
@@ -27,6 +28,8 @@ export const listsApi = {
   update: (id: string, data: { name?: string; description?: string }) =>
     apiClient.patch<List>(`/lists/${id}`, data).then((r) => r.data),
   delete: (id: string) => apiClient.delete(`/lists/${id}`),
+  setVisibility: (id: string, data: { team_ids: string[] }) =>
+    apiClient.patch<List>(`/lists/${id}/visibility`, data).then((r) => r.data),
 
   // Statuses
   listStatuses: (listId: string) =>

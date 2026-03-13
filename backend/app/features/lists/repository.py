@@ -56,6 +56,11 @@ class ListRepository:
         list_.soft_delete()
         await self.session.flush()
 
+    async def set_visibility(self, list_: List, team_ids: list) -> List:
+        list_.team_ids = team_ids
+        await self.session.flush()
+        return list_
+
     # --- Status management ---
 
     async def create_status(self, dto: CreateStatusDTO) -> ListStatus:

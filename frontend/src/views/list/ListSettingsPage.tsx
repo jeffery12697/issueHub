@@ -3,11 +3,12 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi, type ListStatus } from '@/api/lists'
 import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType, type FieldDefinition } from '@/api/customFields'
+import { useTeams } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
 
 export default function ListSettingsPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
-  const [activeTab, setActiveTab] = useState<'statuses' | 'custom-fields'>('statuses')
+  const [activeTab, setActiveTab] = useState<'statuses' | 'custom-fields' | 'visibility'>('statuses')
 
   const { data: list } = useQuery({
     queryKey: ['list', listId],
@@ -53,6 +54,16 @@ export default function ListSettingsPage() {
           >
             Custom Fields
           </button>
+          <button
+            onClick={() => setActiveTab('visibility')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'visibility'
+                ? 'bg-violet-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Visibility
+          </button>
         </div>
 
         {activeTab === 'statuses' && listId && (
@@ -60,6 +71,9 @@ export default function ListSettingsPage() {
         )}
         {activeTab === 'custom-fields' && listId && (
           <CustomFieldsTab listId={listId} />
+        )}
+        {activeTab === 'visibility' && listId && list && (
+          <VisibilityTab listId={listId} currentTeamIds={list.team_ids ?? []} />
         )}
       </main>
     </div>
@@ -214,6 +228,81 @@ function StatusRow({
       >
         Delete
       </button>
+    </div>
+  )
+}
+
+function VisibilityTab({ listId, currentTeamIds }: { listId: string; currentTeamIds: string[] }) {
+  const { projectId } = useParams<{ projectId: string }>()
+  const qc = useQueryClient()
+
+  // Get workspace_id from project
+  const { data: project } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => import('@/api/projects').then((m) => m.projectsApi.get(projectId!)),
+    enabled: !!projectId,
+  })
+
+  const { data: teams = [] } = useTeams(project?.workspace_id)
+
+  const [selectedIds, setSelectedIds] = useState<string[]>(currentTeamIds)
+
+  // Keep local state in sync with prop changes
+  const toggleTeam = (teamId: string) =>
+    setSelectedIds((prev) =>
+      prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]
+    )
+
+  const saveMutation = useMutation({
+    mutationFn: () => listsApi.setVisibility(listId, { team_ids: selectedIds }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['list', listId] })
+      qc.invalidateQueries({ queryKey: ['lists'] })
+    },
+  })
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">
+        Team Visibility
+      </label>
+      <p className="text-sm text-slate-500 mb-4">
+        Restrict this list to specific teams. Leave all unchecked to make it visible to all workspace members.
+      </p>
+
+      {teams.length === 0 ? (
+        <p className="text-sm text-slate-400 mb-4">No teams in this workspace yet.</p>
+      ) : (
+        <div className="space-y-2 mb-6">
+          {teams.map((team) => (
+            <label
+              key={team.id}
+              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 hover:border-slate-200 cursor-pointer transition-colors"
+            >
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(team.id)}
+                onChange={() => toggleTeam(team.id)}
+                className="w-4 h-4 rounded border-slate-300 text-violet-600"
+              />
+              <span className="text-sm font-medium text-slate-700">{team.name}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending}
+          className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-60"
+        >
+          {saveMutation.isPending ? 'Saving…' : 'Save visibility'}
+        </button>
+        {saveMutation.isSuccess && (
+          <span className="text-xs text-green-600 font-medium">Saved</span>
+        )}
+      </div>
     </div>
   )
 }

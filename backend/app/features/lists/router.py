@@ -10,6 +10,7 @@ from app.features.lists.service import ListService
 from app.features.lists.schemas import (
     CreateListRequest,
     UpdateListRequest,
+    SetVisibilityRequest,
     CreateStatusRequest,
     UpdateStatusRequest,
     ReorderStatusRequest,
@@ -19,6 +20,7 @@ from app.features.lists.schemas import (
 )
 from app.features.workspaces.repository import WorkspaceRepository
 from app.features.projects.repository import ProjectRepository
+from app.features.teams.repository import TeamRepository
 from app.models.user import User
 
 router = APIRouter(tags=["lists"])
@@ -29,6 +31,7 @@ def get_service(session: AsyncSession = Depends(get_session)) -> ListService:
         repo=ListRepository(session),
         workspace_repo=WorkspaceRepository(session),
         project_repo=ProjectRepository(session),
+        team_repo=TeamRepository(session),
     )
 
 
@@ -76,6 +79,19 @@ async def update_list(
     session: AsyncSession = Depends(get_session),
 ):
     list_ = await service.update(list_id, body.to_dto(), actor_id=current_user.id)
+    await session.commit()
+    return ListResponse.model_validate(list_)
+
+
+@router.patch("/lists/{list_id}/visibility", response_model=ListResponse)
+async def set_visibility(
+    list_id: UUID,
+    body: SetVisibilityRequest,
+    current_user: User = Depends(get_current_user),
+    service: ListService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    list_ = await service.set_visibility(list_id, body.to_dto(), actor_id=current_user.id)
     await session.commit()
     return ListResponse.model_validate(list_)
 

@@ -16,6 +16,9 @@ class List(Base, TimestampMixin, SoftDeleteMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    team_ids: Mapped[list[UUID]] = mapped_column(
+        ARRAY(UUID(as_uuid=True)), nullable=True, default=list, server_default="{}"
+    )
 
     statuses: Mapped[list["ListStatus"]] = relationship(
         back_populates="list_",
