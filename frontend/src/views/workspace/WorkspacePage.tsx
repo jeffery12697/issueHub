@@ -39,7 +39,6 @@ export default function WorkspacePage() {
     },
   })
 
-  const initials = user?.display_name?.charAt(0).toUpperCase() ?? '?'
   const greeting = getGreeting()
 
   return (
@@ -55,13 +54,7 @@ export default function WorkspacePage() {
           </div>
           <span className="text-base font-bold text-slate-900">IssueHub</span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500">{user?.display_name}</span>
-          <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-semibold select-none">
-            {initials}
-          </div>
-          <HeaderActions />
-        </div>
+        <HeaderActions />
       </header>
 
       <main className="max-w-3xl mx-auto py-12 px-6">
