@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import apiClient from './client'
+import { apiClient } from './client'
 
 export interface TaskLink {
   id: string
