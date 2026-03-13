@@ -26,10 +26,57 @@ from app.features.workspaces.repository import WorkspaceRepository
 from app.features.audit.repository import AuditRepository
 from app.features.notifications.repository import NotificationRepository
 from app.features.watchers.repository import WatcherRepository
-from app.models.task import Priority
+from app.models.task import Task, Priority
 from app.models.user import User
 
 router = APIRouter(tags=["tasks"])
+
+
+async def maybe_close_parent(task: Task, session: AsyncSession, actor_id: UUID) -> None:
+    """Auto-close parent task if all its subtasks are now complete (AU-03)."""
+    if not task.parent_task_id:
+        return
+
+    task_repo = TaskRepository(session)
+    list_repo = ListRepository(session)
+
+    # All subtasks of the parent must have a complete status
+    siblings = await task_repo.list_subtasks(task.parent_task_id)
+    if not siblings:
+        return
+    for sibling in siblings:
+        if not sibling.status_id:
+            return
+        s = await list_repo.get_status_by_id(sibling.status_id)
+        if not s or not s.is_complete:
+            return
+
+    # Parent already closed? Skip.
+    parent = await task_repo.get_by_id(task.parent_task_id)
+    if not parent or not parent.list_id:
+        return
+    if parent.status_id:
+        ps = await list_repo.get_status_by_id(parent.status_id)
+        if ps and ps.is_complete:
+            return
+
+    # Find first complete status in parent's list and apply it
+    statuses = await list_repo.list_statuses(parent.list_id)
+    complete_status = next((s for s in statuses if s.is_complete), None)
+    if not complete_status:
+        return
+
+    from app.features.tasks.schemas import UpdateTaskDTO
+    await task_repo.update(parent, UpdateTaskDTO(status_id=complete_status.id))
+
+    audit_repo = AuditRepository(session)
+    await audit_repo.log(
+        task_id=parent.id,
+        actor_id=actor_id,
+        action="auto_closed",
+        changes={"status": [None, complete_status.name]},
+    )
+    await session.commit()
 
 
 def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
@@ -193,6 +240,10 @@ async def update_task(
 
     if watcher_ids or (body.assignee_ids is not None):
         await session.commit()
+
+    # AU-03: auto-close parent if all subtasks are now complete
+    if body.status_id is not None:
+        await maybe_close_parent(task, session, actor_id=current_user.id)
 
     response = TaskResponse.model_validate(task)
     await publish_task_event(task_id, actor_id=current_user.id, event="task.updated", data={"task": response.model_dump(mode="json")})
