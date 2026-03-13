@@ -112,17 +112,19 @@ async def test_create_subtask(client, list_, headers):
     assert data["depth"] == 1
 
 
-async def test_subtask_path_extends_parent(client, list_, headers):
+async def test_subtask_cannot_have_subtask(client, list_, headers):
+    """Subtasks are max depth 1 — creating a grandchild returns 400."""
     parent = (await client.post(
         f"/api/v1/lists/{list_.id}/tasks", json={"title": "Parent"}, headers=headers
     )).json()
     child = (await client.post(
         f"/api/v1/tasks/{parent['id']}/subtasks", json={"title": "Child"}, headers=headers
     )).json()
-    grandchild = (await client.post(
+    r = await client.post(
         f"/api/v1/tasks/{child['id']}/subtasks", json={"title": "Grandchild"}, headers=headers
-    )).json()
-    assert grandchild["depth"] == 2
+    )
+    assert r.status_code == 400
+    assert "subtask" in r.json()["detail"].lower()
 
 
 async def test_list_subtasks(client, list_, headers):

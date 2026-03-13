@@ -324,13 +324,15 @@ export default function TaskDetailPage() {
                         <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
                         <button type="button" onClick={() => setAddingSubtask(false)} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
                       </form>
-                    ) : (
+                    ) : task.depth === 0 ? (
                       <button
                         onClick={() => setAddingSubtask(true)}
                         className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5"
                       >
                         <span className="text-lg leading-none">+</span> Add subtask
                       </button>
+                    ) : (
+                      <p className="text-xs text-slate-300">Subtasks cannot have subtasks.</p>
                     )}
                   </div>
                 )}

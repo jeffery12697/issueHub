@@ -35,6 +35,8 @@ class TaskService:
 
     async def create_subtask(self, parent_task_id: UUID, body, actor_id: UUID) -> Task:
         parent = await self.get_or_404(parent_task_id)
+        if parent.depth > 0:
+            raise HTTPException(status_code=400, detail="Subtasks cannot have subtasks")
         await self._require_workspace_member(parent.workspace_id, actor_id)
         order_index = await self.repo.get_max_order_index(parent.list_id) + 100.0
         dto = body.to_dto(
