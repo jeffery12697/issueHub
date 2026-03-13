@@ -1,8 +1,6 @@
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useMyTasks } from '@/api/tasks'
-import HeaderActions from '@/components/HeaderActions'
-import { useQuery } from '@tanstack/react-query'
-import { workspacesApi } from '@/api/workspaces'
+import WorkspaceHeader from '@/components/WorkspaceHeader'
 
 const PRIORITY_COLOR: Record<string, string> = {
   urgent: 'bg-red-100 text-red-700',
@@ -16,12 +14,6 @@ export default function MyTasksPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const navigate = useNavigate()
 
-  const { data: workspace } = useQuery({
-    queryKey: ['workspace', workspaceId],
-    queryFn: () => workspacesApi.get(workspaceId!),
-    enabled: !!workspaceId,
-  })
-
   const { data: tasks = [], isLoading } = useMyTasks(workspaceId)
 
   const overdue = tasks.filter((t) => t.due_date && new Date(t.due_date) < new Date())
@@ -30,24 +22,45 @@ export default function MyTasksPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
-        <Link
-          to={`/workspaces/${workspaceId}`}
-          className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
-        >
-          ← {workspace?.name ?? 'Workspace'}
-        </Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-800">My Tasks</span>
-        <div className="ml-auto"><HeaderActions /></div>
-      </header>
+      <WorkspaceHeader workspaceId={workspaceId!} />
 
-      <main className="max-w-3xl mx-auto py-8 px-6">
+      <main className="max-w-3xl mx-auto py-10 px-6">
+        {/* Page title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">My Tasks</h1>
+          <p className="text-sm text-slate-400 mt-1">
+            {isLoading ? 'Loading…' : tasks.length === 0
+              ? 'No tasks assigned to you yet'
+              : `${tasks.length} task${tasks.length === 1 ? '' : 's'} assigned to you`}
+          </p>
+        </div>
+
         {isLoading ? (
-          <p className="text-slate-400 text-sm">Loading…</p>
+          <div className="space-y-6">
+            {[1, 2].map((i) => (
+              <div key={i}>
+                <div className="h-3 w-20 bg-slate-200 rounded mb-2 animate-pulse" />
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                  {[1, 2, 3].map((j) => (
+                    <div key={j} className="h-12 border-b border-slate-100 last:border-0 px-4 flex items-center gap-3">
+                      <div className="h-5 w-14 bg-slate-100 rounded-full animate-pulse" />
+                      <div className="h-3 flex-1 bg-slate-100 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : tasks.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-slate-400 text-sm">No tasks assigned to you yet.</p>
+          <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
+            <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-violet-400">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </div>
+            <p className="text-slate-700 font-medium mb-1">You're all clear</p>
+            <p className="text-slate-400 text-sm">No tasks are assigned to you right now.</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -80,8 +93,11 @@ function TaskGroup({
 }) {
   return (
     <div>
-      <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${accent}`}>
-        {title} <span className="ml-1 font-normal normal-case tracking-normal text-slate-400">({tasks.length})</span>
+      <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${accent}`}>
+        {title}
+        <span className="inline-flex items-center justify-center h-4 px-1.5 rounded-full bg-slate-100 text-slate-500 font-semibold text-[10px] normal-case tracking-normal">
+          {tasks.length}
+        </span>
       </h3>
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         {tasks.map((task, i) => (
@@ -92,9 +108,7 @@ function TaskGroup({
               i > 0 ? 'border-t border-slate-100' : ''
             }`}
           >
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize shrink-0 ${PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.none}`}
-            >
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize shrink-0 ${PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.none}`}>
               {task.priority === 'none' ? '—' : task.priority}
             </span>
             <span className="flex-1 text-sm text-slate-800 truncate">{task.title}</span>
