@@ -91,11 +91,23 @@ class ListService:
         project = await self.project_repo.get_by_id(list_.project_id)
         await self._require_role(project.workspace_id, actor_id, {WorkspaceRole.owner, WorkspaceRole.admin})
 
-        status = await self.repo.get_status_by_id(status_id)
-        if not status or status.list_id != list_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Status not found")
+        existing_status = await self.repo.get_status_by_id(status_id)
+        if not existing_status or existing_status.list_id != list_id:
+            raise HTTPException(status_code=404, detail="Status not found")
 
-        return await self.repo.update_status(status, dto)
+        if dto.is_complete is True:
+            all_statuses = await self.repo.list_statuses(list_id)
+            conflict = next(
+                (s for s in all_statuses if s.is_complete and s.id != status_id),
+                None,
+            )
+            if conflict:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Status '{conflict.name}' is already marked as Done. Only one Done status is allowed per list.",
+                )
+
+        return await self.repo.update_status(existing_status, dto)
 
     async def delete_status(self, list_id: UUID, status_id: UUID, actor_id: UUID) -> None:
         list_ = await self.get_or_404(list_id)

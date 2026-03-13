@@ -94,6 +94,50 @@ async def test_reorder_statuses(client, list_, headers):
     assert s2_order < s1_order
 
 
+async def test_only_one_done_status_per_list(client, list_, headers):
+    # Create two statuses
+    s1 = (await client.post(
+        f"/api/v1/lists/{list_.id}/statuses",
+        json={"name": "Done", "color": "#22c55e", "category": "done"},
+        headers=headers,
+    )).json()
+    s2 = (await client.post(
+        f"/api/v1/lists/{list_.id}/statuses",
+        json={"name": "Closed", "color": "#6b7280", "category": "done"},
+        headers=headers,
+    )).json()
+
+    # Mark first as done
+    r = await client.patch(
+        f"/api/v1/lists/{list_.id}/statuses/{s1['id']}",
+        json={"is_complete": True},
+        headers=headers,
+    )
+    assert r.status_code == 200
+
+    # Trying to mark second as done should fail with 422
+    r2 = await client.patch(
+        f"/api/v1/lists/{list_.id}/statuses/{s2['id']}",
+        json={"is_complete": True},
+        headers=headers,
+    )
+    assert r2.status_code == 422
+    assert "Done" in r2.json()["detail"]
+
+    # Unsetting the first and then marking the second should succeed
+    await client.patch(
+        f"/api/v1/lists/{list_.id}/statuses/{s1['id']}",
+        json={"is_complete": False},
+        headers=headers,
+    )
+    r3 = await client.patch(
+        f"/api/v1/lists/{list_.id}/statuses/{s2['id']}",
+        json={"is_complete": True},
+        headers=headers,
+    )
+    assert r3.status_code == 200
+
+
 async def test_delete_status(client, list_, headers):
     s = (await client.post(
         f"/api/v1/lists/{list_.id}/statuses",
