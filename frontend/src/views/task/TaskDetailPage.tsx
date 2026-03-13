@@ -231,7 +231,7 @@ export default function TaskDetailPage() {
                 }}
                 placeholder="Add a description…"
                 rows={4}
-                className="w-full text-sm text-slate-600 placeholder-slate-300 bg-transparent border-0 resize-none focus:outline-none focus:ring-0 leading-relaxed"
+                className="w-full text-sm text-slate-600 placeholder-slate-400 bg-white border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent leading-relaxed hover:border-slate-300 transition-colors"
               />
             </div>
 
