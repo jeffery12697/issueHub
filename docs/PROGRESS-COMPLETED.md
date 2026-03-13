@@ -267,3 +267,17 @@ _Completed: 2026-03-13_
 - [x] `views/list/ListPage.tsx` — checkbox column, `selectedIds` state, sticky bulk action bar (status/priority selects + Delete), "⬇ Export CSV" button
 - [x] `views/project/ProjectPage.tsx` — added "Analytics" + "Workload" nav links; embedded `<GlobalSearch>`
 - [x] Router — added `/workspaces/:id/analytics` and `/workspaces/:id/workload` routes
+
+---
+
+## UI Polish — Workspace, Project, List pages
+_Completed: 2026-03-13_
+
+- [x] `WorkspaceHeader` — shared header component used by all workspace pages (Projects/My Tasks/Workload/Analytics nav tabs, GlobalSearch, settings icon); header height h-14 → h-16, nav text-xs → text-sm, workspace name text-sm → text-base
+- [x] `WorkspacePage` — greeting h1 text-2xl → text-3xl, workspace card avatars w-12 → w-14, card name text-sm → text-base font-bold; polished empty state with CTA
+- [x] `ProjectPage` — page title text-xl → text-2xl, project name text-sm → text-base font-bold, list names text-sm → text-base; now uses shared `WorkspaceHeader`
+- [x] `ListPage` — page title text-xl → text-2xl + task count subtitle; table rows py-3 → py-4; task title text-base font-semibold; priority dot w-2 → w-2.5; filter pills h-8/text-xs → h-9/text-sm; empty state with CTA
+- [x] `HeaderActions` — user avatar w-6 → w-7, sign-out icon 16px → 18px; shown on every page
+- [x] `MyTasksPage`, `WorkloadPage`, `AnalyticsPage` — all use `WorkspaceHeader`; added page title + subtitle, skeleton loaders, polished empty states
+- [x] Fix: missing `Link` import in `ProjectPage` after header refactor (caused blank page)
+- [x] Fix: `react-hot-toast` import in `ListPage` replaced with project's `@/store/toastStore`
