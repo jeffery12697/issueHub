@@ -26,6 +26,8 @@ class CreateFieldDTO:
     is_required: bool
     options_json: list | None
     order_index: float
+    visibility_roles: tuple[str, ...] = ()
+    editable_roles: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -33,6 +35,8 @@ class UpdateFieldDTO:
     name: str | None
     is_required: bool | None
     options_json: list | None
+    visibility_roles: tuple[str, ...] | None = None
+    editable_roles: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -53,12 +57,16 @@ class CreateFieldRequest(BaseModel):
     field_type: FieldType
     is_required: bool = False
     options_json: list | None = None
+    visibility_roles: list[str] = []
+    editable_roles: list[str] = []
 
 
 class UpdateFieldRequest(BaseModel):
     name: str | None = None
     is_required: bool | None = None
     options_json: list | None = None
+    visibility_roles: list[str] | None = None
+    editable_roles: list[str] | None = None
 
 
 class UpsertFieldValuesRequest(BaseModel):
@@ -76,6 +84,8 @@ class FieldDefinitionResponse(BaseModel):
     is_required: bool
     options_json: list | None
     order_index: float
+    visibility_roles: list[str]
+    editable_roles: list[str]
 
     model_config = {"from_attributes": True}
 

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
@@ -36,18 +36,30 @@ def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
 @router.get("/lists/{list_id}/tasks", response_model=list[TaskResponse])
 async def list_tasks(
     list_id: UUID,
+    request: Request,
     status_id: UUID | None = None,
     priority: Priority | None = None,
     assignee_id: UUID | None = None,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
+    # Parse cf[<uuid>]=value query params
+    cf_filters: dict[UUID, str] = {}
+    for key, value in request.query_params.items():
+        if key.startswith("cf[") and key.endswith("]"):
+            field_id_str = key[3:-1]
+            try:
+                cf_filters[UUID(field_id_str)] = value
+            except ValueError:
+                pass
+
     tasks = await service.list_for_list(
         list_id,
         user_id=current_user.id,
         status_id=status_id,
         priority=priority,
         assignee_id=assignee_id,
+        cf_filters=cf_filters if cf_filters else None,
     )
     return [TaskResponse.model_validate(t) for t in tasks]
 

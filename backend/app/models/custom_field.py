@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ARRAY, Boolean, DateTime, Enum, Float, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -30,6 +30,8 @@ class CustomFieldDefinition(Base, TimestampMixin, SoftDeleteMixin):
     is_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     options_json: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     order_index: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    visibility_roles: Mapped[list] = mapped_column(ARRAY(Text()), nullable=False, default=list)
+    editable_roles: Mapped[list] = mapped_column(ARRAY(Text()), nullable=False, default=list)
 
 
 class CustomFieldValue(Base, TimestampMixin):

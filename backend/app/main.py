@@ -19,6 +19,7 @@ from app.features.list_templates.router import router as list_templates_router
 from app.features.notifications.router import router as notifications_router
 from app.features.websocket.router import router as websocket_router
 from app.features.websocket.manager import redis_listener
+from app.features.links.router import router as links_router
 
 
 @asynccontextmanager
@@ -54,6 +55,7 @@ app.include_router(comments_router, prefix="/api/v1")
 app.include_router(custom_fields_router, prefix="/api/v1")
 app.include_router(list_templates_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api/v1")
+app.include_router(links_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 

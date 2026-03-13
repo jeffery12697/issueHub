@@ -10,6 +10,7 @@ import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinit
 import { useAuthStore } from '@/store/authStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers } from '@/api/workspaces'
+import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
 import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
@@ -76,6 +77,10 @@ export default function TaskDetailPage() {
   const { data: fieldValues = [] } = useFieldValues(taskId!)
   const upsertValues = useUpsertValues(taskId!)
 
+  const { data: links = [] } = useTaskLinks(taskId)
+  const addLink = useAddLink(taskId!)
+  const deleteLink = useDeleteLink(taskId!)
+
   const { data: comments = [] } = useComments(taskId!)
   const createComment = useCreateComment(taskId!)
   const deleteComment = useDeleteComment(taskId!)
@@ -87,6 +92,9 @@ export default function TaskDetailPage() {
   const [addingSubtask, setAddingSubtask] = useState(false)
   const [blockingInput, setBlockingInput] = useState('')
   const [addingBlockedBy, setAddingBlockedBy] = useState(false)
+  const [addingLink, setAddingLink] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkTitle, setLinkTitle] = useState('')
   const [commentBody, setCommentBody] = useState('')
 
   const updateTask = useMutation({
@@ -352,6 +360,91 @@ export default function TaskDetailPage() {
                     ))}
                   </ul>
                 </div>
+              )}
+            </div>
+
+            {/* Links */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Links{' '}
+                  {links.length > 0 && (
+                    <span className="ml-1 bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full font-normal normal-case tracking-normal">
+                      {links.length}
+                    </span>
+                  )}
+                </label>
+                <button
+                  onClick={() => setAddingLink(true)}
+                  className="text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
+                >
+                  + Add
+                </button>
+              </div>
+
+              {addingLink && (
+                <form
+                  className="mb-3 space-y-2"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    if (!linkUrl.trim()) return
+                    addLink.mutate(
+                      { url: linkUrl.trim(), title: linkTitle.trim() || undefined },
+                      {
+                        onSuccess: () => {
+                          setLinkUrl('')
+                          setLinkTitle('')
+                          setAddingLink(false)
+                        },
+                      }
+                    )
+                  }}
+                >
+                  <input
+                    autoFocus
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    placeholder="URL (required)"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                  <input
+                    type="text"
+                    value={linkTitle}
+                    onChange={(e) => setLinkTitle(e.target.value)}
+                    placeholder="Title (optional)"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                  <div className="flex gap-2">
+                    <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
+                    <button type="button" onClick={() => { setAddingLink(false); setLinkUrl(''); setLinkTitle('') }} className="text-xs px-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
+                  </div>
+                </form>
+              )}
+
+              {links.length > 0 ? (
+                <ul className="space-y-1">
+                  {links.map((link) => (
+                    <li key={link.id} className="flex items-center gap-2 text-sm">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 text-violet-600 hover:text-violet-800 hover:underline truncate"
+                      >
+                        {link.title || link.url}
+                      </a>
+                      <button
+                        onClick={() => deleteLink.mutate(link.id)}
+                        className="text-slate-300 hover:text-red-400 text-xs shrink-0 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : !addingLink && (
+                <p className="text-xs text-slate-400">No links yet.</p>
               )}
             </div>
 

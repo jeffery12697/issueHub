@@ -8,6 +8,13 @@ from app.models.task import Task, Priority
 from app.features.tasks.schemas import CreateTaskDTO, UpdateTaskDTO
 
 
+def _try_float(v: str) -> float | None:
+    try:
+        return float(v)
+    except (ValueError, TypeError):
+        return None
+
+
 class TaskRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -61,7 +68,10 @@ class TaskRepository:
         status_id: UUID | None = None,
         priority: Priority | None = None,
         assignee_id: UUID | None = None,
+        cf_filters: dict[UUID, str] | None = None,
     ) -> list[Task]:
+        from sqlalchemy import or_, any_
+        from app.models.custom_field import CustomFieldValue
         q = (
             select(Task)
             .where(Task.list_id == list_id)
@@ -74,6 +84,22 @@ class TaskRepository:
             q = q.where(Task.priority == priority)
         if assignee_id:
             q = q.where(Task.assignee_ids.any(assignee_id))
+        if cf_filters:
+            for field_id, value in cf_filters.items():
+                q = q.where(
+                    select(CustomFieldValue.task_id)
+                    .where(CustomFieldValue.task_id == Task.id)
+                    .where(CustomFieldValue.field_id == field_id)
+                    .where(
+                        or_(
+                            CustomFieldValue.value_text.ilike(f"%{value}%"),
+                            CustomFieldValue.value_number == _try_float(value),
+                            CustomFieldValue.value_json.op("->>")('"selected"') == value,
+                        )
+                    )
+                    .correlate(Task)
+                    .exists()
+                )
 
         q = q.order_by(Task.order_index)
         result = await self.session.execute(q)

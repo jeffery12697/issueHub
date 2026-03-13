@@ -66,6 +66,8 @@ async def create_field(
         is_required=body.is_required,
         options_json=body.options_json,
         order_index=0.0,  # service will compute actual value
+        visibility_roles=tuple(body.visibility_roles),
+        editable_roles=tuple(body.editable_roles),
     )
     field = await service.create_field(list_id, dto, actor_id=current_user.id)
     await session.commit()
@@ -89,6 +91,8 @@ async def update_field(
         name=body.name,
         is_required=body.is_required,
         options_json=body.options_json,
+        visibility_roles=tuple(body.visibility_roles) if body.visibility_roles is not None else None,
+        editable_roles=tuple(body.editable_roles) if body.editable_roles is not None else None,
     )
     field = await service.update_field(list_id, field_id, dto, actor_id=current_user.id)
     await session.commit()

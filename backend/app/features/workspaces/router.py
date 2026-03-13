@@ -107,9 +107,12 @@ async def invite_member(
     service: WorkspaceService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
+    from sqlalchemy import select
+    from app.models.user import User as UserModel
     member = await service.invite_member(body.to_dto(workspace_id, invited_by=current_user.id))
     await session.commit()
-    return MemberResponse.model_validate(member)
+    user_row = await session.get(UserModel, member.user_id)
+    return MemberResponse(user_id=member.user_id, display_name=user_row.display_name, role=member.role)
 
 
 @router.patch("/{workspace_id}/members/{user_id}", response_model=MemberResponse)
@@ -121,9 +124,12 @@ async def update_member_role(
     service: WorkspaceService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
+    from sqlalchemy import select
+    from app.models.user import User as UserModel
     member = await service.update_member_role(body.to_dto(workspace_id, user_id, updated_by=current_user.id))
     await session.commit()
-    return MemberResponse.model_validate(member)
+    user_row = await session.get(UserModel, member.user_id)
+    return MemberResponse(user_id=member.user_id, display_name=user_row.display_name, role=member.role)
 
 
 @router.delete("/{workspace_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

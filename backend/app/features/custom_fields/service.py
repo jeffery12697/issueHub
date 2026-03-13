@@ -34,8 +34,18 @@ class CustomFieldService:
         self.workspace_repo = workspace_repo
 
     async def list_fields(self, list_id: UUID, user_id: UUID) -> list[CustomFieldDefinition]:
-        await self._require_list_member(list_id, user_id)
-        return await self.repo.list_for_list(list_id)
+        list_ = await self.list_repo.get_by_id(list_id)
+        if not list_:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+        project = await self.project_repo.get_by_id(list_.project_id)
+        if not project:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        member = await self.workspace_repo.get_member(project.workspace_id, user_id)
+        if not member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
+        fields = await self.repo.list_for_list(list_id)
+        # filter by visibility_roles (empty = visible to all)
+        return [f for f in fields if not f.visibility_roles or member.role.value in f.visibility_roles]
 
     async def create_field(
         self, list_id: UUID, dto: CreateFieldDTO, actor_id: UUID
@@ -50,6 +60,8 @@ class CustomFieldService:
             is_required=dto.is_required,
             options_json=dto.options_json,
             order_index=order_index,
+            visibility_roles=dto.visibility_roles,
+            editable_roles=dto.editable_roles,
         )
         return await self.repo.create_field(full_dto)
 
@@ -74,7 +86,9 @@ class CustomFieldService:
         self, task_id: UUID, values_dict: dict[str, Any], actor_id: UUID
     ) -> list[CustomFieldValue]:
         task = await self._get_task_or_404(task_id)
-        await self._require_workspace_member(task.workspace_id, actor_id)
+        member = await self.workspace_repo.get_member(task.workspace_id, actor_id)
+        if not member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
 
         if task.list_id is None:
             raise HTTPException(
@@ -113,6 +127,15 @@ class CustomFieldService:
 
         # Build a field map for type lookup
         field_map = {str(f.id): f for f in all_fields}
+
+        # Check editable_roles before writing
+        for field_id_str in values_dict:
+            field_def = field_map.get(field_id_str)
+            if field_def and field_def.editable_roles and member.role.value not in field_def.editable_roles:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Field '{field_def.name}' is not editable by your role",
+                )
 
         results = []
         for field_id_str, raw_value in values_dict.items():

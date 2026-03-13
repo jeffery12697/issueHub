@@ -29,6 +29,7 @@ import app.models.comment  # noqa
 import app.models.custom_field  # noqa
 import app.models.list_template  # noqa
 import app.models.notification  # noqa
+import app.models.task_link  # noqa
 
 _base_url = settings.database_url.rsplit("/", 1)[0]
 TEST_DATABASE_URL = f"{_base_url}/issuehub_test"
@@ -38,6 +39,7 @@ _TRUNCATE_ORDER = [
     "comments",
     "audit_logs",
     "task_dependencies",
+    "task_links",
     "custom_field_values",
     "custom_field_definitions",
     "list_templates",
@@ -134,6 +136,16 @@ async def make_list(db: AsyncSession, project: Project, name: str = "My List") -
 
 def auth_headers(user: User) -> dict:
     return {"Authorization": f"Bearer {create_access_token(user.id)}"}
+
+
+async def make_task(client, list_, headers, title: str = "Test Task") -> dict:
+    resp = await client.post(
+        f"/api/v1/lists/{list_.id}/tasks",
+        json={"title": title},
+        headers=headers,
+    )
+    assert resp.status_code == 201
+    return resp.json()
 
 
 # ── shared fixtures ───────────────────────────────────────────────────────────

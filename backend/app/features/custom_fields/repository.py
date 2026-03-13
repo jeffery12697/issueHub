@@ -45,6 +45,8 @@ class CustomFieldRepository:
             is_required=dto.is_required,
             options_json=dto.options_json,
             order_index=dto.order_index,
+            visibility_roles=list(dto.visibility_roles),
+            editable_roles=list(dto.editable_roles),
         )
         self.session.add(field)
         await self.session.flush()
@@ -57,6 +59,10 @@ class CustomFieldRepository:
             field.is_required = dto.is_required
         if dto.options_json is not None:
             field.options_json = dto.options_json
+        if dto.visibility_roles is not None:
+            field.visibility_roles = list(dto.visibility_roles)
+        if dto.editable_roles is not None:
+            field.editable_roles = list(dto.editable_roles)
         await self.session.flush()
         return field
 
