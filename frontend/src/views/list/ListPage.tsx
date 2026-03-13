@@ -28,14 +28,14 @@ export default function ListPage() {
     queryFn: () => listsApi.get(listId!),
   })
 
+  const [newTitle, setNewTitle] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
+
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks', listId, cfFilters],
     queryFn: () => tasksApi.list(listId!, { cf: cfFilters }),
   })
-
-  const [newTitle, setNewTitle] = useState('')
-  const [creating, setCreating] = useState(false)
-  const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
 
   const createTask = useMutation({
     mutationFn: (title: string) => tasksApi.create(listId!, { title }),
