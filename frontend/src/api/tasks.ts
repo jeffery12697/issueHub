@@ -80,6 +80,8 @@ export const tasksApi = {
     apiClient.post<{ updated: number }>('/tasks/bulk-update', { task_ids: taskIds, ...data }).then((r) => r.data),
   bulkDelete: (taskIds: string[]) =>
     apiClient.post<{ updated: number }>('/tasks/bulk-delete', { task_ids: taskIds }).then((r) => r.data),
+  move: (taskId: string, listId: string) =>
+    apiClient.patch<Task>(`/tasks/${taskId}/move`, { list_id: listId }).then((r) => r.data),
 }
 
 export function useMyTasks(workspaceId: string | undefined) {

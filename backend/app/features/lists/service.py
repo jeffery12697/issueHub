@@ -46,6 +46,10 @@ class ListService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
         return list_
 
+    async def list_for_workspace(self, workspace_id: UUID, user_id: UUID) -> list[List]:
+        await self._require_workspace_member(workspace_id, user_id)
+        return await self.repo.list_for_workspace(workspace_id)
+
     async def list_for_project(self, project_id: UUID, user_id: UUID) -> list[List]:
         project = await self.project_repo.get_by_id(project_id)
         if not project:

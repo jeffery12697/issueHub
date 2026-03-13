@@ -44,6 +44,18 @@ class ListRepository:
         )
         return list(result.scalars().all())
 
+    async def list_for_workspace(self, workspace_id: UUID) -> list[List]:
+        from app.models.project import Project
+        result = await self.session.execute(
+            select(List)
+            .join(Project, List.project_id == Project.id)
+            .where(Project.workspace_id == workspace_id)
+            .where(List.deleted_at.is_(None))
+            .where(Project.deleted_at.is_(None))
+            .order_by(List.created_at)
+        )
+        return list(result.scalars().all())
+
     async def update(self, list_: List, dto: UpdateListDTO) -> List:
         if dto.name is not None:
             list_.name = dto.name

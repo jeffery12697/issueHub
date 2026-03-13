@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
-import { listsApi } from '@/api/lists'
+import { listsApi, useWorkspaceLists } from '@/api/lists'
 import { auditApi, type AuditLog } from '@/api/audit'
 import { dependenciesApi } from '@/api/dependencies'
 import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
@@ -98,6 +98,7 @@ export default function TaskDetailPage() {
   const createComment = useCreateComment(taskId!)
   const deleteComment = useDeleteComment(taskId!)
   const { data: members = [] } = useWorkspaceMembers(task?.workspace_id)
+  const { data: workspaceLists = [] } = useWorkspaceLists(task?.workspace_id)
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -134,6 +135,15 @@ export default function TaskDetailPage() {
     onSuccess: () => {
       if (task?.list_id) qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
       navigate(-1)
+    },
+  })
+
+  const moveTask = useMutation({
+    mutationFn: (listId: string) => tasksApi.move(taskId!, listId),
+    onSuccess: (moved) => {
+      qc.invalidateQueries({ queryKey: ['task', taskId] })
+      if (task?.list_id) qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
+      if (moved.list_id) qc.invalidateQueries({ queryKey: ['tasks', moved.list_id] })
     },
   })
 
@@ -598,6 +608,35 @@ export default function TaskDetailPage() {
                   </select>
                 )}
               </div>
+
+              {/* Due Date */}
+              <div className="px-4 py-3">
+                <p className="text-xs font-medium text-slate-400 mb-2">Due Date</p>
+                <input
+                  key={task.due_date ?? 'none'}
+                  type="date"
+                  defaultValue={task.due_date ? task.due_date.slice(0, 10) : ''}
+                  onChange={(e) => updateTask.mutate({ due_date: e.target.value || undefined })}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
+
+              {/* Move to List */}
+              {workspaceLists.length > 1 && (
+                <div className="px-4 py-3">
+                  <p className="text-xs font-medium text-slate-400 mb-2">Move to List</p>
+                  <select
+                    value=""
+                    onChange={(e) => { if (e.target.value) moveTask.mutate(e.target.value) }}
+                    className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                  >
+                    <option value="">Move to…</option>
+                    {workspaceLists.filter((l) => l.id !== task.list_id).map((l) => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
             </div>
           </div>

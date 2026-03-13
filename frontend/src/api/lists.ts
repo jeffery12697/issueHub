@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { apiClient } from './client'
 
 export type ListStatus = {
@@ -42,4 +43,14 @@ export const listsApi = {
     apiClient.delete(`/lists/${listId}/statuses/${statusId}`),
   reorderStatus: (listId: string, statusId: string, data: { before_id?: string; after_id?: string }) =>
     apiClient.post<ListStatus[]>(`/lists/${listId}/statuses/${statusId}/reorder`, data).then((r) => r.data),
+  workspaceLists: (workspaceId: string) =>
+    apiClient.get<List[]>(`/workspaces/${workspaceId}/lists`).then((r) => r.data),
+}
+
+export function useWorkspaceLists(workspaceId: string | undefined) {
+  return useQuery({
+    queryKey: ['workspace-lists', workspaceId],
+    queryFn: () => listsApi.workspaceLists(workspaceId!),
+    enabled: !!workspaceId,
+  })
 }

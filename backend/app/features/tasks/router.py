@@ -16,6 +16,7 @@ from app.features.tasks.schemas import (
     BulkDeleteRequest,
     BulkOperationResponse,
     CreateTaskRequest,
+    MoveTaskRequest,
     UpdateTaskRequest,
     TaskResponse,
 )
@@ -160,6 +161,19 @@ async def update_task(
     if task.list_id:
         await publish_list_event(task.list_id, task_id=task_id, actor_id=current_user.id, event="task.updated")
     return response
+
+
+@router.patch("/tasks/{task_id}/move", response_model=TaskResponse)
+async def move_task(
+    task_id: UUID,
+    body: MoveTaskRequest,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    task = await service.move(task_id, body.list_id, actor_id=current_user.id)
+    await session.commit()
+    return TaskResponse.model_validate(task)
 
 
 @router.get("/workspaces/{workspace_id}/me/tasks", response_model=list[TaskResponse])

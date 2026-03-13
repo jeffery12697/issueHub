@@ -108,6 +108,22 @@ class TaskService:
         await self.audit_repo.log(task_id, actor_id=actor_id, action="promoted")
         return promoted
 
+    async def move(self, task_id: UUID, list_id: UUID, actor_id: UUID) -> Task:
+        task = await self.get_or_404(task_id)
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        list_ = await self.list_repo.get_by_id(list_id)
+        if not list_:
+            raise HTTPException(status_code=404, detail="List not found")
+        project = await self.project_repo.get_by_id(list_.project_id)
+        old_list_id = str(task.list_id)
+        task.list_id = list_id
+        task.project_id = project.id
+        task.workspace_id = project.workspace_id
+        task.status_id = None
+        await self.repo.session.flush()
+        await self.audit_repo.log(task_id, actor_id=actor_id, action="moved", changes={"list_id": [old_list_id, str(list_id)]})
+        return task
+
     async def delete(self, task_id: UUID, actor_id: UUID) -> None:
         task = await self.get_or_404(task_id)
         await self._require_workspace_member(task.workspace_id, actor_id)

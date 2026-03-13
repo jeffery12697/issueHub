@@ -37,6 +37,16 @@ def get_service(session: AsyncSession = Depends(get_session)) -> ListService:
 
 # --- List endpoints ---
 
+@router.get("/workspaces/{workspace_id}/lists", response_model=list[ListResponse])
+async def list_workspace_lists(
+    workspace_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: ListService = Depends(get_service),
+):
+    lists = await service.list_for_workspace(workspace_id, user_id=current_user.id)
+    return [ListResponse.model_validate(l) for l in lists]
+
+
 @router.get("/projects/{project_id}/lists", response_model=list[ListResponse])
 async def list_lists(
     project_id: UUID,

@@ -99,6 +99,10 @@ class UpdateTaskRequest(BaseModel):
 
 # --- Bulk Operation Schemas ---
 
+class MoveTaskRequest(BaseModel):
+    list_id: UUID
+
+
 class BulkUpdateRequest(BaseModel):
     task_ids: list[UUID]
     status_id: UUID | None = None
