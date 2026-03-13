@@ -174,3 +174,6 @@ _Completed: 2026-03-13_
 - [x] Fix: `useAddLink` now invalidates audit cache so history updates immediately after adding a link
 - [x] Fix: `link_added` / `link_removed` history entries hide URL details — show action name only
 - [x] Fix: `api/links.ts` used default import for `apiClient` (caused blank screen) — corrected to named import
+- [x] C-04 + ListPage: Status and Priority filter dropdowns added to filter bar (always visible, server-side filtering)
+- [x] Validation: only one `is_complete` status allowed per list — `PATCH /lists/{id}/statuses/{sid}` returns 422 if another Done status already exists
+- [x] Test: `test_only_one_done_status_per_list` covering conflict rejection and unset-then-remark flow
