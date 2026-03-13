@@ -114,7 +114,7 @@ function TaskGroup({
             <span className="flex-1 text-sm text-slate-800 truncate">{task.title}</span>
             {task.due_date && (
               <span className="text-xs text-slate-400 shrink-0">
-                {new Date(task.due_date).toLocaleDateString()}
+                {new Date(task.due_date).toLocaleDateString('en-US')}
               </span>
             )}
           </button>

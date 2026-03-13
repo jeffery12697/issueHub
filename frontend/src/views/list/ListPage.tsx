@@ -455,7 +455,7 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
   const isOverdue = !statusComplete && dueStr < todayStr
   const isDueToday = !statusComplete && dueStr === todayStr
 
-  const label = due.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
+  const label = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
 
   if (statusComplete) {
     return <span className="text-xs text-slate-400">{label}</span>

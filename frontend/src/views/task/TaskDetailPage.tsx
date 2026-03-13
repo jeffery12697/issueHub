@@ -475,7 +475,7 @@ export default function TaskDetailPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline gap-2 mb-1">
                           <span className="text-sm font-medium text-slate-800">{c.author_name}</span>
-                          <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
+                          <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString('en-US')}</span>
                           {currentUser?.id === c.author_id && (
                             <button onClick={() => deleteComment.mutate(c.id)} className="text-xs text-slate-300 hover:text-red-400 transition-colors ml-auto">Delete</button>
                           )}
@@ -721,7 +721,7 @@ function HistorySection({ logs }: { logs: AuditLog[] }) {
                   </div>
                 ))
               }
-              <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString()}</div>
+              <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString('en-US')}</div>
             </div>
           </li>
         ))}
