@@ -47,7 +47,7 @@ class WorkspaceService:
         return await self.repo.list_members(workspace_id)
 
     async def invite_member(self, dto: InviteMemberDTO) -> WorkspaceMember:
-        await self._require_role(dto.workspace_id, dto.invited_by, {WorkspaceRole.owner, WorkspaceRole.admin})
+        await self._require_role(dto.workspace_id, dto.invited_by, {WorkspaceRole.owner})
         existing = await self.repo.get_member(dto.workspace_id, dto.user_id)
         if existing:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User is already a member")
