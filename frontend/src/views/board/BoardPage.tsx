@@ -82,7 +82,8 @@ export default function BoardPage() {
       </header>
 
       {/* Board */}
-      <div className="flex-1 overflow-x-auto p-6">
+      <div className="flex-1 overflow-x-auto flex justify-center">
+        <div className="p-6 min-w-max">
         {statuses.length === 0 ? (
           <div className="text-center py-24">
             <p className="text-slate-400 text-sm">No statuses configured.</p>
@@ -94,7 +95,7 @@ export default function BoardPage() {
             </Link>
           </div>
         ) : (
-          <div className="flex gap-4 items-start min-w-max">
+          <div className="flex gap-4 items-start">
             {/* Unstatused column */}
             {noStatusTasks.length > 0 && (
               <KanbanColumn
@@ -120,6 +121,7 @@ export default function BoardPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   )
