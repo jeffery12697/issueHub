@@ -4,6 +4,32 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 4 — WebSocket Real-Time Updates & Notifications
+_Completed: 2026-03-13_
+
+### Backend
+- [x] `app/core/pubsub.py` — `publish_task_event` / `publish_list_event` helpers (best-effort, silent on error)
+- [x] `app/models/notification.py` — Notification model (user_id, task_id, type, body, is_read, meta)
+- [x] Migration `0008_add_notifications.py` — notifications table with index on user_id
+- [x] `app/features/notifications/` — full feature module (schemas, repository, router)
+- [x] `app/features/websocket/` — connection manager (Redis psubscribe `task:*` / `list:*`) + router
+- [x] `app/main.py` — lifespan starts `redis_listener` background task; registers notifications + websocket routers
+- [x] `tasks/router.py` — publishes `task.updated` event after PATCH /tasks/{id}
+- [x] `comments/router.py` — publishes `task.comment_added` event; creates mention notifications
+- [x] `tests/test_notifications.py` — 6 tests: empty list, unread count, mention creates notification, mark read, mark all read, isolation between users
+
+### Frontend
+- [x] `api/notifications.ts` — `useNotifications`, `useUnreadCount`, `useMarkRead`, `useMarkAllRead` hooks
+- [x] `hooks/useTaskSocket.ts` — `useTaskSocket` (invalidates task/audit/comments queries) + `useListSocket` (invalidates tasks query)
+- [x] `components/NotificationBell.tsx` — bell icon with unread badge, dropdown with recent 20 notifications, mark all read, navigate to task on click
+- [x] `TaskDetailPage.tsx` — `useTaskSocket(taskId)` for live updates
+- [x] `ListPage.tsx` — `useListSocket(listId)` + NotificationBell in header
+- [x] `BoardPage.tsx` — `useListSocket(listId)` + NotificationBell in header
+- [x] `WorkspacePage.tsx` — NotificationBell in header
+- [x] `ProjectPage.tsx` — NotificationBell in header
+
+---
+
 ## Phase 3 Polish & Bug Fixes
 _Completed: 2026-03-12_
 

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { workspacesApi, type Workspace } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function WorkspacePage() {
   const { user, logout } = useAuthStore()
@@ -41,6 +42,7 @@ export default function WorkspacePage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <span className="text-sm text-slate-600">{user?.display_name}</span>
           <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-semibold">
             {initials}

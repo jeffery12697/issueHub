@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import get_current_user
+from app.core.pubsub import publish_task_event, publish_list_event
 from app.features.tasks.repository import TaskRepository
 from app.features.tasks.service import TaskService
 from app.features.tasks.schemas import (
@@ -136,7 +137,11 @@ async def update_task(
 ):
     task = await service.update(task_id, body.to_dto(), actor_id=current_user.id)
     await session.commit()
-    return TaskResponse.model_validate(task)
+    response = TaskResponse.model_validate(task)
+    await publish_task_event(task_id, actor_id=current_user.id, event="task.updated", data={"task": response.model_dump(mode="json")})
+    if task.list_id:
+        await publish_list_event(task.list_id, task_id=task_id, actor_id=current_user.id, event="task.updated")
+    return response
 
 
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)

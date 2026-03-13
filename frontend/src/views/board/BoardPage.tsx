@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi, type ListStatus } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useState } from 'react'
+import { useListSocket } from '@/hooks/useTaskSocket'
+import NotificationBell from '@/components/NotificationBell'
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -15,6 +17,8 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 export default function BoardPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
   const qc = useQueryClient()
+
+  useListSocket(listId)
 
   const { data: list } = useQuery({
     queryKey: ['list', listId],
@@ -40,16 +44,19 @@ export default function BoardPage() {
         <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">Home</Link>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{list?.name}</span>
-        <div className="ml-auto flex rounded-lg border border-slate-200 overflow-hidden">
-          <Link
-            to={`/projects/${projectId}/lists/${listId}`}
-            className="bg-white text-slate-500 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 transition-colors"
-          >
-            List
-          </Link>
-          <span className="bg-violet-600 text-white px-3 py-1.5 text-xs font-medium">
-            Board
-          </span>
+        <div className="ml-auto flex items-center gap-3">
+          <NotificationBell />
+          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+            <Link
+              to={`/projects/${projectId}/lists/${listId}`}
+              className="bg-white text-slate-500 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 transition-colors"
+            >
+              List
+            </Link>
+            <span className="bg-violet-600 text-white px-3 py-1.5 text-xs font-medium">
+              Board
+            </span>
+          </div>
         </div>
       </header>
 

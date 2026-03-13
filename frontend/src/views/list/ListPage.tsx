@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
+import { useListSocket } from '@/hooks/useTaskSocket'
+import NotificationBell from '@/components/NotificationBell'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -16,6 +18,8 @@ export default function ListPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+
+  useListSocket(listId)
 
   const { data: list } = useQuery({
     queryKey: ['list', listId],
@@ -53,6 +57,7 @@ export default function ListPage() {
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
+          <NotificationBell />
           <Link
             to={`/projects/${projectId}/lists/${listId}/settings`}
             className="text-slate-400 hover:text-slate-600 text-xs transition-colors"

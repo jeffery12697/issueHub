@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,8 +16,23 @@ from app.features.dependencies.router import router as dependencies_router
 from app.features.comments.router import router as comments_router
 from app.features.custom_fields.router import router as custom_fields_router
 from app.features.list_templates.router import router as list_templates_router
+from app.features.notifications.router import router as notifications_router
+from app.features.websocket.router import router as websocket_router
+from app.features.websocket.manager import redis_listener
 
-app = FastAPI(title="IssueHub API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(redis_listener())
+    yield
+    task.cancel()
+    try:
+        await task
+    except (asyncio.CancelledError, Exception):
+        pass
+
+
+app = FastAPI(title="IssueHub API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,6 +53,8 @@ app.include_router(dependencies_router, prefix="/api/v1")
 app.include_router(comments_router, prefix="/api/v1")
 app.include_router(custom_fields_router, prefix="/api/v1")
 app.include_router(list_templates_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
+app.include_router(websocket_router)
 
 
 @app.get("/health")

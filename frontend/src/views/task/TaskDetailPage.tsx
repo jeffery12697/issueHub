@@ -8,6 +8,7 @@ import { dependenciesApi } from '@/api/dependencies'
 import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
 import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinition, type FieldValue } from '@/api/customFields'
 import { useAuthStore } from '@/store/authStore'
+import { useTaskSocket } from '@/hooks/useTaskSocket'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -15,6 +16,8 @@ export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+
+  useTaskSocket(taskId)
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', taskId],

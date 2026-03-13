@@ -5,10 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import get_current_user
+from app.core.pubsub import publish_task_event
 from app.features.audit.repository import AuditRepository
 from app.features.comments.repository import CommentRepository
 from app.features.comments.schemas import CommentResponse, CreateCommentRequest
 from app.features.comments.service import CommentService
+from app.features.notifications.repository import NotificationRepository
 from app.features.tasks.repository import TaskRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.models.user import User
@@ -35,6 +37,23 @@ async def create_comment(
 ):
     comment = await service.create(task_id, body.body, body.parent_comment_id, current_user.id)
     await session.commit()
+
+    # Publish real-time event
+    await publish_task_event(task_id, actor_id=current_user.id, event="task.comment_added", data={"comment_id": str(comment.id)})
+
+    # Create mention notifications
+    if comment.mentions:
+        notif_repo = NotificationRepository(session)
+        for user_id in comment.mentions:
+            await notif_repo.create(
+                user_id=user_id,
+                task_id=task_id,
+                type_="mention",
+                body=f"{current_user.display_name} mentioned you in a comment",
+                meta={"comment_id": str(comment.id)},
+            )
+        await session.commit()
+
     return CommentResponse(
         id=comment.id,
         task_id=comment.task_id,

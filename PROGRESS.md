@@ -87,20 +87,23 @@
 ## Phase 4 Checklist
 
 ### Backend
-- [ ] WebSocket connection manager (Redis Pub/Sub broadcast)
-- [ ] Task update events — broadcast on PATCH /tasks/{id}
-- [ ] Notification model + migration
-- [ ] Notification endpoints: GET /users/me/notifications, PATCH (mark read)
-- [ ] Trigger notifications on: @mention in comment, task assigned to you, blocked task unblocked
+- [x] WebSocket connection manager (Redis Pub/Sub broadcast)
+- [x] Task update events — broadcast on PATCH /tasks/{id}
+- [x] Notification model + migration (0008)
+- [x] Notification endpoints: GET /users/me/notifications, PATCH (mark read), unread-count
+- [x] Trigger notifications on: @mention in comment
+- [x] pubsub.py helpers — publish_task_event / publish_list_event
+- [x] 6 notification tests — all passing (89 total)
 
 ### Frontend
-- [ ] WebSocket client hook (useTaskSocket)
-- [ ] Live task updates on board/list view without refresh
-- [ ] Notification bell in header with unread count
-- [ ] Notification dropdown (mark read, link to task)
+- [x] WebSocket client hook (useTaskSocket + useListSocket)
+- [x] Live task updates on board/list view without refresh
+- [x] Notification bell in header with unread count badge
+- [x] Notification dropdown (mark read, mark all read, link to task)
+- [x] NotificationBell added to WorkspacePage, ProjectPage, ListPage, BoardPage
 
 ## Currently Working On
-- Starting Phase 4 — WebSocket real-time + notifications
+- Phase 4 complete — moving to Phase 5
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
