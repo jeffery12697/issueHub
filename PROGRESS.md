@@ -11,7 +11,7 @@
 | **Phase 2** | ✅ Done | T-02~T-05, A-01~A-03, A-05 | Subtasks, dependencies, promote, audit trail, comments |
 | **Phase 3** | ✅ Done | C-01~C-03, S-04, S-06 | Custom fields, status mapping, list templates |
 | **Phase 4** | ✅ Done | A-02 (real-time) | WebSocket real-time, @mention notifications |
-| **Phase 5** | ⏳ Not Started | M-05, M-06, M-08 | Multi-assignee, reviewer, My Tasks page |
+| **Phase 5** | ✅ Done | M-05, M-06, M-08 | Multi-assignee, reviewer, My Tasks page |
 | **Phase 6** | ⏳ Not Started | C-04, C-05, A-04 | Custom field filtering, role-based field visibility, attachments & links |
 | **Phase 7** | ⏳ Not Started | M-01, M-03, M-04 | Teams, team roles, list visibility by team |
 | **Phase 8** | ⏳ Not Started | M-07 | Workload view, full-text search, bulk ops, export, analytics |
@@ -113,13 +113,13 @@
 - [x] Tests for assignee, reviewer, and My Tasks endpoints (8 tests, all passing)
 
 ### Frontend
-- [ ] Assignee multi-select on task detail (workspace members, avatar chips)
-- [ ] Reviewer selector on task detail
-- [ ] `MyTasksPage` — cross-list task list grouped by list or due date
-- [ ] Nav link to My Tasks in workspace sidebar
+- [x] Assignee multi-select on task detail (workspace members, avatar chips with remove)
+- [x] Reviewer selector on task detail (remove clears reviewer_id)
+- [x] `MyTasksPage` — cross-list task list grouped by overdue / upcoming / no due date
+- [x] Nav link to My Tasks in workspace header
 
 ## Currently Working On
-- Phase 5 backend complete; frontend work remaining (M-05, M-06, M-08)
+- Phase 5 complete — ready for Phase 6
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
