@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Tiptap editor prose styles */
+.prose h1 { @apply text-xl font-bold text-slate-900 mt-4 mb-2; }
+.prose h2 { @apply text-lg font-bold text-slate-800 mt-3 mb-1.5; }
+.prose h3 { @apply text-base font-semibold text-slate-800 mt-2 mb-1; }
+.prose p  { @apply text-sm text-slate-700 leading-relaxed mb-2; }
+.prose ul  { @apply list-disc pl-5 mb-2 space-y-1; }
+.prose ol  { @apply list-decimal pl-5 mb-2 space-y-1; }
+.prose li  { @apply text-sm text-slate-700; }
+.prose code { @apply bg-slate-100 text-violet-600 font-mono text-xs px-1 py-0.5 rounded; }
+.prose pre  { @apply bg-slate-900 text-slate-100 font-mono text-xs p-3 rounded-lg mb-2 overflow-x-auto; }
+.prose pre code { @apply bg-transparent text-inherit p-0; }
+.prose blockquote { @apply border-l-4 border-violet-300 pl-3 italic text-slate-500 my-2; }
+.prose hr { @apply border-slate-200 my-3; }
+.prose a { @apply text-violet-600 underline hover:text-violet-800; }
+.prose strong { @apply font-semibold text-slate-800; }
+.prose em { @apply italic; }
+
+/* Tiptap task list */
+.prose ul[data-type="taskList"] { @apply list-none pl-1; }
+.prose ul[data-type="taskList"] li { @apply flex items-start gap-2; }
+.prose ul[data-type="taskList"] li > label { @apply flex items-center mt-0.5; }
+.prose ul[data-type="taskList"] li > label input[type="checkbox"] {
+  @apply w-3.5 h-3.5 rounded border-slate-300 text-violet-600 cursor-pointer;
+}
+.prose ul[data-type="taskList"] li > div { @apply flex-1; }
+.prose ul[data-type="taskList"] li[data-checked="true"] > div { @apply line-through text-slate-400; }
+
+/* Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-slate-400 text-sm;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

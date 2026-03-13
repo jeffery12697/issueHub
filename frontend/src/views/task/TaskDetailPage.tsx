@@ -15,6 +15,7 @@ import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
 import { useTimeEntries, useLogTime, useDeleteTimeEntry } from '@/api/timeEntries'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
+import RichTextEditor from '@/components/RichTextEditor'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -245,17 +246,14 @@ export default function TaskDetailPage() {
                   {task.title}
                 </h1>
               )}
-              <textarea
-                key={task.description ?? ''}
-                defaultValue={task.description ?? ''}
-                onBlur={(e) => {
-                  if (e.target.value !== (task.description ?? '')) {
-                    updateTask.mutate({ description: e.target.value })
+              <RichTextEditor
+                key={task.id}
+                value={task.description}
+                onChange={(html) => {
+                  if (html !== (task.description ?? '')) {
+                    updateTask.mutate({ description: html || null })
                   }
                 }}
-                placeholder="Add a description…"
-                rows={4}
-                className="w-full text-sm text-slate-600 placeholder-slate-400 bg-white border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent leading-relaxed hover:border-slate-300 transition-colors"
               />
             </div>
 
