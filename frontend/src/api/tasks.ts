@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { apiClient } from './client'
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
@@ -31,7 +32,9 @@ export type CreateTaskData = {
   status_id?: string
 }
 
-export type UpdateTaskData = Partial<CreateTaskData>
+export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id'>> & {
+  reviewer_id?: string | null
+}
 
 export const tasksApi = {
   list: (listId: string, params?: { status_id?: string; priority?: Priority; assignee_id?: string }) =>
@@ -48,4 +51,14 @@ export const tasksApi = {
     apiClient.get<Task[]>(`/tasks/${taskId}/subtasks`).then((r) => r.data),
   createSubtask: (taskId: string, data: CreateTaskData) =>
     apiClient.post<Task>(`/tasks/${taskId}/subtasks`, data).then((r) => r.data),
+  myTasks: (workspaceId: string, params?: { status_id?: string; priority?: Priority }) =>
+    apiClient.get<Task[]>(`/workspaces/${workspaceId}/me/tasks`, { params }).then((r) => r.data),
+}
+
+export function useMyTasks(workspaceId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-tasks', workspaceId],
+    queryFn: () => tasksApi.myTasks(workspaceId!),
+    enabled: !!workspaceId,
+  })
 }

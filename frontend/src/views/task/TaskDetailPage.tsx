@@ -402,6 +402,82 @@ export default function TaskDetailPage() {
               </div>
             </div>
 
+            {/* Assignees */}
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Assignees</label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {task.assignee_ids.map((id) => {
+                  const m = members.find((m) => m.user_id === id)
+                  return (
+                    <span
+                      key={id}
+                      className="flex items-center gap-1.5 bg-violet-50 text-violet-700 text-xs px-2 py-1 rounded-full border border-violet-200"
+                    >
+                      <span className="w-4 h-4 rounded-full bg-violet-200 flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {(m?.display_name ?? '?')[0].toUpperCase()}
+                      </span>
+                      {m?.display_name ?? id.slice(0, 8)}
+                      <button
+                        onClick={() => updateTask.mutate({ assignee_ids: task.assignee_ids.filter((a) => a !== id) })}
+                        className="text-violet-400 hover:text-red-500 transition-colors leading-none"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+              <select
+                value=""
+                onChange={(e) => {
+                  if (!e.target.value) return
+                  if (!task.assignee_ids.includes(e.target.value)) {
+                    updateTask.mutate({ assignee_ids: [...task.assignee_ids, e.target.value] })
+                  }
+                }}
+                className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">+ Add assignee…</option>
+                {members
+                  .filter((m) => !task.assignee_ids.includes(m.user_id))
+                  .map((m) => (
+                    <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Reviewer */}
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Reviewer</label>
+              {task.reviewer_id ? (
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                    <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
+                      {(members.find((m) => m.user_id === task.reviewer_id)?.display_name ?? '?')[0].toUpperCase()}
+                    </span>
+                    {members.find((m) => m.user_id === task.reviewer_id)?.display_name ?? task.reviewer_id.slice(0, 8)}
+                  </span>
+                  <button
+                    onClick={() => updateTask.mutate({ reviewer_id: null })}
+                    className="text-slate-300 hover:text-red-400 text-xs transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <select
+                  value=""
+                  onChange={(e) => { if (e.target.value) updateTask.mutate({ reviewer_id: e.target.value }) }}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  <option value="">Assign reviewer…</option>
+                  {members.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
             {/* Comments */}
             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
               <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">

@@ -43,6 +43,12 @@ export default function ProjectPage() {
         <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           <Link
+            to={`/workspaces/${workspaceId}/my-tasks`}
+            className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
+          >
+            My Tasks
+          </Link>
+          <Link
             to={`/workspaces/${workspaceId}/settings`}
             className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
           >

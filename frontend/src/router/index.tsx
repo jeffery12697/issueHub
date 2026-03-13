@@ -13,6 +13,7 @@ import ListSettingsPage from '@/views/list/ListSettingsPage'
 import BoardPage from '@/views/board/BoardPage'
 import TaskDetailPage from '@/views/task/TaskDetailPage'
 import WorkspaceSettingsPage from '@/views/workspace/WorkspaceSettingsPage'
+import MyTasksPage from '@/views/workspace/MyTasksPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { accessToken, setUser } = useAuthStore()
@@ -45,6 +46,7 @@ export default function AppRouter() {
         <Route path="/" element={<WorkspacePage />} />
         <Route path="/workspaces/:workspaceId" element={<ProjectPage />} />
         <Route path="/workspaces/:workspaceId/settings" element={<WorkspaceSettingsPage />} />
+        <Route path="/workspaces/:workspaceId/my-tasks" element={<MyTasksPage />} />
         <Route path="/projects/:projectId/lists/:listId" element={<ListPage />} />
         <Route path="/projects/:projectId/lists/:listId/board" element={<BoardPage />} />
         <Route path="/projects/:projectId/lists/:listId/settings" element={<ListSettingsPage />} />
