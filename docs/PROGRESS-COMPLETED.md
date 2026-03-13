@@ -307,3 +307,4 @@ _Completed: 2026-03-13_
 - **N-03 @mention** — confirmed already working via comment creation service
 - **N-02** — `immediate/digest` preference deferred (requires SMTP infrastructure)
 - 8 backend tests all passing
+- **Phase 10 frontend** — TaskDetailPage sidebar: Start Date picker, Story Points input; new Time tab with log form (minutes + optional note), entry list with formatted duration (e.g. "1h 30m"), per-entry delete; `timeEntries.ts` API (`useTimeEntries`, `useLogTime`, `useDeleteTimeEntry`); `start_date`/`story_points` added to Task type

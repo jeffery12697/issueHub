@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 11 — Simple automation (AU-02, AU-03): overdue notifications, auto-close parent on subtasks done
+- Phase 11 — AU-03: auto-close parent task when all subtasks are done (AU-02 deferred — needs scheduler+SMTP)
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
