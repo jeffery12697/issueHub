@@ -43,6 +43,9 @@ export function useCreateComment(taskId: string) {
       // Update cache immediately so the comment appears without waiting for a refetch
       qc.setQueryData<Comment[]>(['comments', taskId], (old = []) => [...old, newComment])
       qc.invalidateQueries({ queryKey: ['audit', taskId] })
+      // Refresh notification bell in case the comment triggered mention notifications
+      qc.invalidateQueries({ queryKey: ['notifications-unread'] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
 }

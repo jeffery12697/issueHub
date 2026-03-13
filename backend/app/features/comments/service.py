@@ -1,4 +1,3 @@
-import re
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -68,14 +67,13 @@ class CommentService:
         await self.repo.soft_delete(comment)
 
     async def _resolve_mentions(self, body: str, workspace_id: UUID) -> list[UUID]:
-        handles = re.findall(r"@(\w+)", body)
-        if not handles:
-            return []
         members = await self.workspace_repo.list_member_users(workspace_id)
-        handle_set = {h.lower() for h in handles}
+        if not members:
+            return []
+        body_lower = body.lower()
         return [
             u.id
             for u in members
-            if u.display_name.lower() in handle_set
-            or u.display_name.lower().replace(" ", "") in handle_set
+            if f"@{u.display_name.lower()}" in body_lower
+            or f"@{u.display_name.lower().replace(' ', '')}" in body_lower
         ]
