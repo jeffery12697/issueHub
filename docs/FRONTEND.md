@@ -7,7 +7,7 @@
 - **UI state**: Zustand
 - **Drag-and-drop**: `@dnd-kit/core` + `@dnd-kit/sortable`
 - **Routing**: React Router v6
-- **Markdown editor**: Tiptap (with @mention extension)
+- **Rich text editor**: Tiptap (`RichTextEditor.tsx` — Bold, Italic, Underline, Strike, Code, H1–H3, lists, blockquote, code block, HR, undo/redo)
 - **Forms**: React Hook Form
 - **Styling**: Tailwind CSS + `clsx` / `cva`
 
@@ -40,6 +40,7 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 - The Axios instance in `client.ts` handles JWT injection and 401 refresh transparently
 - API functions return typed response data — never `any`
 - Query hooks in `src/api/` wrap these functions with `useQuery` / `useMutation`
+- **Paginated endpoints**: use `listPaged()` variant (e.g. `tasksApi.listPaged()`) — sends `page`/`page_size` params, reads `X-Total-Count` header from the raw Axios response, returns `{ items: T[], total: number }`
 
 ### TypeScript
 - No `any` — use `unknown` and narrow, or define a proper type
@@ -72,12 +73,15 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 ## Key UI Patterns
 
 ### Board View (Kanban)
-- Each column = one `ListStatus`
-- Drag-drop via `@dnd-kit`; optimistic PATCH on drop, revert on API failure
+- Each column = one `ListStatus`; columns centered with `flex justify-center` + `min-w-max`
+- Drag-drop via HTML5 native `draggable` / `onDragStart` / `onDrop`; PATCH status on drop
+- Inline "Add task" form per column; "No Status" column for tasks with null `status_id`
+- Cards show: priority accent bar + badge, story points, due date (overdue/today coloring), assignee avatars, subtask count
 
-### SubtaskTree
-- Recursive component with collapse/expand
-- Fetches flat list from `GET /tasks/{id}/tree`, builds client-side `Map<id, Task[]>`
+### Subtasks in ListPage
+- List endpoint called with `include_subtasks=true` to fetch parents + subtasks in one request
+- Client-side grouping: parent tasks in order, each immediately followed by its subtasks; orphaned subtasks appended at end
+- Subtask rows: indented (`pl-10`), `↳ Parent title` breadcrumb (clickable, navigates to parent)
 
 ### CustomFieldInput
 - Switch-rendered by `field_type`: text / number / date / dropdown / checkbox / URL
@@ -93,14 +97,16 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 - `link_added` / `link_removed` audit entries suppress change details — show action name only
 
 ### TaskDetailPage layout
-- **Left column**: borderless title (inline edit on click) + description textarea, then a tabbed card (Subtasks / Blocked by / Links / Fields), then Comments thread, then History timeline
-- **Right sidebar** (`w-64`): single card divided into Status pill group, Priority pill group, Assignees multi-select, Reviewer select
+- **Left column**: borderless title (inline edit on click) + `RichTextEditor` description (saves on blur, not on keystroke), then a tabbed card (Subtasks / Blocked by / Links / Fields / Time), then Comments thread, then History timeline
+- **Right sidebar** (`w-64`): Status pill group, Priority pill group, Assignees multi-select, Reviewer select, Start Date picker, Story Points input, Watch toggle
+- History: description changes shown as "edited" (not raw HTML diff); single-element change arrays mean no old→new comparison
 - Query cache cleared on logout via `qc.clear()` in `HeaderActions`
 
-### ListPage filter bar
+### ListPage filter bar & pagination
 - Pill-shaped `FilterSelect` component wraps native `<select>` with custom chevron and active (violet) highlight
 - Status + Priority filters always shown; custom field filters appended after
-- Active filters highlighted in violet; "✕ Clear" button appears when any filter is set
+- Active filters highlighted in violet; "✕ Clear" button appears when any filter is set; any filter change resets to page 1
+- Pagination: `tasksApi.listPaged()` sends `page`/`page_size=50` params and reads `X-Total-Count` response header; prev/next + numbered page buttons shown when `totalPages > 1`
 
 ### WorkspaceMember management
 - `GET /auth/users/search?email=` — look up user by exact email (any authenticated user)

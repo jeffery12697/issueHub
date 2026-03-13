@@ -94,7 +94,7 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 - Base path: `/api/v1`
 - All endpoints require `Authorization: Bearer <token>` except `/auth/*`
 - Custom field filters: `?cf[{field_id}]=value`, `?cf[{field_id}][gte]=value`
-- Cursor-based pagination for audit/comment feeds (never offset)
+- **Pagination for list endpoints**: `?page=1&page_size=50` query params; response includes `X-Total-Count` header with the total matching count. `page_size=0` (default) returns all results. Header is exposed via CORS `expose_headers`.
 - HTTP 422 for validation errors with structured field-level messages
 
 ## Database Rules
