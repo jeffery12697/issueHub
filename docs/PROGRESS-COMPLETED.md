@@ -1,162 +1,10 @@
 # IssueHub - Completed Tasks
 
-A log of all planning and setup tasks completed before active development began.
+> **Format:** Sorted by phase ascending (oldest first). Each phase is one section — append new entries to the relevant phase block.
 
 ---
 
-## Phase 5 — Multi-Assignee, Reviewer, My Tasks (M-05, M-06, M-08)
-_Completed: 2026-03-13_
-
-### Backend
-- Fixed `reviewer_id` clearing using `_UNSET` sentinel in `UpdateTaskDTO` / `UpdateTaskRequest.to_dto()`
-- Fixed `repository.update()` so `reviewer_id=None` clears the field
-- Added `list_my_tasks()` to `TaskRepository` (filters by `assignee_ids` array using `any_()`)
-- Added `list_my_tasks()` to `TaskService` (with workspace member guard)
-- Added `GET /api/v1/workspaces/{workspace_id}/me/tasks` endpoint (filterable by status/priority)
-- 8 new tests in `tests/test_assignee.py` — all passing
-
-### Frontend
-- `TaskDetailPage`: Assignee chips with avatar initials + remove button; dropdown to add from workspace members
-- `TaskDetailPage`: Reviewer selector; "Remove" clears reviewer (`reviewer_id: null`)
-- `UpdateTaskData` type updated to allow `reviewer_id: string | null`
-- `MyTasksPage` at `/workspaces/:id/my-tasks` — tasks grouped by overdue / upcoming / no due date
-- "My Tasks" nav link in workspace (ProjectPage) header
-- `ListPage`: Assignees column (overlapping avatar circles, up to 4 + overflow) and Reviewer column
-- `TaskDetailPage`: invalidates `['tasks', list_id]` on update so list view reflects changes immediately
-
----
-
-## Phase 4 — WebSocket Real-Time Updates & Notifications
-_Completed: 2026-03-13_
-
-### Backend
-- [x] `app/core/pubsub.py` — `publish_task_event` / `publish_list_event` helpers (best-effort, silent on error)
-- [x] `app/models/notification.py` — Notification model (user_id, task_id, type, body, is_read, meta)
-- [x] Migration `0008_add_notifications.py` — notifications table with index on user_id
-- [x] `app/features/notifications/` — full feature module (schemas, repository, router)
-- [x] `app/features/websocket/` — connection manager (Redis psubscribe `task:*` / `list:*`) + router
-- [x] `app/main.py` — lifespan starts `redis_listener` background task; registers notifications + websocket routers
-- [x] `tasks/router.py` — publishes `task.updated` event after PATCH /tasks/{id}
-- [x] `comments/router.py` — publishes `task.comment_added` event; creates mention notifications
-- [x] `tests/test_notifications.py` — 7 tests: empty list, unread count, mention creates notification, mark read, mark all read, isolation between users, unread count after notification
-
-### Frontend
-- [x] `api/notifications.ts` — `useNotifications`, `useUnreadCount`, `useMarkRead`, `useMarkAllRead` hooks
-- [x] `hooks/useTaskSocket.ts` — `useTaskSocket` (invalidates task/audit/comments queries) + `useListSocket` (invalidates tasks query)
-- [x] `components/NotificationBell.tsx` — bell icon with unread badge, dropdown with recent 20 notifications, mark all read, navigate to task on click
-- [x] `components/HeaderActions.tsx` — NotificationBell + logout icon, shown on every page
-- [x] `TaskDetailPage.tsx` — `useTaskSocket(taskId)` for live updates; @mention autocomplete in comment form
-- [x] `ListPage.tsx`, `BoardPage.tsx`, `ProjectPage.tsx`, `WorkspacePage.tsx`, `ListSettingsPage.tsx`, `WorkspaceSettingsPage.tsx` — HeaderActions in every page header
-
-### Bug Fixes
-- [x] `comments/service.py` — fixed `_resolve_mentions`: replaced greedy regex with direct `"@<display_name>" in body` check; old regex captured entire sentences instead of just the name
-- [x] `api/comments.ts` — `useCreateComment.onSuccess` now invalidates `notifications-unread` and `notifications` queries so self-mentions appear immediately
-
----
-
-## Phase 3 Polish & Bug Fixes
-_Completed: 2026-03-12_
-
-- [x] List templates moved to dedicated `WorkspaceSettingsPage` (`/workspaces/:id/settings`)
-- [x] Template status editor — inline add/edit/delete statuses per template
-- [x] Template custom fields — add `default_custom_fields` to list templates (migration 0007); fields applied on from-template list creation; inline field editor in WorkspaceSettingsPage
-- [x] `PATCH /workspaces/{id}/list-templates/{id}` — update template name, statuses, and custom fields
-- [x] History section collapsed to 5 entries with "Show N more / Show less" toggle
-- [x] Comments show author name; Comments section moved above History
-- [x] Audit log resolves `status_id` → status name (shows "In Progress" not a UUID)
-- [x] Bulk INSERT for statuses + custom fields in `create_list_from_template` (N+1 fix)
-
----
-
-## Phase 3: Custom Fields + List Templates
-_Completed: 2026-03-12_
-
-### Backend
-- [x] `backend/app/models/custom_field.py` — CustomFieldDefinition (FieldType enum, options_json, is_required, order_index) + CustomFieldValue (typed columns, UniqueConstraint)
-- [x] `backend/app/models/list_template.py` — ListTemplate (workspace_id, name, default_statuses JSONB)
-- [x] `backend/alembic/versions/0005_add_custom_fields.py` — migration
-- [x] `backend/alembic/versions/0006_add_list_templates.py` — migration
-- [x] `backend/app/features/custom_fields/` — full module: schemas, repository (ON CONFLICT upsert), service (required field validation → 422), router (6 endpoints)
-- [x] `backend/app/features/list_templates/` — full module: create/list/delete templates, POST /projects/{id}/lists/from-template
-- [x] `backend/app/main.py` — registered custom_fields_router + list_templates_router
-- [x] `backend/tests/test_custom_fields.py` — 11 tests, all passing
-- [x] `backend/tests/test_list_templates.py` — 5 tests, all passing (83 total)
-
-### Frontend
-- [x] `frontend/src/api/customFields.ts` — FieldDefinition, FieldValue types + hooks (useFieldDefinitions, useFieldValues, useCreateField, useUpdateField, useDeleteField, useUpsertValues)
-- [x] `frontend/src/api/listTemplates.ts` — ListTemplate type + hooks (useListTemplates, useCreateTemplate, useDeleteTemplate)
-- [x] `frontend/src/views/list/ListSettingsPage.tsx` — two-tab page: Statuses (create/edit/delete/color/is_complete) + Custom Fields (create with type + options + required)
-- [x] `frontend/src/views/list/ListPage.tsx` — ⚙ Settings link in header
-- [x] `frontend/src/router/index.tsx` — /settings route added
-- [x] `frontend/src/views/task/TaskDetailPage.tsx` — Custom Fields card with CustomFieldInput (all 6 types)
-- [x] `frontend/src/views/project/ProjectPage.tsx` — List Templates section + from-template list creation
-
----
-
-## UI Visual Overhaul (slate/violet design system)
-_Completed: 2026-03-12_
-
-- [x] `frontend/src/views/auth/LoginPage.tsx` — gradient bg, violet logo square, tagline, refined Google button
-- [x] `frontend/src/views/workspace/WorkspacePage.tsx` — violet header logo, avatar initials, grid workspace cards with colored initials
-- [x] `frontend/src/views/project/ProjectPage.tsx` — breadcrumb header, violet dot on project names, list rows with hover pill buttons (List/Board)
-- [x] `frontend/src/views/list/ListPage.tsx` — pill toggle (List/Board), priority dot colors, slate table with shadow-sm
-- [x] `frontend/src/views/board/BoardPage.tsx` — pill toggle (Board/List), violet drag-over ring, priority dot indicators on cards
-- [x] `frontend/src/views/task/TaskDetailPage.tsx` — two-column layout (left: title/desc/subtasks/deps, right: status/priority/history/comments)
-
----
-
-## Phase 2: Comments (A-02)
-_Completed: 2026-03-12_
-
-- [x] `backend/app/models/comment.py` — Comment model (task_id, author_id, body, parent_comment_id, mentions UUID[])
-- [x] `backend/alembic/versions/0004_add_comments.py` — migration
-- [x] `backend/app/features/comments/` — full feature module (schemas, repository, service, router)
-- [x] `WorkspaceRepository.list_member_users()` — added for @mention resolution
-- [x] `backend/tests/test_comments.py` — 10 tests, all passing (67 total)
-- [x] `frontend/src/api/comments.ts` — API + useComments, useCreateComment, useDeleteComment hooks
-- [x] `frontend/src/views/task/TaskDetailPage.tsx` — comments section with post form, delete, @mention hint
-
----
-
-## Phase 1: Frontend Scaffold
-_Completed: 2026-03-12_
-
-- [x] `frontend/package.json` — Vite, React, TypeScript, TanStack Query v5, Zustand, React Router v6, Axios, Tailwind CSS
-- [x] `frontend/vite.config.ts` — path alias @/*, proxy /api → localhost:8000
-- [x] `frontend/src/api/client.ts` — Axios instance with JWT Bearer interceptor + 401 auto-refresh
-- [x] `frontend/src/api/` — auth, workspaces, projects, lists (+ statuses), tasks
-- [x] `frontend/src/store/authStore.ts` — Zustand: user, accessToken, setUser, setAccessToken, logout
-- [x] `frontend/src/store/uiStore.ts` — Zustand: sidebarOpen, activeTaskId
-- [x] `frontend/src/router/index.tsx` — RequireAuth wrapper, all routes (login, callback, workspace, project, list, board, task)
-- [x] `frontend/src/views/auth/LoginPage.tsx` — Google OAuth redirect button
-- [x] `frontend/src/views/auth/AuthCallbackPage.tsx` — token extraction from URL, redirect to /
-- [x] `frontend/src/views/workspace/WorkspacePage.tsx` — list + create workspaces
-- [x] `frontend/src/views/project/ProjectPage.tsx` — list + create projects; create lists per project
-- [x] `frontend/src/views/list/ListPage.tsx` — table view: create/delete tasks, status + priority columns
-- [x] `frontend/src/views/board/BoardPage.tsx` — kanban columns by status, native HTML5 drag-drop
-- [x] `frontend/src/views/task/TaskDetailPage.tsx` — inline title edit, status/priority picker, description, delete
-
----
-
-## Phase 1: Backend Scaffold
-_Completed: 2026-03-12_
-
-- [x] `docker-compose.yml` — PostgreSQL 16, Redis 7, FastAPI, Vite services
-- [x] `backend/Dockerfile`
-- [x] `backend/requirements.txt`
-- [x] `backend/.env.example`
-- [x] `backend/app/core/` — config, database (async SQLAlchemy), redis, security (JWT)
-- [x] `backend/app/models/` — base (SoftDeleteMixin, TimestampMixin), User, Workspace, WorkspaceMember, Project, List, ListStatus, Task (ltree path)
-- [x] `backend/alembic/` — env.py + initial migration (0001): all tables, ltree extension, GiST index on path
-- [x] `backend/app/features/auth/` — Google OAuth router, service (upsert user), schemas
-- [x] `backend/app/features/workspaces/` — full CRUD + member management (invite, role update, remove)
-- [x] `backend/app/features/projects/` — full CRUD scoped to workspace
-- [x] `backend/app/features/lists/` — full CRUD + status management (create, update, reorder, soft delete)
-- [x] `backend/app/features/tasks/` — full CRUD with ltree path, fractional order_index, filters
-
----
-
-## Pre-Development: Planning & Documentation
+## Pre-Development — Planning & Documentation
 _Completed: 2026-03-12_
 
 ### Architecture Planning
@@ -166,100 +14,143 @@ _Completed: 2026-03-12_
 - [x] Chose PostgreSQL `ltree` for task tree (over recursive CTEs)
 - [x] Chose float fractional indexing for drag-drop ordering
 - [x] Designed Redis Pub/Sub + WebSocket real-time architecture
-- [x] Defined 5 implementation phases
+- [x] Defined implementation phases
 
 ### Documentation
 - [x] Created `CLAUDE.md` — project overview, conventions, doc index
 - [x] Created `PROGRESS.md` — phase tracker and per-phase checklist
-- [x] Created `docs/BACKEND.md` — FastAPI stack, API conventions, DB rules
-- [x] Created `docs/FRONTEND.md` — React stack, component structure, UI patterns
-- [x] Created `docs/AUTH.md` — JWT flow, roles, password rules
-- [x] Created `docs/RBAC.md` — role hierarchy, team scoping, enforcement checklist
-- [x] Created `docs/DATA_MODEL.md` — full schema with all tables, columns, indexes
-- [x] Created `docs/REALTIME.md` — WebSocket + Redis Pub/Sub design
-- [x] Created `docs/DEPLOYMENT.md` — Docker Compose, env vars, prod setup
-- [x] Created `docs/PROJECT_STRUCTURE.md` — full folder tree (backend + frontend)
+- [x] Created `docs/BACKEND.md`, `docs/FRONTEND.md`, `docs/AUTH.md`, `docs/RBAC.md`
+- [x] Created `docs/DATA_MODEL.md`, `docs/REALTIME.md`, `docs/DEPLOYMENT.md`, `docs/PROJECT_STRUCTURE.md`
 
 ### User Stories
-- [x] Defined T-01 ~ T-05: Task CRUD, nested subtasks, blockers, promotion (`docs/stories/TASKS.md`)
-- [x] Defined A-01 ~ A-05: Audit trail, comments, @mention, attachments (`docs/stories/AUDIT.md`)
-- [x] Defined C-01 ~ C-05: Custom fields, required fields, role visibility (`docs/stories/CUSTOM_FIELDS.md`)
-- [x] Defined S-01 ~ S-06: Per-list statuses, kanban, cross-list mapping, templates (`docs/stories/STATUS.md`)
-- [x] Defined M-01 ~ M-04: Organization, Team hierarchy, Space/List visibility (`docs/stories/ORG_TEAM.md`)
-- [x] Defined M-05 ~ M-08: Multi-assignee, My Tasks, workload view, reviewer role (`docs/stories/ASSIGNEE.md`)
+- [x] T-01 ~ T-05: Task CRUD, subtasks, blockers, promotion (`docs/stories/TASKS.md`)
+- [x] A-01 ~ A-05: Audit trail, comments, @mention, attachments (`docs/stories/AUDIT.md`)
+- [x] C-01 ~ C-05: Custom fields, required fields, role visibility (`docs/stories/CUSTOM_FIELDS.md`)
+- [x] S-01 ~ S-06: Per-list statuses, kanban, cross-list mapping, templates (`docs/stories/STATUS.md`)
+- [x] M-01 ~ M-04: Organization, Team hierarchy, Space/List visibility (`docs/stories/ORG_TEAM.md`)
+- [x] M-05 ~ M-08: Multi-assignee, My Tasks, workload view, reviewer role (`docs/stories/ASSIGNEE.md`)
 
 ---
 
-## Phase 3 Backend — Custom Fields + List Templates
-_Completed: 2026-03-12_
-
-### Custom Fields (C-01, C-02, C-03)
-- [x] `backend/app/models/custom_field.py` — CustomFieldDefinition (SoftDelete) + CustomFieldValue (UniqueConstraint)
-- [x] `backend/alembic/versions/0005_add_custom_fields.py` — migration for both tables
-- [x] `backend/app/features/custom_fields/schemas.py` — FieldType enum, DTOs, request/response Pydantic models
-- [x] `backend/app/features/custom_fields/repository.py` — CRUD + PostgreSQL ON CONFLICT upsert
-- [x] `backend/app/features/custom_fields/service.py` — auth checks, required field validation (422)
-- [x] `backend/app/features/custom_fields/router.py` — 6 endpoints
-- [x] `backend/tests/test_custom_fields.py` — 11 tests (all passing)
-
-### List Templates (S-06)
-- [x] `backend/app/models/list_template.py` — ListTemplate with JSONB default_statuses
-- [x] `backend/alembic/versions/0006_add_list_templates.py` — migration
-- [x] `backend/app/features/list_templates/schemas.py` — DTOs, request/response models
-- [x] `backend/app/features/list_templates/repository.py` — CRUD
-- [x] `backend/app/features/list_templates/service.py` — template management + create-list-from-template
-- [x] `backend/app/features/list_templates/router.py` — 4 endpoints
-- [x] `backend/tests/test_list_templates.py` — 5 tests (all passing)
-
-### Infrastructure
-- [x] `backend/app/main.py` — registered both new routers
-- [x] `backend/tests/conftest.py` — added model imports + truncate order entries
-- Full test suite: 83 tests, all passing
-
----
-
-## Phase 3 Frontend: Custom Fields + List Templates UI
-_Completed: 2026-03-12_
-
-- [x] `frontend/src/api/customFields.ts` — FieldDefinition/FieldValue types, customFieldsApi, useFieldDefinitions, useFieldValues, useCreateField, useUpdateField, useDeleteField, useUpsertValues hooks
-- [x] `frontend/src/api/listTemplates.ts` — ListTemplate/TemplateStatus types, listTemplatesApi, useListTemplates, useCreateTemplate, useDeleteTemplate hooks
-- [x] `frontend/src/views/list/ListSettingsPage.tsx` — two-tab settings page (Statuses + Custom Fields) with inline editing, color picker, create/delete for both
-- [x] `frontend/src/views/list/ListPage.tsx` — added Settings link in header
-- [x] `frontend/src/router/index.tsx` — added /projects/:projectId/lists/:listId/settings route
-- [x] `frontend/src/views/task/TaskDetailPage.tsx` — Custom Fields card in left column with CustomFieldInput component (text/number/date/dropdown/checkbox/url)
-- [x] `frontend/src/views/project/ProjectPage.tsx` — List Templates section (create from preset/delete), ProjectCard from-template creation (Blank | From template toggle)
-
----
-
-## Phase 3 Addendum: PATCH list-template + WorkspaceSettingsPage
+## Phase 1 — Task CRUD, Status Config, Board + List Views
 _Completed: 2026-03-12_
 
 ### Backend
-- [x] `backend/app/features/list_templates/schemas.py` — added UpdateTemplateDTO + UpdateTemplateRequest
-- [x] `backend/app/features/list_templates/repository.py` — added update() method
-- [x] `backend/app/features/list_templates/service.py` — added update_template() method
-- [x] `backend/app/features/list_templates/router.py` — added PATCH /workspaces/{id}/list-templates/{id} endpoint
+- [x] `docker-compose.yml` — PostgreSQL 16, Redis 7, FastAPI, Vite services
+- [x] `backend/app/core/` — config, database (async SQLAlchemy), redis, security (JWT)
+- [x] `backend/app/models/` — base (SoftDeleteMixin, TimestampMixin), User, Workspace, WorkspaceMember, Project, List, ListStatus, Task (ltree path)
+- [x] `backend/alembic/` — initial migration (0001): all tables, ltree extension, GiST index on path
+- [x] `backend/app/features/auth/` — Google OAuth router, service (upsert user), schemas
+- [x] `backend/app/features/workspaces/` — full CRUD + member management (invite, role update, remove)
+- [x] `backend/app/features/projects/` — full CRUD scoped to workspace
+- [x] `backend/app/features/lists/` — full CRUD + status management (create, update, reorder, soft delete)
+- [x] `backend/app/features/tasks/` — full CRUD with ltree path, fractional order_index, filters
 
 ### Frontend
-- [x] `frontend/src/api/listTemplates.ts` — added listTemplatesApi.update + useUpdateTemplate hook
-- [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — new settings page at /workspaces/:workspaceId/settings with create/edit/delete template UI
-- [x] `frontend/src/router/index.tsx` — added /workspaces/:workspaceId/settings route
-- [x] `frontend/src/views/project/ProjectPage.tsx` — removed inline templates section, added "⚙ Templates" header link to settings page
+- [x] Vite + React + TypeScript + TanStack Query v5 + Zustand + React Router v6 + Tailwind scaffold
+- [x] `api/client.ts` — Axios with JWT Bearer interceptor + 401 auto-refresh
+- [x] `store/authStore.ts` — user, accessToken, setUser, setAccessToken, logout
+- [x] `views/auth/` — Google OAuth login page + callback handler
+- [x] `views/workspace/WorkspacePage.tsx` — list + create workspaces
+- [x] `views/project/ProjectPage.tsx` — list + create projects + lists per project
+- [x] `views/list/ListPage.tsx` — table view: create/delete tasks, status + priority columns
+- [x] `views/board/BoardPage.tsx` — kanban columns by status, HTML5 drag-drop
+- [x] `views/task/TaskDetailPage.tsx` — inline title edit, status/priority picker, description, delete
+
+### UI Visual Overhaul
+- [x] Slate/violet design system across all pages
+- [x] Two-column task detail layout (left: title/desc/subtasks/deps, right: status/priority/history/comments)
+- [x] Grid workspace/project cards with initials avatars
+- [x] Pill view toggles (List ↔ Board), priority dot indicators, colored drag-over highlight on board
 
 ---
 
-## Phase 3 Addendum: default_custom_fields on list templates
+## Phase 2 — Subtasks, Dependencies, Promote, Audit Trail, Comments
 _Completed: 2026-03-12_
 
 ### Backend
-- [x] `backend/alembic/versions/0007_add_template_custom_fields.py` — migration adds JSONB default_custom_fields column (server_default=[])
-- [x] `backend/app/models/list_template.py` — added default_custom_fields mapped_column
-- [x] `backend/app/features/list_templates/schemas.py` — added default_custom_fields to CreateTemplateDTO, UpdateTemplateDTO, CreateTemplateRequest, UpdateTemplateRequest, TemplateResponse
-- [x] `backend/app/features/list_templates/repository.py` — create() passes default_custom_fields; update() handles default_custom_fields patch
-- [x] `backend/app/features/list_templates/service.py` — create_template passes field, create_list_from_template instantiates CustomFieldRepository and creates fields from template
-- [x] `backend/app/features/list_templates/router.py` — create/update DTOs pass default_custom_fields
-- Migration ran successfully; 83 tests still passing
+- [x] Subtasks — create, list (ltree path), tree query
+- [x] Task dependencies — blocked by / blocking (TaskDependency table)
+- [x] Promote subtask to top-level task (atomic, ltree prefix replacement)
+- [x] Audit trail — AuditLog append-only table; log all field changes with actor + timestamp
+- [x] Comments — create, list (with author JOIN), delete, @mention resolution
+- [x] `WorkspaceRepository.list_member_users()` — for @mention resolution
+- [x] Migrations: 0002 (audit_log), 0003 (task_dependencies), 0004 (comments)
+- [x] Backend test suite — 67 tests, all passing
 
 ### Frontend
-- [x] `frontend/src/api/listTemplates.ts` — added TemplateField type; updated ListTemplate, listTemplatesApi.create/update, useCreateTemplate, useUpdateTemplate
-- [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — added field pills preview row + inline field editor (name, type, required, dropdown options textarea) with Save fields button
+- [x] Subtask tree on task detail with collapse/expand
+- [x] Dependency badges (blocked by / blocking) with add/remove
+- [x] Promote button on subtask detail
+- [x] History timeline (audit log with actor name, status name resolution)
+- [x] History section collapsed to 5 entries with "Show N more / Show less" toggle
+- [x] Comments section (above history) — post, delete, author name display, @mention autocomplete
+
+---
+
+## Phase 3 — Custom Fields, Status Mapping, List Templates
+_Completed: 2026-03-12_
+
+### Backend
+- [x] `CustomFieldDefinition` + `CustomFieldValue` models + migration (0005)
+- [x] `ListTemplate` model + migrations (0006, 0007 — adds `default_custom_fields` JSONB)
+- [x] Custom fields feature: schemas, repository (ON CONFLICT upsert), service (required field 422), router (6 endpoints)
+- [x] List templates feature: create/list/delete/update templates; `POST /projects/{id}/lists/from-template`
+- [x] `PATCH /workspaces/{id}/list-templates/{id}` — update name, statuses, custom fields
+- [x] `create_list_from_template` uses `session.add_all()` bulk insert (N+1 fix)
+- [x] Audit log resolves `status_id` → status name
+- [x] 11 custom field tests + 5 list template tests — 83 total, all passing
+
+### Frontend
+- [x] `api/customFields.ts` — field definition + field value hooks
+- [x] `api/listTemplates.ts` — list template hooks (create, update, delete, from-template)
+- [x] `views/list/ListSettingsPage.tsx` — two-tab page: Statuses + Custom Fields
+- [x] `views/workspace/WorkspaceSettingsPage.tsx` — dedicated templates page at `/workspaces/:id/settings`; inline status + field editor per template
+- [x] `views/task/TaskDetailPage.tsx` — Custom Fields card (all 6 types: text, number, date, dropdown, checkbox, url)
+- [x] `views/project/ProjectPage.tsx` — from-template list creation (Blank | From template toggle); "⚙ Templates" header link
+
+---
+
+## Phase 4 — WebSocket Real-Time, @Mention Notifications
+_Completed: 2026-03-13_
+
+### Backend
+- [x] `app/core/pubsub.py` — `publish_task_event` / `publish_list_event` helpers (best-effort)
+- [x] `app/models/notification.py` — Notification model (user_id, task_id, type, body, is_read, meta JSONB)
+- [x] Migration 0008 — notifications table with index on user_id
+- [x] `app/features/notifications/` — full module: schemas, repository, router (list, unread-count, mark-read, mark-all-read)
+- [x] `app/features/websocket/` — Redis `psubscribe("task:*", "list:*")` fan-out; `/ws/tasks/{id}` + `/ws/lists/{id}`
+- [x] `app/main.py` — lifespan starts `redis_listener`; registers notifications + websocket routers
+- [x] `tasks/router.py` — publishes `task.updated` event after PATCH
+- [x] `comments/router.py` — publishes `task.comment_added`; creates mention notifications
+- [x] `comments/service.py` — fixed `_resolve_mentions`: direct `"@<display_name>" in body` check (replaced greedy regex)
+- [x] 7 notification tests — all passing (90 total)
+
+### Frontend
+- [x] `api/notifications.ts` — `useNotifications`, `useUnreadCount` (30s poll), `useMarkRead`, `useMarkAllRead`
+- [x] `hooks/useTaskSocket.ts` — `useTaskSocket` + `useListSocket` (invalidate queries on WS event)
+- [x] `components/NotificationBell.tsx` — bell + unread badge, dropdown with 20 recent, mark all read
+- [x] `components/HeaderActions.tsx` — NotificationBell + logout icon on every page
+- [x] `views/task/TaskDetailPage.tsx` — `useTaskSocket` for live updates; @mention autocomplete in comment form
+- [x] `api/comments.ts` — `onSuccess` invalidates notification queries so self-mentions appear immediately
+
+---
+
+## Phase 5 — Multi-Assignee, Reviewer, My Tasks (M-05, M-06, M-08)
+_Completed: 2026-03-13_
+
+### Backend
+- [x] `assignee_ids UUID[]` + `reviewer_id UUID FK` — already in initial migration
+- [x] `_UNSET` sentinel in `UpdateTaskDTO` so `reviewer_id=None` clears the field (not ignored)
+- [x] `list_my_tasks()` in `TaskRepository` — filters by `assignee_ids` array using `any_()`
+- [x] `list_my_tasks()` in `TaskService` — workspace member guard
+- [x] `GET /api/v1/workspaces/{workspace_id}/me/tasks` — filterable by status/priority
+- [x] 8 tests in `tests/test_assignee.py` — all passing
+
+### Frontend
+- [x] `TaskDetailPage`: Assignee chips (avatar initials + remove); dropdown to add workspace members
+- [x] `TaskDetailPage`: Reviewer selector with "Remove" to clear; `reviewer_id: null` supported
+- [x] `TaskDetailPage`: invalidates `['tasks', list_id]` on update so list reflects changes immediately
+- [x] `ListPage`: Assignees column (overlapping avatar circles, up to 4 + overflow) + Reviewer column
+- [x] `MyTasksPage` at `/workspaces/:id/my-tasks` — cross-list tasks grouped by overdue / upcoming / no due date
+- [x] "My Tasks" nav link in workspace (ProjectPage) header
