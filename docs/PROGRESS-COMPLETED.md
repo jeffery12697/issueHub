@@ -21,6 +21,8 @@ _Completed: 2026-03-13_
 - `UpdateTaskData` type updated to allow `reviewer_id: string | null`
 - `MyTasksPage` at `/workspaces/:id/my-tasks` — tasks grouped by overdue / upcoming / no due date
 - "My Tasks" nav link in workspace (ProjectPage) header
+- `ListPage`: Assignees column (overlapping avatar circles, up to 4 + overflow) and Reviewer column
+- `TaskDetailPage`: invalidates `['tasks', list_id]` on update so list view reflects changes immediately
 
 ---
 
