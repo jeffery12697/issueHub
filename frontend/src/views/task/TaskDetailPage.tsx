@@ -9,11 +9,29 @@ import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
 import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinition, type FieldValue } from '@/api/customFields'
 import { useAuthStore } from '@/store/authStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
-import { useWorkspaceMembers } from '@/api/workspaces'
+import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
 import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
+
+const PRIORITY_COLORS: Record<Priority, string> = {
+  none: 'text-slate-400',
+  low: 'text-sky-500',
+  medium: 'text-amber-500',
+  high: 'text-orange-500',
+  urgent: 'text-red-500',
+}
+
+const PRIORITY_DOT: Record<Priority, string> = {
+  none: '#cbd5e1',
+  low: '#38bdf8',
+  medium: '#fbbf24',
+  high: '#f97316',
+  urgent: '#ef4444',
+}
+
+type DetailTab = 'subtasks' | 'dependencies' | 'links' | 'fields'
 
 export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -46,16 +64,12 @@ export default function TaskDetailPage() {
   })
 
   const addBlockedBy = useMutation({
-    mutationFn: (dependsOnId: string) => dependenciesApi.addBlockedBy(taskId!, dependsOnId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['blocked-by', taskId] })
-      setBlockingInput('')
-      setAddingBlockedBy(false)
-    },
+    mutationFn: (id: string) => dependenciesApi.addBlockedBy(taskId!, id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['blocked-by', taskId] }); setBlockingInput('') },
   })
 
   const removeBlockedBy = useMutation({
-    mutationFn: (dependsOnId: string) => dependenciesApi.removeBlockedBy(taskId!, dependsOnId),
+    mutationFn: (id: string) => dependenciesApi.removeBlockedBy(taskId!, id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['blocked-by', taskId] }),
   })
 
@@ -72,7 +86,6 @@ export default function TaskDetailPage() {
   })
 
   const currentUser = useAuthStore((s) => s.user)
-
   const { data: fieldDefs = [] } = useFieldDefinitions(task?.list_id ?? undefined)
   const { data: fieldValues = [] } = useFieldValues(taskId!)
   const upsertValues = useUpsertValues(taskId!)
@@ -96,10 +109,10 @@ export default function TaskDetailPage() {
   const [linkUrl, setLinkUrl] = useState('')
   const [linkTitle, setLinkTitle] = useState('')
   const [commentBody, setCommentBody] = useState('')
+  const [activeTab, setActiveTab] = useState<DetailTab>('subtasks')
 
   const updateTask = useMutation({
-    mutationFn: (data: Parameters<typeof tasksApi.update>[1]) =>
-      tasksApi.update(taskId!, data),
+    mutationFn: (data: Parameters<typeof tasksApi.update>[1]) => tasksApi.update(taskId!, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       qc.invalidateQueries({ queryKey: ['audit', taskId] })
@@ -119,9 +132,7 @@ export default function TaskDetailPage() {
   const deleteTask = useMutation({
     mutationFn: () => tasksApi.delete(taskId!),
     onSuccess: () => {
-      if (task?.list_id) {
-        qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
-      }
+      if (task?.list_id) qc.invalidateQueries({ queryKey: ['tasks', task.list_id] })
       navigate(-1)
     },
   })
@@ -135,10 +146,23 @@ export default function TaskDetailPage() {
     },
   })
 
-  if (isLoading) return <div className="flex items-center justify-center h-screen text-slate-400">Loading...</div>
-  if (!task) return <div className="flex items-center justify-center h-screen text-slate-400">Task not found</div>
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-screen text-slate-400 text-sm">Loading…</div>
+  )
+  if (!task) return (
+    <div className="flex items-center justify-center h-screen text-slate-400 text-sm">Task not found</div>
+  )
 
   const statuses = list?.statuses ?? []
+  const currentStatus = statuses.find((s) => s.id === task.status_id)
+  const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+
+  const tabs: { key: DetailTab; label: string; count?: number }[] = [
+    { key: 'subtasks', label: 'Subtasks', count: subtasks.length },
+    { key: 'dependencies', label: 'Blocked by', count: blockedBy.length + blocking.length },
+    { key: 'links', label: 'Links', count: links.length },
+    ...(fieldDefs.length > 0 ? [{ key: 'fields' as DetailTab, label: 'Fields' }] : []),
+  ]
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -146,462 +170,308 @@ export default function TaskDetailPage() {
       <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
-          className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-1 transition-colors"
+          className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-1.5 transition-colors shrink-0"
         >
           ← Back
         </button>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm text-slate-500 truncate">{task.title}</span>
-        {task.parent_task_id && (
+        <span className="text-slate-200">|</span>
+        <span className="text-sm text-slate-500 truncate min-w-0">{task.title}</span>
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          {task.parent_task_id && (
+            <button
+              onClick={() => promoteTask.mutate()}
+              className="text-xs text-violet-500 hover:text-violet-700 border border-violet-200 hover:border-violet-400 px-3 py-1.5 rounded-lg transition-colors font-medium"
+            >
+              ↑ Promote
+            </button>
+          )}
           <button
-            onClick={() => promoteTask.mutate()}
-            className="ml-auto text-xs text-violet-500 hover:text-violet-700 border border-violet-200 px-3 py-1 rounded-full transition-colors"
+            onClick={() => deleteTask.mutate()}
+            className="text-xs text-slate-400 hover:text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
           >
-            ↑ Promote to top-level
+            Delete
           </button>
-        )}
-        <button
-          onClick={() => deleteTask.mutate()}
-          className={`${task.parent_task_id ? '' : 'ml-auto'} text-xs text-slate-400 hover:text-red-500 transition-colors`}
-        >
-          Delete
-        </button>
-        <HeaderActions />
+          <HeaderActions />
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto py-8 px-6">
-        <div className="flex gap-6 items-start">
+        <div className="flex gap-8 items-start">
 
-          {/* LEFT COLUMN */}
-          <div className="flex-1 min-w-0 space-y-5">
+          {/* LEFT — main content */}
+          <div className="flex-1 min-w-0 space-y-6">
 
-            {/* Title */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            {/* Title + Description */}
+            <div>
               {editingTitle ? (
-                <form onSubmit={(e) => {
-                  e.preventDefault()
-                  updateTask.mutate({ title })
-                  setEditingTitle(false)
-                }}>
+                <form onSubmit={(e) => { e.preventDefault(); updateTask.mutate({ title }); setEditingTitle(false) }}>
                   <input
                     autoFocus
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full text-xl font-bold border-b-2 border-violet-400 outline-none pb-1 text-slate-900 bg-transparent"
+                    onBlur={() => { updateTask.mutate({ title }); setEditingTitle(false) }}
+                    className="w-full text-2xl font-bold border-0 border-b-2 border-violet-400 outline-none pb-1 text-slate-900 bg-transparent mb-4"
                   />
                 </form>
               ) : (
                 <h1
-                  className="text-xl font-bold text-slate-900 cursor-pointer hover:text-violet-600 transition-colors"
+                  className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-violet-600 transition-colors mb-4 leading-tight"
                   onClick={() => { setTitle(task.title); setEditingTitle(true) }}
                 >
                   {task.title}
                 </h1>
               )}
-            </div>
-
-            {/* Description */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Description</label>
               <textarea
+                key={task.description ?? ''}
                 defaultValue={task.description ?? ''}
-                onBlur={(e) => updateTask.mutate({ description: e.target.value })}
-                placeholder="Add a description..."
-                rows={5}
-                className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                onBlur={(e) => {
+                  if (e.target.value !== (task.description ?? '')) {
+                    updateTask.mutate({ description: e.target.value })
+                  }
+                }}
+                placeholder="Add a description…"
+                rows={4}
+                className="w-full text-sm text-slate-600 placeholder-slate-300 bg-transparent border-0 resize-none focus:outline-none focus:ring-0 leading-relaxed"
               />
             </div>
 
-            {/* Custom Fields */}
-            {fieldDefs.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Custom Fields</label>
-                <div className="space-y-3">
-                  {fieldDefs.map(field => {
-                    const valueMap = Object.fromEntries(fieldValues.map(v => [v.field_id, v]))
-                    return (
-                      <CustomFieldInput
-                        key={field.id}
-                        field={field}
-                        value={valueMap[field.id]}
-                        onSave={(val) => upsertValues.mutate({ [field.id]: val })}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Subtasks */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Subtasks{' '}
-                  {subtasks.length > 0 && (
-                    <span className="ml-1 bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full font-normal normal-case tracking-normal">
-                      {subtasks.length}
-                    </span>
-                  )}
-                </label>
-                <button
-                  onClick={() => setAddingSubtask(true)}
-                  className="text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
-                >
-                  + Add
-                </button>
-              </div>
-
-              {addingSubtask && (
-                <form
-                  className="flex gap-2 mb-3"
-                  onSubmit={(e) => { e.preventDefault(); createSubtask.mutate(newSubtaskTitle) }}
-                >
-                  <input
-                    autoFocus
-                    value={newSubtaskTitle}
-                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                    placeholder="Subtask title"
-                    className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
-                  <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                  <button type="button" onClick={() => setAddingSubtask(false)} className="text-xs px-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
-                </form>
-              )}
-
-              {subtasks.length > 0 && (
-                <ul className="space-y-1">
-                  {subtasks.map((sub) => (
-                    <li key={sub.id}>
-                      <button
-                        onClick={() => navigate(`/tasks/${sub.id}`)}
-                        className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-100 hover:border-violet-200 hover:bg-violet-50 text-sm text-slate-700 transition-colors"
-                      >
-                        <span className="text-slate-300">↳</span>
-                        <span className="flex-1">{sub.title}</span>
-                        {sub.priority !== 'none' && (
-                          <span className="text-xs text-slate-400 capitalize">{sub.priority}</span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {subtasks.length === 0 && !addingSubtask && (
-                <p className="text-sm text-slate-400">No subtasks yet.</p>
-              )}
-            </div>
-
-            {/* Dependencies */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Blocked by</label>
-                <button
-                  onClick={() => setAddingBlockedBy(true)}
-                  className="text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
-                >
-                  + Add
-                </button>
-              </div>
-
-              {addingBlockedBy && (
-                <form
-                  className="flex gap-2 mb-3"
-                  onSubmit={(e) => { e.preventDefault(); addBlockedBy.mutate(blockingInput) }}
-                >
-                  <input
-                    autoFocus
-                    value={blockingInput}
-                    onChange={(e) => setBlockingInput(e.target.value)}
-                    placeholder="Paste task ID"
-                    className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
-                  <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                  <button type="button" onClick={() => setAddingBlockedBy(false)} className="text-xs px-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
-                </form>
-              )}
-
-              {blockedBy.length > 0 ? (
-                <ul className="space-y-1">
-                  {blockedBy.map((t) => (
-                    <li key={t.id} className="flex items-center gap-2 text-sm">
-                      <button
-                        onClick={() => navigate(`/tasks/${t.id}`)}
-                        className="flex-1 text-left px-3 py-1.5 rounded-lg border border-slate-100 hover:border-red-200 hover:bg-red-50 text-slate-700 transition-colors"
-                      >
-                        <span className="text-red-400 mr-2">⊘</span>{t.title}
-                      </button>
-                      <button
-                        onClick={() => removeBlockedBy.mutate(t.id)}
-                        className="text-slate-300 hover:text-red-400 text-xs transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : !addingBlockedBy && (
-                <p className="text-xs text-slate-400">No blockers.</p>
-              )}
-
-              {blocking.length > 0 && (
-                <div className="mt-4">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Blocking</label>
-                  <ul className="mt-2 space-y-1">
-                    {blocking.map((t) => (
-                      <li key={t.id}>
-                        <button
-                          onClick={() => navigate(`/tasks/${t.id}`)}
-                          className="w-full text-left px-3 py-1.5 rounded-lg border border-slate-100 hover:border-orange-200 hover:bg-orange-50 text-sm text-slate-700 transition-colors"
-                        >
-                          <span className="text-orange-400 mr-2">⚡</span>{t.title}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Links */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Links{' '}
-                  {links.length > 0 && (
-                    <span className="ml-1 bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full font-normal normal-case tracking-normal">
-                      {links.length}
-                    </span>
-                  )}
-                </label>
-                <button
-                  onClick={() => setAddingLink(true)}
-                  className="text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
-                >
-                  + Add
-                </button>
-              </div>
-
-              {addingLink && (
-                <form
-                  className="mb-3 space-y-2"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    if (!linkUrl.trim()) return
-                    addLink.mutate(
-                      { url: linkUrl.trim(), title: linkTitle.trim() || undefined },
-                      {
-                        onSuccess: () => {
-                          setLinkUrl('')
-                          setLinkTitle('')
-                          setAddingLink(false)
-                        },
-                      }
-                    )
-                  }}
-                >
-                  <input
-                    autoFocus
-                    type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    placeholder="URL (required)"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
-                  <input
-                    type="text"
-                    value={linkTitle}
-                    onChange={(e) => setLinkTitle(e.target.value)}
-                    placeholder="Title (optional)"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
-                  <div className="flex gap-2">
-                    <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                    <button type="button" onClick={() => { setAddingLink(false); setLinkUrl(''); setLinkTitle('') }} className="text-xs px-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
-                  </div>
-                </form>
-              )}
-
-              {links.length > 0 ? (
-                <ul className="space-y-1">
-                  {links.map((link) => (
-                    <li key={link.id} className="flex items-center gap-2 text-sm">
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 text-violet-600 hover:text-violet-800 hover:underline truncate"
-                      >
-                        {link.title || link.url}
-                      </a>
-                      <button
-                        onClick={() => deleteLink.mutate(link.id)}
-                        className="text-slate-300 hover:text-red-400 text-xs shrink-0 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : !addingLink && (
-                <p className="text-xs text-slate-400">No links yet.</p>
-              )}
-            </div>
-
-          </div>
-
-          {/* RIGHT COLUMN */}
-          <div className="w-80 shrink-0 space-y-4">
-
-            {/* Status */}
-            {statuses.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Status</label>
-                <div className="flex flex-wrap gap-2">
-                  {statuses.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => updateTask.mutate({ status_id: s.id })}
-                      className="text-xs px-3 py-1.5 rounded-full border-2 font-medium transition-colors"
-                      style={
-                        task.status_id === s.id
-                          ? { backgroundColor: s.color, color: '#fff', borderColor: s.color }
-                          : { borderColor: s.color, color: s.color }
-                      }
-                    >
-                      {s.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Priority */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Priority</label>
-              <div className="flex flex-wrap gap-1.5">
-                {PRIORITIES.map((p) => (
+            {/* Tabs */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="flex border-b border-slate-100">
+                {tabs.map((tab) => (
                   <button
-                    key={p}
-                    onClick={() => updateTask.mutate({ priority: p })}
-                    className={`text-xs px-3 py-1.5 rounded-lg border font-medium capitalize transition-colors ${
-                      task.priority === p
-                        ? 'bg-slate-900 text-white border-slate-900'
-                        : 'border-slate-200 text-slate-500 hover:border-slate-400'
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-4 py-3 text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                      activeTab === tab.key
+                        ? 'text-violet-600 border-b-2 border-violet-600 -mb-px'
+                        : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
-                    {p}
+                    {tab.label}
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-normal ${
+                        activeTab === tab.key ? 'bg-violet-100 text-violet-600' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Assignees */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Assignees</label>
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {task.assignee_ids.map((id) => {
-                  const m = members.find((m) => m.user_id === id)
-                  return (
-                    <span
-                      key={id}
-                      className="flex items-center gap-1.5 bg-violet-50 text-violet-700 text-xs px-2 py-1 rounded-full border border-violet-200"
-                    >
-                      <span className="w-4 h-4 rounded-full bg-violet-200 flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {(m?.display_name ?? '?')[0].toUpperCase()}
-                      </span>
-                      {m?.display_name ?? id.slice(0, 8)}
-                      <button
-                        onClick={() => updateTask.mutate({ assignee_ids: task.assignee_ids.filter((a) => a !== id) })}
-                        className="text-violet-400 hover:text-red-500 transition-colors leading-none"
+              <div className="p-4">
+                {/* Subtasks */}
+                {activeTab === 'subtasks' && (
+                  <div>
+                    {subtasks.length > 0 && (
+                      <ul className="space-y-1 mb-3">
+                        {subtasks.map((sub) => (
+                          <li key={sub.id}>
+                            <button
+                              onClick={() => navigate(`/tasks/${sub.id}`)}
+                              className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors group"
+                            >
+                              <span className="w-4 h-4 rounded border-2 border-slate-200 group-hover:border-violet-300 shrink-0 transition-colors" />
+                              <span className="flex-1">{sub.title}</span>
+                              {sub.priority !== 'none' && (
+                                <span className={`text-xs capitalize font-medium ${PRIORITY_COLORS[sub.priority]}`}>
+                                  {sub.priority}
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {addingSubtask ? (
+                      <form
+                        className="flex gap-2"
+                        onSubmit={(e) => { e.preventDefault(); createSubtask.mutate(newSubtaskTitle) }}
                       >
-                        ✕
+                        <input
+                          autoFocus
+                          value={newSubtaskTitle}
+                          onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                          placeholder="Subtask title"
+                          className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        />
+                        <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
+                        <button type="button" onClick={() => setAddingSubtask(false)} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => setAddingSubtask(true)}
+                        className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5"
+                      >
+                        <span className="text-lg leading-none">+</span> Add subtask
                       </button>
-                    </span>
-                  )
-                })}
-              </div>
-              <select
-                value=""
-                onChange={(e) => {
-                  if (!e.target.value) return
-                  if (!task.assignee_ids.includes(e.target.value)) {
-                    updateTask.mutate({ assignee_ids: [...task.assignee_ids, e.target.value] })
-                  }
-                }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              >
-                <option value="">+ Add assignee…</option>
-                {members
-                  .filter((m) => !task.assignee_ids.includes(m.user_id))
-                  .map((m) => (
-                    <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
-                  ))}
-              </select>
-            </div>
+                    )}
+                  </div>
+                )}
 
-            {/* Reviewer */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">Reviewer</label>
-              {task.reviewer_id ? (
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-sm text-slate-700">
-                    <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
-                      {(members.find((m) => m.user_id === task.reviewer_id)?.display_name ?? '?')[0].toUpperCase()}
-                    </span>
-                    {members.find((m) => m.user_id === task.reviewer_id)?.display_name ?? task.reviewer_id.slice(0, 8)}
-                  </span>
-                  <button
-                    onClick={() => updateTask.mutate({ reviewer_id: null })}
-                    className="text-slate-300 hover:text-red-400 text-xs transition-colors"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <select
-                  value=""
-                  onChange={(e) => { if (e.target.value) updateTask.mutate({ reviewer_id: e.target.value }) }}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                >
-                  <option value="">Assign reviewer…</option>
-                  {members.map((m) => (
-                    <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
-                  ))}
-                </select>
-              )}
+                {/* Dependencies */}
+                {activeTab === 'dependencies' && (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Blocked by</p>
+                      {blockedBy.length > 0 ? (
+                        <ul className="space-y-1 mb-2">
+                          {blockedBy.map((t) => (
+                            <li key={t.id} className="flex items-center gap-2">
+                              <button
+                                onClick={() => navigate(`/tasks/${t.id}`)}
+                                className="flex-1 text-left px-3 py-1.5 rounded-lg hover:bg-red-50 text-sm text-slate-700 transition-colors flex items-center gap-2"
+                              >
+                                <span className="text-red-400 text-xs">⊘</span>{t.title}
+                              </button>
+                              <button onClick={() => removeBlockedBy.mutate(t.id)} className="text-slate-300 hover:text-red-400 text-xs transition-colors px-1">✕</button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : !addingBlockedBy && <p className="text-sm text-slate-400 mb-2">No blockers.</p>}
+
+                      {addingBlockedBy ? (
+                        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); addBlockedBy.mutate(blockingInput) }}>
+                          <input
+                            autoFocus
+                            value={blockingInput}
+                            onChange={(e) => setBlockingInput(e.target.value)}
+                            placeholder="Paste task ID"
+                            className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          />
+                          <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
+                          <button type="button" onClick={() => setAddingBlockedBy(false)} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                        </form>
+                      ) : (
+                        <button onClick={() => setAddingBlockedBy(true)} className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5">
+                          <span className="text-lg leading-none">+</span> Add blocker
+                        </button>
+                      )}
+                    </div>
+
+                    {blocking.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Blocking</p>
+                        <ul className="space-y-1">
+                          {blocking.map((t) => (
+                            <li key={t.id}>
+                              <button
+                                onClick={() => navigate(`/tasks/${t.id}`)}
+                                className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-orange-50 text-sm text-slate-700 transition-colors flex items-center gap-2"
+                              >
+                                <span className="text-orange-400 text-xs">⚡</span>{t.title}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Links */}
+                {activeTab === 'links' && (
+                  <div>
+                    {links.length > 0 && (
+                      <ul className="space-y-1 mb-3">
+                        {links.map((link) => (
+                          <li key={link.id} className="flex items-center gap-2 group">
+                            <span className="text-slate-300 text-xs shrink-0">🔗</span>
+                            <a
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 text-sm text-violet-600 hover:underline truncate"
+                            >
+                              {link.title || link.url}
+                            </a>
+                            <button
+                              onClick={() => deleteLink.mutate(link.id)}
+                              className="text-slate-200 hover:text-red-400 text-xs transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              ✕
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {addingLink ? (
+                      <form
+                        className="space-y-2"
+                        onSubmit={(e) => {
+                          e.preventDefault()
+                          if (!linkUrl.trim()) return
+                          addLink.mutate(
+                            { url: linkUrl.trim(), title: linkTitle.trim() || undefined },
+                            { onSuccess: () => { setLinkUrl(''); setLinkTitle(''); setAddingLink(false) } }
+                          )
+                        }}
+                      >
+                        <input autoFocus type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)}
+                          placeholder="URL" className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                        <input type="text" value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)}
+                          placeholder="Title (optional)" className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                        <div className="flex gap-2">
+                          <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
+                          <button type="button" onClick={() => { setAddingLink(false); setLinkUrl(''); setLinkTitle('') }} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button onClick={() => setAddingLink(true)} className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5">
+                        <span className="text-lg leading-none">+</span> Add link
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Custom Fields */}
+                {activeTab === 'fields' && (
+                  <div className="space-y-3">
+                    {fieldDefs.map((field) => {
+                      const valueMap = Object.fromEntries(fieldValues.map((v) => [v.field_id, v]))
+                      return (
+                        <CustomFieldInput
+                          key={field.id}
+                          field={field}
+                          value={valueMap[field.id]}
+                          onSave={(val) => upsertValues.mutate({ [field.id]: val })}
+                        />
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Comments */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">
-                Comments{' '}
+            <div>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">
+                Comments
                 {comments.length > 0 && (
-                  <span className="ml-1 bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded-full font-normal normal-case tracking-normal">
-                    {comments.length}
-                  </span>
+                  <span className="ml-2 text-xs font-normal text-slate-400">{comments.length}</span>
                 )}
-              </label>
+              </h3>
 
               {comments.length > 0 && (
-                <ul className="mb-3 space-y-3">
+                <ul className="space-y-3 mb-4">
                   {comments.map((c) => (
-                    <li key={c.id} className="flex gap-2 text-sm">
-                      <div className="flex-1 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                        <p className="text-xs font-medium text-violet-700 mb-1">{c.author_name}</p>
-                        <p className="text-slate-800 whitespace-pre-wrap">{c.body}</p>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {new Date(c.created_at).toLocaleString()}
-                        </p>
+                    <li key={c.id} className="flex gap-3">
+                      <div className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                        {c.author_name?.[0]?.toUpperCase() ?? '?'}
                       </div>
-                      {currentUser?.id === c.author_id && (
-                        <button
-                          onClick={() => deleteComment.mutate(c.id)}
-                          className="text-slate-300 hover:text-red-400 text-xs self-start mt-2 transition-colors"
-                        >
-                          ✕
-                        </button>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-sm font-medium text-slate-800">{c.author_name}</span>
+                          <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
+                          {currentUser?.id === c.author_id && (
+                            <button onClick={() => deleteComment.mutate(c.id)} className="text-xs text-slate-300 hover:text-red-400 transition-colors ml-auto">Delete</button>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{c.body}</p>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -609,19 +479,127 @@ export default function TaskDetailPage() {
 
               <CommentForm
                 members={members}
-                onSubmit={(body) =>
-                  createComment.mutate({ body }, { onSuccess: () => setCommentBody('') })
-                }
+                onSubmit={(body) => createComment.mutate({ body }, { onSuccess: () => setCommentBody('') })}
                 value={commentBody}
                 onChange={setCommentBody}
               />
             </div>
 
             {/* History */}
-            {auditLogs.length > 0 && (
-              <HistorySection logs={auditLogs} />
-            )}
+            {auditLogs.length > 0 && <HistorySection logs={auditLogs} />}
+          </div>
 
+          {/* RIGHT — properties sidebar */}
+          <div className="w-64 shrink-0">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm divide-y divide-slate-100">
+
+              {/* Status */}
+              {statuses.length > 0 && (
+                <div className="px-4 py-3">
+                  <p className="text-xs font-medium text-slate-400 mb-2">Status</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {statuses.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => updateTask.mutate({ status_id: s.id })}
+                        className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
+                        style={
+                          task.status_id === s.id
+                            ? { backgroundColor: s.color + '20', color: s.color, borderColor: s.color + '60' }
+                            : { borderColor: '#e2e8f0', color: '#94a3b8' }
+                        }
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Priority */}
+              <div className="px-4 py-3">
+                <p className="text-xs font-medium text-slate-400 mb-2">Priority</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {PRIORITIES.map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => updateTask.mutate({ priority: p })}
+                      className={`text-xs px-2.5 py-1 rounded-full border font-medium capitalize transition-all flex items-center gap-1 ${
+                        task.priority === p
+                          ? 'border-slate-300 bg-slate-900 text-white'
+                          : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[p] }} />
+                      {p === 'none' ? '—' : p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Assignees */}
+              <div className="px-4 py-3">
+                <p className="text-xs font-medium text-slate-400 mb-2">Assignees</p>
+                {task.assignee_ids.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {task.assignee_ids.map((id) => {
+                      const m = memberMap[id]
+                      return (
+                        <span key={id} className="flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-700 text-xs px-2 py-1 rounded-full">
+                          <span className="w-4 h-4 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                            {(m?.display_name ?? '?')[0].toUpperCase()}
+                          </span>
+                          {m?.display_name ?? id.slice(0, 6)}
+                          <button
+                            onClick={() => updateTask.mutate({ assignee_ids: task.assignee_ids.filter((a) => a !== id) })}
+                            className="text-slate-300 hover:text-red-400 transition-colors leading-none ml-0.5"
+                          >×</button>
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (!e.target.value || task.assignee_ids.includes(e.target.value)) return
+                    updateTask.mutate({ assignee_ids: [...task.assignee_ids, e.target.value] })
+                  }}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                >
+                  <option value="">+ Add assignee…</option>
+                  {members.filter((m) => !task.assignee_ids.includes(m.user_id)).map((m) => (
+                    <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Reviewer */}
+              <div className="px-4 py-3">
+                <p className="text-xs font-medium text-slate-400 mb-2">Reviewer</p>
+                {task.reviewer_id && memberMap[task.reviewer_id] ? (
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-xs text-slate-700">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {memberMap[task.reviewer_id].display_name[0].toUpperCase()}
+                      </span>
+                      {memberMap[task.reviewer_id].display_name}
+                    </span>
+                    <button onClick={() => updateTask.mutate({ reviewer_id: null })} className="text-xs text-slate-300 hover:text-red-400 transition-colors">✕</button>
+                  </div>
+                ) : (
+                  <select
+                    value=""
+                    onChange={(e) => { if (e.target.value) updateTask.mutate({ reviewer_id: e.target.value }) }}
+                    className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                  >
+                    <option value="">Assign reviewer…</option>
+                    {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.display_name}</option>)}
+                  </select>
+                )}
+              </div>
+
+            </div>
           </div>
 
         </div>
@@ -635,7 +613,6 @@ function CustomFieldInput({ field, value, onSave }: {
   value: FieldValue | undefined
   onSave: (val: unknown) => void
 }) {
-  // Get current value based on field type
   const currentVal = (() => {
     if (!value) return null
     switch (field.field_type) {
@@ -649,56 +626,34 @@ function CustomFieldInput({ field, value, onSave }: {
   })()
 
   return (
-    <div className="flex items-start gap-3">
-      <label className="text-sm font-medium text-slate-600 w-32 shrink-0 pt-1.5">
-        {field.name}
-        {field.is_required && <span className="text-red-400 ml-0.5">*</span>}
+    <div className="flex items-center gap-3">
+      <label className="text-sm text-slate-500 w-28 shrink-0">
+        {field.name}{field.is_required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       <div className="flex-1">
         {field.field_type === 'checkbox' && (
-          <input
-            type="checkbox"
-            checked={!!currentVal}
-            onChange={(e) => onSave(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-violet-600 mt-1.5"
-          />
+          <input type="checkbox" checked={!!currentVal} onChange={(e) => onSave(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 text-violet-600" />
         )}
         {(field.field_type === 'text' || field.field_type === 'url') && (
-          <input
-            type={field.field_type === 'url' ? 'url' : 'text'}
-            defaultValue={currentVal as string ?? ''}
-            onBlur={(e) => onSave(e.target.value || null)}
-            placeholder={field.is_required ? 'Required' : 'Empty'}
-            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-          />
+          <input type={field.field_type === 'url' ? 'url' : 'text'} defaultValue={currentVal as string ?? ''}
+            onBlur={(e) => onSave(e.target.value || null)} placeholder="—"
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
         )}
         {field.field_type === 'number' && (
-          <input
-            type="number"
-            defaultValue={currentVal as number ?? ''}
-            onBlur={(e) => onSave(e.target.value ? Number(e.target.value) : null)}
-            placeholder={field.is_required ? 'Required' : 'Empty'}
-            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-          />
+          <input type="number" defaultValue={currentVal as number ?? ''}
+            onBlur={(e) => onSave(e.target.value ? Number(e.target.value) : null)} placeholder="—"
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
         )}
         {field.field_type === 'date' && (
-          <input
-            type="date"
-            defaultValue={currentVal as string ?? ''}
-            onChange={(e) => onSave(e.target.value || null)}
-            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-          />
+          <input type="date" defaultValue={currentVal as string ?? ''} onChange={(e) => onSave(e.target.value || null)}
+            className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
         )}
         {field.field_type === 'dropdown' && (
-          <select
-            value={(currentVal as string) ?? ''}
-            onChange={(e) => onSave(e.target.value ? { selected: e.target.value } : null)}
-            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-          >
-            <option value="">— Select —</option>
-            {(field.options_json ?? []).map((opt: string) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
+          <select value={(currentVal as string) ?? ''} onChange={(e) => onSave(e.target.value ? { selected: e.target.value } : null)}
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <option value="">—</option>
+            {(field.options_json ?? []).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         )}
       </div>
@@ -706,53 +661,42 @@ function CustomFieldInput({ field, value, onSave }: {
   )
 }
 
-const HISTORY_INITIAL = 5
-
 function HistorySection({ logs }: { logs: AuditLog[] }) {
   const [expanded, setExpanded] = useState(false)
-  const visible = expanded ? logs : logs.slice(0, HISTORY_INITIAL)
-  const hidden = logs.length - HISTORY_INITIAL
+  const visible = expanded ? logs : logs.slice(0, 5)
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 block">History</label>
-      <ul className="space-y-2.5">
+    <div>
+      <h3 className="text-sm font-semibold text-slate-700 mb-3">History</h3>
+      <ul className="space-y-3">
         {visible.map((log) => (
-          <li key={log.id} className="flex gap-2 text-xs">
+          <li key={log.id} className="flex gap-3 text-xs">
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
             <div>
               <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
-              <span className="text-slate-500 capitalize">{log.action}</span>
-              {log.changes && !['link_added', 'link_removed'].includes(log.action) && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
-                <div key={field} className="text-slate-400 mt-0.5">
-                  {field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal as string}</span>
-                </div>
-              ))}
+              <span className="text-slate-500 capitalize">{log.action.replace(/_/g, ' ')}</span>
+              {log.changes && !['link_added', 'link_removed'].includes(log.action) &&
+                Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
+                  <div key={field} className="text-slate-400 mt-0.5">
+                    {field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal as string}</span>
+                  </div>
+                ))
+              }
               <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString()}</div>
             </div>
           </li>
         ))}
       </ul>
-      {hidden > 0 && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-3 text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
-        >
-          {expanded ? '↑ Show less' : `↓ Show ${hidden} more`}
+      {logs.length > 5 && (
+        <button onClick={() => setExpanded((v) => !v)} className="mt-2 text-xs text-slate-400 hover:text-violet-600 transition-colors">
+          {expanded ? '↑ Show less' : `↓ ${logs.length - 5} more`}
         </button>
       )}
     </div>
   )
 }
 
-import type { Member } from '@/api/workspaces'
-
-function CommentForm({
-  members,
-  onSubmit,
-  value,
-  onChange,
-}: {
+function CommentForm({ members, onSubmit, value, onChange }: {
   members: Member[]
   onSubmit: (body: string) => void
   value: string
@@ -766,20 +710,14 @@ function CommentForm({
     const val = e.target.value
     onChange(val)
     const cursor = e.target.selectionStart ?? val.length
-    const before = val.slice(0, cursor)
-    const match = before.match(/@(\w*)$/)
-    if (match) {
-      setMentionQuery(match[1].toLowerCase())
-      setMentionStart(cursor - match[0].length)
-    } else {
-      setMentionQuery(null)
-    }
+    const match = val.slice(0, cursor).match(/@(\w*)$/)
+    if (match) { setMentionQuery(match[1].toLowerCase()); setMentionStart(cursor - match[0].length) }
+    else setMentionQuery(null)
   }
 
   function insertMention(displayName: string) {
     const after = value.slice(mentionStart + (mentionQuery?.length ?? 0) + 1)
-    const newVal = value.slice(0, mentionStart) + `@${displayName} ` + after
-    onChange(newVal)
+    onChange(value.slice(0, mentionStart) + `@${displayName} ` + after)
     setMentionQuery(null)
     setTimeout(() => textareaRef.current?.focus(), 0)
   }
@@ -790,32 +728,24 @@ function CommentForm({
 
   return (
     <div className="relative">
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!value.trim()) return
-          onSubmit(value.trim())
-        }}
-      >
+      <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!value.trim()) return; onSubmit(value.trim()) }}>
         <textarea
           ref={textareaRef}
           value={value}
           onChange={handleChange}
           onKeyDown={(e) => { if (e.key === 'Escape') setMentionQuery(null) }}
-          placeholder="Add a comment... Type @ to mention someone"
+          placeholder="Write a comment… @ to mention"
           rows={2}
           className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
         <button
           type="submit"
           disabled={!value.trim()}
-          className="self-end bg-violet-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-40"
+          className="self-end bg-violet-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-40 font-medium"
         >
           Post
         </button>
       </form>
-
       {suggestions.length > 0 && (
         <ul className="absolute bottom-full mb-1 left-0 bg-white border border-slate-200 rounded-xl shadow-lg z-10 min-w-48 overflow-hidden">
           {suggestions.map((m) => (
@@ -823,7 +753,7 @@ function CommentForm({
               <button
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); insertMention(m.display_name) }}
-                className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors flex items-center gap-2"
+                className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-violet-50 transition-colors flex items-center gap-2"
               >
                 <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold flex items-center justify-center shrink-0">
                   {m.display_name[0].toUpperCase()}
