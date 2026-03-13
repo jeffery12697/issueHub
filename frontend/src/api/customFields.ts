@@ -11,6 +11,8 @@ export type FieldDefinition = {
   is_required: boolean
   options_json: string[] | null
   order_index: number
+  visibility_roles: string[]
+  editable_roles: string[]
 }
 
 export type FieldValue = {
@@ -28,9 +30,9 @@ export type FieldValue = {
 export const customFieldsApi = {
   listDefinitions: (listId: string) =>
     apiClient.get<FieldDefinition[]>(`/lists/${listId}/custom-fields`).then(r => r.data),
-  createDefinition: (listId: string, data: { name: string; field_type: FieldType; is_required?: boolean; options_json?: string[] | null }) =>
+  createDefinition: (listId: string, data: { name: string; field_type: FieldType; is_required?: boolean; options_json?: string[] | null; visibility_roles?: string[]; editable_roles?: string[] }) =>
     apiClient.post<FieldDefinition>(`/lists/${listId}/custom-fields`, data).then(r => r.data),
-  updateDefinition: (listId: string, fieldId: string, data: { name?: string; is_required?: boolean; options_json?: string[] | null }) =>
+  updateDefinition: (listId: string, fieldId: string, data: { name?: string; is_required?: boolean; options_json?: string[] | null; visibility_roles?: string[]; editable_roles?: string[] }) =>
     apiClient.patch<FieldDefinition>(`/lists/${listId}/custom-fields/${fieldId}`, data).then(r => r.data),
   deleteDefinition: (listId: string, fieldId: string) =>
     apiClient.delete(`/lists/${listId}/custom-fields/${fieldId}`),
@@ -60,7 +62,7 @@ export function useFieldValues(taskId: string) {
 export function useCreateField(listId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; field_type: FieldType; is_required?: boolean; options_json?: string[] | null }) =>
+    mutationFn: (data: { name: string; field_type: FieldType; is_required?: boolean; options_json?: string[] | null; visibility_roles?: string[]; editable_roles?: string[] }) =>
       customFieldsApi.createDefinition(listId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['custom-fields', listId] }),
   })
@@ -69,7 +71,7 @@ export function useCreateField(listId: string) {
 export function useUpdateField(listId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ fieldId, data }: { fieldId: string; data: { name?: string; is_required?: boolean; options_json?: string[] | null } }) =>
+    mutationFn: ({ fieldId, data }: { fieldId: string; data: { name?: string; is_required?: boolean; options_json?: string[] | null; visibility_roles?: string[]; editable_roles?: string[] } }) =>
       customFieldsApi.updateDefinition(listId, fieldId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['custom-fields', listId] }),
   })

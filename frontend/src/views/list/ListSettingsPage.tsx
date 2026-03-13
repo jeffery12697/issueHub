@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi, type ListStatus } from '@/api/lists'
-import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType } from '@/api/customFields'
+import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType, type FieldDefinition } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
 
 export default function ListSettingsPage() {
@@ -228,6 +228,8 @@ function CustomFieldsTab({ listId }: { listId: string }) {
   const [newType, setNewType] = useState<FieldType>('text')
   const [newRequired, setNewRequired] = useState(false)
   const [newOptions, setNewOptions] = useState('')
+  const [newVisibility, setNewVisibility] = useState<string[]>([])
+  const [newEditable, setNewEditable] = useState<string[]>([])
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
@@ -240,37 +242,12 @@ function CustomFieldsTab({ listId }: { listId: string }) {
       ) : (
         <div className="space-y-2 mb-6">
           {fieldDefs.map((field) => (
-            <div
+            <FieldRow
               key={field.id}
-              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
-            >
-              <span className="flex-1 text-sm font-bold text-slate-700">{field.name}</span>
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                {field.field_type}
-              </span>
-              {field.is_required && (
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                  Required
-                </span>
-              )}
-              <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={field.is_required}
-                  onChange={(e) =>
-                    updateField.mutate({ fieldId: field.id, data: { is_required: e.target.checked } })
-                  }
-                  className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
-                />
-                Required
-              </label>
-              <button
-                onClick={() => deleteField.mutate(field.id)}
-                className="text-slate-300 hover:text-red-400 text-xs transition-colors"
-              >
-                Delete
-              </button>
-            </div>
+              field={field}
+              onUpdate={(data) => updateField.mutate({ fieldId: field.id, data })}
+              onDelete={() => deleteField.mutate(field.id)}
+            />
           ))}
         </div>
       )}
@@ -294,11 +271,15 @@ function CustomFieldsTab({ listId }: { listId: string }) {
               field_type: newType,
               is_required: newRequired,
               options_json: options,
+              visibility_roles: newVisibility,
+              editable_roles: newEditable,
             })
             setNewName('')
             setNewType('text')
             setNewRequired(false)
             setNewOptions('')
+            setNewVisibility([])
+            setNewEditable([])
           }}
         >
           <div className="flex gap-2">
@@ -332,7 +313,7 @@ function CustomFieldsTab({ listId }: { listId: string }) {
             />
           )}
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 flex-wrap">
             <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -342,6 +323,12 @@ function CustomFieldsTab({ listId }: { listId: string }) {
               />
               Required
             </label>
+          </div>
+
+          <RolePicker label="Visible to (empty = all)" value={newVisibility} onChange={setNewVisibility} />
+          <RolePicker label="Editable by (empty = all)" value={newEditable} onChange={setNewEditable} />
+
+          <div className="flex justify-end">
             <button
               type="submit"
               className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
@@ -351,6 +338,87 @@ function CustomFieldsTab({ listId }: { listId: string }) {
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+const ALL_ROLES = ['owner', 'admin', 'member']
+
+function RolePicker({ label, value, onChange }: { label: string; value: string[]; onChange: (v: string[]) => void }) {
+  const toggle = (role: string) =>
+    onChange(value.includes(role) ? value.filter((r) => r !== role) : [...value, role])
+  return (
+    <div className="flex items-center gap-3 flex-wrap">
+      <span className="text-xs text-slate-500 w-40 shrink-0">{label}</span>
+      <div className="flex gap-3">
+        {ALL_ROLES.map((role) => (
+          <label key={role} className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none capitalize">
+            <input
+              type="checkbox"
+              checked={value.includes(role)}
+              onChange={() => toggle(role)}
+              className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
+            />
+            {role}
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FieldRow({
+  field,
+  onUpdate,
+  onDelete,
+}: {
+  field: FieldDefinition
+  onUpdate: (data: { is_required?: boolean; visibility_roles?: string[]; editable_roles?: string[] }) => void
+  onDelete: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+      <div className="flex items-center gap-3 py-2 px-3">
+        <span className="flex-1 text-sm font-bold text-slate-700">{field.name}</span>
+        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{field.field_type}</span>
+        {field.is_required && (
+          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Required</span>
+        )}
+        <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={field.is_required}
+            onChange={(e) => onUpdate({ is_required: e.target.checked })}
+            className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
+          />
+          Required
+        </label>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs text-slate-400 hover:text-violet-600 transition-colors"
+        >
+          Roles {expanded ? '▲' : '▼'}
+        </button>
+        <button onClick={onDelete} className="text-slate-300 hover:text-red-400 text-xs transition-colors">
+          Delete
+        </button>
+      </div>
+      {expanded && (
+        <div className="px-3 pb-3 space-y-2 border-t border-slate-100 pt-2">
+          <RolePicker
+            label="Visible to (empty = all)"
+            value={field.visibility_roles}
+            onChange={(v) => onUpdate({ visibility_roles: v })}
+          />
+          <RolePicker
+            label="Editable by (empty = all)"
+            value={field.editable_roles}
+            onChange={(v) => onUpdate({ editable_roles: v })}
+          />
+        </div>
+      )}
     </div>
   )
 }

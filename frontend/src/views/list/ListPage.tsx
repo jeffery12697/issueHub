@@ -5,6 +5,7 @@ import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
+import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
@@ -28,12 +29,13 @@ export default function ListPage() {
   })
 
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks', listId],
-    queryFn: () => tasksApi.list(listId!),
+    queryKey: ['tasks', listId, cfFilters],
+    queryFn: () => tasksApi.list(listId!, { cf: cfFilters }),
   })
 
   const [newTitle, setNewTitle] = useState('')
   const [creating, setCreating] = useState(false)
+  const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
 
   const createTask = useMutation({
     mutationFn: (title: string) => tasksApi.create(listId!, { title }),
@@ -49,6 +51,7 @@ export default function ListPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
   })
 
+  const { data: fieldDefs = [] } = useFieldDefinitions(listId)
   const workspaceId = tasks[0]?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
@@ -93,6 +96,67 @@ export default function ListPage() {
             + New task
           </button>
         </div>
+
+        {fieldDefs.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2 items-center">
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Filter:</span>
+            {fieldDefs.map((field) => {
+              const val = cfFilters[field.id] ?? ''
+              const set = (v: string) => setCfFilters((prev) => {
+                const next = { ...prev }
+                if (v) next[field.id] = v; else delete next[field.id]
+                return next
+              })
+              if (field.field_type === 'dropdown') {
+                return (
+                  <select
+                    key={field.id}
+                    value={val}
+                    onChange={(e) => set(e.target.value)}
+                    className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-600"
+                  >
+                    <option value="">{field.name}: all</option>
+                    {(field.options_json ?? []).map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                )
+              }
+              if (field.field_type === 'checkbox') {
+                return (
+                  <select
+                    key={field.id}
+                    value={val}
+                    onChange={(e) => set(e.target.value)}
+                    className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-600"
+                  >
+                    <option value="">{field.name}: all</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                )
+              }
+              return (
+                <input
+                  key={field.id}
+                  type={field.field_type === 'number' ? 'number' : field.field_type === 'date' ? 'date' : 'text'}
+                  value={val}
+                  onChange={(e) => set(e.target.value)}
+                  placeholder={field.name}
+                  className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-600 w-32"
+                />
+              )
+            })}
+            {Object.keys(cfFilters).length > 0 && (
+              <button
+                onClick={() => setCfFilters({})}
+                className="text-xs text-slate-400 hover:text-red-400 transition-colors"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
 
         {creating && (
           <form

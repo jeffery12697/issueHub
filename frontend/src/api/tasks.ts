@@ -37,8 +37,18 @@ export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id'>> & {
 }
 
 export const tasksApi = {
-  list: (listId: string, params?: { status_id?: string; priority?: Priority; assignee_id?: string }) =>
-    apiClient.get<Task[]>(`/lists/${listId}/tasks`, { params }).then((r) => r.data),
+  list: (listId: string, params?: { status_id?: string; priority?: Priority; assignee_id?: string; cf?: Record<string, string> }) => {
+    const p: Record<string, string> = {}
+    if (params?.status_id) p.status_id = params.status_id
+    if (params?.priority) p.priority = params.priority
+    if (params?.assignee_id) p.assignee_id = params.assignee_id
+    if (params?.cf) {
+      for (const [fieldId, value] of Object.entries(params.cf)) {
+        if (value) p[`cf[${fieldId}]`] = value
+      }
+    }
+    return apiClient.get<Task[]>(`/lists/${listId}/tasks`, { params: p }).then((r) => r.data)
+  },
   get: (id: string) => apiClient.get<Task>(`/tasks/${id}`).then((r) => r.data),
   create: (listId: string, data: CreateTaskData) =>
     apiClient.post<Task>(`/lists/${listId}/tasks`, data).then((r) => r.data),
