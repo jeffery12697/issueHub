@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Idle — post-Phase 11 polish complete (pagination, board redesign, rich text editor, subtask improvements)
+- Idle — post-Phase 11 polish complete (pagination, board redesign, rich text editor, subtask improvements, blocked/blocking badges, history name resolution)
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
