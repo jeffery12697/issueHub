@@ -16,6 +16,8 @@ const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   urgent: '#ef4444',
 }
 
+const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
+
 export default function ListPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
   const navigate = useNavigate()
@@ -30,11 +32,17 @@ export default function ListPage() {
 
   const [newTitle, setNewTitle] = useState('')
   const [creating, setCreating] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState<Priority | ''>('')
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
 
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks', listId, cfFilters],
-    queryFn: () => tasksApi.list(listId!, { cf: cfFilters }),
+    queryKey: ['tasks', listId, statusFilter, priorityFilter, cfFilters],
+    queryFn: () => tasksApi.list(listId!, {
+      status_id: statusFilter || undefined,
+      priority: (priorityFilter as Priority) || undefined,
+      cf: cfFilters,
+    }),
   })
 
   const createTask = useMutation({
@@ -97,10 +105,32 @@ export default function ListPage() {
           </button>
         </div>
 
-        {fieldDefs.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Filter:</span>
-            {fieldDefs.map((field) => {
+        <div className="mb-4 flex flex-wrap gap-2 items-center">
+          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Filter:</span>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-600"
+          >
+            <option value="">Status: all</option>
+            {(list?.statuses ?? []).map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value as Priority | '')}
+            className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-600"
+          >
+            <option value="">Priority: all</option>
+            {PRIORITIES.filter((p) => p !== 'none').map((p) => (
+              <option key={p} value={p} className="capitalize">{p}</option>
+            ))}
+          </select>
+
+          {fieldDefs.map((field) => {
               const val = cfFilters[field.id] ?? ''
               const set = (v: string) => setCfFilters((prev) => {
                 const next = { ...prev }
@@ -146,17 +176,17 @@ export default function ListPage() {
                   className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-600 w-32"
                 />
               )
-            })}
-            {Object.keys(cfFilters).length > 0 && (
-              <button
-                onClick={() => setCfFilters({})}
-                className="text-xs text-slate-400 hover:text-red-400 transition-colors"
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-        )}
+          })}
+
+          {(statusFilter || priorityFilter || Object.keys(cfFilters).length > 0) && (
+            <button
+              onClick={() => { setStatusFilter(''); setPriorityFilter(''); setCfFilters({}) }}
+              className="text-xs text-slate-400 hover:text-red-400 transition-colors"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
 
         {creating && (
           <form
