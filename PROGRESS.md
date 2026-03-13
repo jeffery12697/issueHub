@@ -10,7 +10,7 @@
 | **Phase 1** | ✅ Done | Task CRUD, list status config, Board + List views |
 | **Phase 2** | ✅ Done | Subtasks, dependencies, promote, audit trail, comments |
 | **Phase 3** | ✅ Done | Custom fields, status mapping, list templates |
-| **Phase 4** | 🔄 In Progress | WebSocket real-time, notifications |
+| **Phase 4** | ✅ Done | WebSocket real-time, notifications |
 | **Phase 5** | ⏳ Not Started | Full-text search, bulk ops, export, analytics |
 | **Phase 6** | ⏳ Not Started | Teams + team roles (M-01, M-03) — no email invite |
 | **Phase 7** | ⏳ Not Started | List visibility by team (M-04), multi-assignee & workload (M-05~M-08) |
@@ -103,7 +103,7 @@
 - [x] NotificationBell added to WorkspacePage, ProjectPage, ListPage, BoardPage
 
 ## Currently Working On
-- Phase 4 complete — moving to Phase 5
+- Phase 4 complete — ready for Phase 5
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

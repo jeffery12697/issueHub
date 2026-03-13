@@ -16,17 +16,19 @@ _Completed: 2026-03-13_
 - [x] `app/main.py` — lifespan starts `redis_listener` background task; registers notifications + websocket routers
 - [x] `tasks/router.py` — publishes `task.updated` event after PATCH /tasks/{id}
 - [x] `comments/router.py` — publishes `task.comment_added` event; creates mention notifications
-- [x] `tests/test_notifications.py` — 6 tests: empty list, unread count, mention creates notification, mark read, mark all read, isolation between users
+- [x] `tests/test_notifications.py` — 7 tests: empty list, unread count, mention creates notification, mark read, mark all read, isolation between users, unread count after notification
 
 ### Frontend
 - [x] `api/notifications.ts` — `useNotifications`, `useUnreadCount`, `useMarkRead`, `useMarkAllRead` hooks
 - [x] `hooks/useTaskSocket.ts` — `useTaskSocket` (invalidates task/audit/comments queries) + `useListSocket` (invalidates tasks query)
 - [x] `components/NotificationBell.tsx` — bell icon with unread badge, dropdown with recent 20 notifications, mark all read, navigate to task on click
-- [x] `TaskDetailPage.tsx` — `useTaskSocket(taskId)` for live updates
-- [x] `ListPage.tsx` — `useListSocket(listId)` + NotificationBell in header
-- [x] `BoardPage.tsx` — `useListSocket(listId)` + NotificationBell in header
-- [x] `WorkspacePage.tsx` — NotificationBell in header
-- [x] `ProjectPage.tsx` — NotificationBell in header
+- [x] `components/HeaderActions.tsx` — NotificationBell + logout icon, shown on every page
+- [x] `TaskDetailPage.tsx` — `useTaskSocket(taskId)` for live updates; @mention autocomplete in comment form
+- [x] `ListPage.tsx`, `BoardPage.tsx`, `ProjectPage.tsx`, `WorkspacePage.tsx`, `ListSettingsPage.tsx`, `WorkspaceSettingsPage.tsx` — HeaderActions in every page header
+
+### Bug Fixes
+- [x] `comments/service.py` — fixed `_resolve_mentions`: replaced greedy regex with direct `"@<display_name>" in body` check; old regex captured entire sentences instead of just the name
+- [x] `api/comments.ts` — `useCreateComment.onSuccess` now invalidates `notifications-unread` and `notifications` queries so self-mentions appear immediately
 
 ---
 
