@@ -198,3 +198,23 @@ _Completed: 2026-03-13_
 - [x] `WorkspaceSettingsPage.tsx` — refactored into Templates + Teams tabs; Teams tab shows team list, create team, per-team member management (add/remove, role select)
 - [x] `ListSettingsPage.tsx` — added Visibility tab; multi-select checkboxes for teams, calls `PATCH /lists/{id}/visibility`
 - [x] `ProjectPage.tsx` — updated header link label from "⚙ Templates" to "⚙ Settings"
+
+---
+
+## Phase 7 — Teams, Team Roles, List Visibility (M-01, M-03, M-04)
+_Completed: 2026-03-13_
+
+### Backend
+- [x] `Team` + `TeamMember` models with `SoftDeleteMixin` — `team_members.role` ENUM(`team_admin`, `team_member`)
+- [x] Migration 0011: `teams`, `team_members` tables + `team_ids UUID[]` column on `lists`
+- [x] Teams feature module: `POST/GET /workspaces/{id}/teams`, `DELETE .../teams/{id}`, `POST/GET/DELETE .../teams/{id}/members`
+- [x] `PATCH /lists/{id}/visibility` — set `team_ids` (owner/admin only)
+- [x] `list_for_project` filters restricted lists for non-admin members; workspace owner/admin bypass
+- [x] 10 tests in `test_teams.py` — all passing (119 total, all green)
+
+### Frontend
+- [x] `api/teams.ts` — full API layer + hooks (`useTeams`, `useTeamMembers`, `useCreateTeam`, `useDeleteTeam`, `useAddTeamMember`, `useRemoveTeamMember`)
+- [x] `api/lists.ts` — `team_ids: string[]` on `List` type + `setVisibility` API call
+- [x] `WorkspaceSettingsPage.tsx` — Teams tab: list/create/delete teams, per-team member management
+- [x] `ListSettingsPage.tsx` — Visibility tab: multi-select checkboxes for team access restriction
+- [x] Workspace settings nav link added to WorkspacePage header
