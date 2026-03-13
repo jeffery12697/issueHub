@@ -5,7 +5,6 @@ import { workspacesApi } from '@/api/workspaces'
 import { projectsApi, type Project } from '@/api/projects'
 import { listsApi, type List } from '@/api/lists'
 import { useListTemplates, listTemplatesApi, type ListTemplate } from '@/api/listTemplates'
-import NotificationBell from '@/components/NotificationBell'
 
 export default function ProjectPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -42,7 +41,6 @@ export default function ProjectPage() {
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
         <div className="ml-auto flex items-center gap-3">
-          <NotificationBell />
           <Link
             to={`/workspaces/${workspaceId}/settings`}
             className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"

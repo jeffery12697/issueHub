@@ -4,7 +4,6 @@ import { listsApi, type ListStatus } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useState } from 'react'
 import { useListSocket } from '@/hooks/useTaskSocket'
-import NotificationBell from '@/components/NotificationBell'
 
 const PRIORITY_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -45,7 +44,6 @@ export default function BoardPage() {
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
-          <NotificationBell />
           <div className="flex rounded-lg border border-slate-200 overflow-hidden">
             <Link
               to={`/projects/${projectId}/lists/${listId}`}

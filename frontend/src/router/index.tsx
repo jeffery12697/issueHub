@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
 
+import AppLayout from '@/components/AppLayout'
 import LoginPage from '@/views/auth/LoginPage'
 import AuthCallbackPage from '@/views/auth/AuthCallbackPage'
 import WorkspacePage from '@/views/workspace/WorkspacePage'
@@ -40,13 +41,15 @@ export default function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-      <Route path="/" element={<RequireAuth><WorkspacePage /></RequireAuth>} />
-      <Route path="/workspaces/:workspaceId" element={<RequireAuth><ProjectPage /></RequireAuth>} />
-      <Route path="/workspaces/:workspaceId/settings" element={<RequireAuth><WorkspaceSettingsPage /></RequireAuth>} />
-      <Route path="/projects/:projectId/lists/:listId" element={<RequireAuth><ListPage /></RequireAuth>} />
-      <Route path="/projects/:projectId/lists/:listId/board" element={<RequireAuth><BoardPage /></RequireAuth>} />
-      <Route path="/projects/:projectId/lists/:listId/settings" element={<RequireAuth><ListSettingsPage /></RequireAuth>} />
-      <Route path="/tasks/:taskId" element={<RequireAuth><TaskDetailPage /></RequireAuth>} />
+      <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+        <Route path="/" element={<WorkspacePage />} />
+        <Route path="/workspaces/:workspaceId" element={<ProjectPage />} />
+        <Route path="/workspaces/:workspaceId/settings" element={<WorkspaceSettingsPage />} />
+        <Route path="/projects/:projectId/lists/:listId" element={<ListPage />} />
+        <Route path="/projects/:projectId/lists/:listId/board" element={<BoardPage />} />
+        <Route path="/projects/:projectId/lists/:listId/settings" element={<ListSettingsPage />} />
+        <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+      </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
