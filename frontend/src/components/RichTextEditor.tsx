@@ -30,7 +30,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Add a d
     ],
     content: value ?? '',
     editable,
-    onUpdate({ editor }) {
+    onBlur({ editor }) {
       const html = editor.getHTML()
       onChange(html === '<p></p>' ? '' : html)
     },
