@@ -324,6 +324,7 @@ export default function ListPage() {
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Assignees</th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviewer</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Date</th>
                   <th className="px-4 py-3.5"></th>
                 </tr>
               </thead>
@@ -382,6 +383,9 @@ export default function ListPage() {
                         <span className="text-slate-300 text-sm">—</span>
                       )}
                     </td>
+                    <td className="px-4 py-4">
+                      <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
+                    </td>
                     <td className="px-4 py-4 text-right">
                       <button
                         onClick={() => deleteTask.mutate(task.id)}
@@ -438,6 +442,39 @@ function FilterSelect({
       <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-current opacity-60">▾</span>
     </div>
   )
+}
+
+function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; statusComplete: boolean | undefined }) {
+  if (!dueDate) return <span className="text-slate-300 text-xs">—</span>
+
+  // Compare date only (Asia/Taipei boundary)
+  const today = new Date()
+  const due = new Date(dueDate)
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+  const dueStr = `${due.getFullYear()}-${due.getMonth()}-${due.getDate()}`
+  const isOverdue = !statusComplete && dueStr < todayStr
+  const isDueToday = !statusComplete && dueStr === todayStr
+
+  const label = due.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
+
+  if (statusComplete) {
+    return <span className="text-xs text-slate-400">{label}</span>
+  }
+  if (isOverdue) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+        <span>⚠</span> {label}
+      </span>
+    )
+  }
+  if (isDueToday) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+        Today
+      </span>
+    )
+  }
+  return <span className="text-xs text-slate-500">{label}</span>
 }
 
 function AvatarStack({ ids, memberMap }: { ids: string[]; memberMap: Record<string, Member> }) {
