@@ -144,6 +144,23 @@ async def update_task(
     return response
 
 
+@router.get("/workspaces/{workspace_id}/me/tasks", response_model=list[TaskResponse])
+async def list_my_tasks(
+    workspace_id: UUID,
+    status_id: UUID | None = None,
+    priority: Priority | None = None,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+):
+    tasks = await service.list_my_tasks(
+        workspace_id,
+        user_id=current_user.id,
+        status_id=status_id,
+        priority=priority,
+    )
+    return [TaskResponse.model_validate(t) for t in tasks]
+
+
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     task_id: UUID,

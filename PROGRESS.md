@@ -106,11 +106,11 @@
 ## Phase 5 Checklist — Multi-Assignee, Reviewer, My Tasks (M-05, M-06, M-08)
 
 ### Backend
-- [ ] `Task.assignee_ids UUID[]` column + migration
-- [ ] `Task.reviewer_id UUID FK → User` column + migration
-- [ ] `PATCH /tasks/{id}` accepts `assignee_ids` and `reviewer_id`; writes audit entries on change
-- [ ] `GET /api/v1/me/tasks` — tasks where current user is in `assignee_ids`, filterable by status/priority/due_before
-- [ ] Tests for assignee, reviewer, and My Tasks endpoints
+- [x] `Task.assignee_ids UUID[]` column + migration (already in initial migration)
+- [x] `Task.reviewer_id UUID FK → User` column + migration (already in initial migration)
+- [x] `PATCH /tasks/{id}` accepts `assignee_ids` and `reviewer_id`; writes audit entries on change
+- [x] `GET /api/v1/workspaces/{id}/me/tasks` — tasks where current user is in `assignee_ids`, filterable by status/priority
+- [x] Tests for assignee, reviewer, and My Tasks endpoints (8 tests, all passing)
 
 ### Frontend
 - [ ] Assignee multi-select on task detail (workspace members, avatar chips)
@@ -119,7 +119,7 @@
 - [ ] Nav link to My Tasks in workspace sidebar
 
 ## Currently Working On
-- Planning Phase 5 (M-05, M-06, M-08)
+- Phase 5 backend complete; frontend work remaining (M-05, M-06, M-08)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.

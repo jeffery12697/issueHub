@@ -106,6 +106,7 @@ class TaskRepository:
         return result.scalar_one_or_none() or 0.0
 
     async def update(self, task: Task, dto: UpdateTaskDTO) -> Task:
+        from app.features.tasks.schemas import _UNSET
         if dto.title is not None:
             task.title = dto.title
         if dto.description is not None:
@@ -116,12 +117,34 @@ class TaskRepository:
             task.status_id = dto.status_id
         if dto.assignee_ids is not None:
             task.assignee_ids = list(dto.assignee_ids)
-        if dto.reviewer_id is not None:
-            task.reviewer_id = dto.reviewer_id
+        if dto.reviewer_id is not _UNSET:
+            task.reviewer_id = dto.reviewer_id  # None clears it, UUID sets it
         if dto.due_date is not None:
             task.due_date = dto.due_date
         await self.session.flush()
         return task
+
+    async def list_my_tasks(
+        self,
+        workspace_id: UUID,
+        user_id: UUID,
+        status_id: UUID | None = None,
+        priority: Priority | None = None,
+    ) -> list[Task]:
+        from sqlalchemy import any_
+        q = (
+            select(Task)
+            .where(Task.workspace_id == workspace_id)
+            .where(Task.deleted_at.is_(None))
+            .where(user_id == any_(Task.assignee_ids))
+        )
+        if status_id:
+            q = q.where(Task.status_id == status_id)
+        if priority:
+            q = q.where(Task.priority == priority)
+        q = q.order_by(Task.due_date.asc().nulls_last(), Task.order_index)
+        result = await self.session.execute(q)
+        return list(result.scalars().all())
 
     async def promote(self, task: Task) -> Task:
         task.parent_task_id = None

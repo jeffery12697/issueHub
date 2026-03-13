@@ -7,6 +7,9 @@ from pydantic import BaseModel
 from app.models.task import Priority
 
 
+_UNSET = object()  # sentinel: field not provided in update request
+
+
 # --- DTOs ---
 
 @dataclass(frozen=True)
@@ -31,8 +34,12 @@ class UpdateTaskDTO:
     priority: Priority | None = None
     status_id: UUID | None = None
     assignee_ids: tuple[UUID, ...] | None = None
-    reviewer_id: UUID | None = None
+    reviewer_id: object = None  # _UNSET=not provided, None=clear, UUID=set; default _UNSET
     due_date: datetime | None = None
+
+    def __post_init__(self):
+        # Can't set default to _UNSET in frozen dataclass easily; caller must pass _UNSET explicitly
+        pass
 
 
 # --- Request Schemas ---
@@ -78,14 +85,14 @@ class UpdateTaskRequest(BaseModel):
     reviewer_id: UUID | None = None
     due_date: datetime | None = None
 
-    def to_dto(self) -> UpdateTaskDTO:
+    def to_dto(self) -> "UpdateTaskDTO":
         return UpdateTaskDTO(
             title=self.title,
             description=self.description,
             priority=self.priority,
             status_id=self.status_id,
             assignee_ids=tuple(self.assignee_ids) if self.assignee_ids is not None else None,
-            reviewer_id=self.reviewer_id,
+            reviewer_id=self.reviewer_id if 'reviewer_id' in self.model_fields_set else _UNSET,
             due_date=self.due_date,
         )
 

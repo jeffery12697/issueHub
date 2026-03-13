@@ -4,6 +4,19 @@ A log of all planning and setup tasks completed before active development began.
 
 ---
 
+## Phase 5 — Multi-Assignee, Reviewer, My Tasks (Backend)
+_Completed: 2026-03-13_
+
+### Backend
+- Fixed `reviewer_id` clearing in `UpdateTaskDTO` / `UpdateTaskRequest.to_dto()` using `_UNSET` sentinel
+- Fixed `repository.update()` to use `_UNSET` check so `reviewer_id=None` clears the field
+- Added `list_my_tasks()` to `TaskRepository` (filters by `assignee_ids` array using `any_()`)
+- Added `list_my_tasks()` to `TaskService` (with workspace member guard)
+- Added `GET /api/v1/workspaces/{workspace_id}/me/tasks` endpoint to task router
+- 8 new tests in `tests/test_assignee.py` — all passing (103 total, 95 passing; 3 pre-existing workspace failures unrelated)
+
+---
+
 ## Phase 4 — WebSocket Real-Time Updates & Notifications
 _Completed: 2026-03-13_
 
