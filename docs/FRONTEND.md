@@ -83,9 +83,15 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 - Switch-rendered by `field_type`: text / number / date / dropdown / checkbox / URL
 - Respects `visibility_roles` / `editable_roles` from API response — not rendered if field not returned
 
+### TaskLinks
+- `api/links.ts` — `useTaskLinks`, `useAddLink`, `useDeleteLink` hooks
+- Links card on `TaskDetailPage` (left column); add URL + optional title, clickable, delete
+- `useAddLink` invalidates both `['links', taskId]` and `['audit', taskId]` on success
+
 ### ActivityTimeline
 - Merged audit + comments, virtualized list
 - Real-time updates via WebSocket subscription
+- `link_added` / `link_removed` audit entries suppress change details — show action name only
 
 ---
 
