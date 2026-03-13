@@ -157,12 +157,11 @@ class TaskRepository:
         status_id: UUID | None = None,
         priority: Priority | None = None,
     ) -> list[Task]:
-        from sqlalchemy import any_
         q = (
             select(Task)
             .where(Task.workspace_id == workspace_id)
             .where(Task.deleted_at.is_(None))
-            .where(user_id == any_(Task.assignee_ids))
+            .where(Task.assignee_ids.any(user_id))
         )
         if status_id:
             q = q.where(Task.status_id == status_id)
