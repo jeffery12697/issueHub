@@ -723,7 +723,7 @@ function HistorySection({ logs }: { logs: AuditLog[] }) {
             <div>
               <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
               <span className="text-slate-500 capitalize">{log.action}</span>
-              {log.changes && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
+              {log.changes && !['link_added', 'link_removed'].includes(log.action) && Object.entries(log.changes).map(([field, [oldVal, newVal]]) => (
                 <div key={field} className="text-slate-400 mt-0.5">
                   {field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal as string}</span>
                 </div>
