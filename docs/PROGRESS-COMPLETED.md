@@ -218,3 +218,28 @@ _Completed: 2026-03-13_
 - [x] `WorkspaceSettingsPage.tsx` — Teams tab: list/create/delete teams, per-team member management
 - [x] `ListSettingsPage.tsx` — Visibility tab: multi-select checkboxes for team access restriction
 - [x] Workspace settings nav link added to WorkspacePage header
+
+---
+
+## Post-Phase-7 Ad-hoc Improvements
+_Completed: 2026-03-13_
+
+### Auth & Security
+- [x] Dev login endpoint (`POST /dev/token?email=&display_name=`) — creates/fetches user + JWT; gated by `settings.allow_dev_login` (env `ALLOW_DEV_LOGIN`, default `true`)
+- [x] Frontend `LoginPage.tsx` — "Dev login" toggle shows email + display_name form; reads `VITE_ALLOW_DEV_LOGIN` flag
+- [x] `qc.clear()` on logout in `HeaderActions.tsx` — wipes TanStack Query cache so next user sees fresh data
+
+### Workspace Member Management
+- [x] `GET /auth/users/search?email=` — find user by exact email (any authenticated user)
+- [x] Workspace `invite_member` restricted to `owner` role only (admins no longer allowed to invite)
+- [x] `WorkspaceSettingsPage.tsx` — Members tab (default): search by email → preview → pick role → Add; shows current members with role selector + remove button
+- [x] `api/workspaces.ts` — added `inviteMember`, `updateMemberRole`, `removeMember`, `searchUser`; added `useInviteMember`, `useUpdateMemberRole`, `useRemoveMember` hooks
+
+### Validation
+- [x] One Done status per list: `PATCH /lists/{id}/statuses/{sid}` returns 422 if another `is_complete` status already exists
+- [x] `test_only_one_done_status_per_list` covers conflict rejection and unset-then-remark flow
+
+### UI / UX
+- [x] `TaskDetailPage.tsx` full redesign — 2-column layout: left (borderless title, description textarea with border, tabbed card Subtasks/Dependencies/Links/Fields, Comments, History); right sidebar `w-64` (Status pills, Priority pills with color dots, Assignees, Reviewer)
+- [x] `ListPage.tsx` filter bar redesign — pill-shaped `FilterSelect` component (`appearance-none` + custom chevron), active violet highlight, ✕ Clear button
+- [x] `docs/FRONTEND.md` updated — TaskDetailPage layout, ListPage filter bar, WorkspaceMember management, Dev login sections; corrected TaskLinks + ActivityTimeline descriptions

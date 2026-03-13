@@ -85,13 +85,33 @@ See `docs/PROJECT_STRUCTURE.md` for full folder layout.
 
 ### TaskLinks
 - `api/links.ts` — `useTaskLinks`, `useAddLink`, `useDeleteLink` hooks
-- Links card on `TaskDetailPage` (left column); add URL + optional title, clickable, delete
+- Links rendered in the **Links tab** on `TaskDetailPage`; add URL + optional title, clickable, delete
 - `useAddLink` invalidates both `['links', taskId]` and `['audit', taskId]` on success
 
 ### ActivityTimeline
-- Merged audit + comments, virtualized list
-- Real-time updates via WebSocket subscription
+- Audit log rendered as a timeline below comments on `TaskDetailPage`
 - `link_added` / `link_removed` audit entries suppress change details — show action name only
+
+### TaskDetailPage layout
+- **Left column**: borderless title (inline edit on click) + description textarea, then a tabbed card (Subtasks / Blocked by / Links / Fields), then Comments thread, then History timeline
+- **Right sidebar** (`w-64`): single card divided into Status pill group, Priority pill group, Assignees multi-select, Reviewer select
+- Query cache cleared on logout via `qc.clear()` in `HeaderActions`
+
+### ListPage filter bar
+- Pill-shaped `FilterSelect` component wraps native `<select>` with custom chevron and active (violet) highlight
+- Status + Priority filters always shown; custom field filters appended after
+- Active filters highlighted in violet; "✕ Clear" button appears when any filter is set
+
+### WorkspaceMember management
+- `GET /auth/users/search?email=` — look up user by exact email (any authenticated user)
+- `WorkspaceSettingsPage` has a **Members tab** (default): search by email → preview result → pick role → Add
+- Only workspace **owner** can invite new members (admins get 403)
+- Members tab also shows current members with role selector and remove button
+
+### Dev login
+- `POST /dev/token?email=&display_name=` — creates or fetches user, returns JWT; gated by `ALLOW_DEV_LOGIN` env var (default `true`)
+- Login page shows a dev form (email + display name) when `VITE_ALLOW_DEV_LOGIN !== 'false'`
+- New email → new account with its own workspace; existing email → log back in
 
 ---
 
