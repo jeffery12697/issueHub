@@ -281,3 +281,15 @@ _Completed: 2026-03-13_
 - [x] `MyTasksPage`, `WorkloadPage`, `AnalyticsPage` — all use `WorkspaceHeader`; added page title + subtitle, skeleton loaders, polished empty states
 - [x] Fix: missing `Link` import in `ProjectPage` after header refactor (caused blank page)
 - [x] Fix: `react-hot-toast` import in `ListPage` replaced with project's `@/store/toastStore`
+
+
+## User Story Gap Fixes (2026-03-13)
+- **Due date UI** — added date picker to TaskDetailPage right sidebar; reads `task.due_date`, saves via existing `PATCH /tasks/{id}` (already had `due_date` support)
+- **Move task to list (S-04)** — new `PATCH /tasks/{id}/move` backend endpoint; clears `status_id`, updates `list_id`/`project_id`/`workspace_id`, writes `moved` audit entry; new `GET /workspaces/{id}/lists` endpoint; "Move to List" dropdown in TaskDetailPage sidebar shows all other lists in workspace
+
+## UI Polish — Post-Phase 8 (2026-03-13)
+- **Due date column in ListPage** — shows due date per task row with overdue (red ⚠), due today (amber "Today"), completed (plain grey), no date (—)
+- **Move task to list (S-04)** — `PATCH /tasks/{id}/move` backend endpoint; clears status_id, updates list/project/workspace; `GET /workspaces/{id}/lists` endpoint; "Move to List" dropdown in TaskDetailPage sidebar
+- **Due date picker in TaskDetailPage** — date input in right sidebar reads/writes task.due_date
+- **English locale for all dates** — all `toLocaleDateString`/`toLocaleString` calls now use `'en-US'`
+- **Delete button beautification** — new `DeleteButton` component (icon / text / button variants) with confirm modal dialog (warning icon, context-specific message, Cancel + Delete); replaces all bare text deletes and window.confirm() across ListPage, TaskDetailPage, ListSettingsPage, WorkspaceSettingsPage

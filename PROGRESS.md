@@ -16,7 +16,7 @@
 | **Later** | ⏳ Deferred | M-02 | Email invite flow — needs SMTP infra, do when deploying for real users |
 
 ## Currently Working On
-- Nothing — Phase 8 complete, all phases done
+- Nothing — all phases done, story gaps closed, UI polish complete
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
