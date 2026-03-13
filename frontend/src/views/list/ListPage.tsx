@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
+import { dependenciesApi } from '@/api/dependencies'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useFieldDefinitions } from '@/api/customFields'
@@ -56,6 +57,12 @@ export default function ListPage() {
   const allTasks = pagedResult?.items ?? []
   const totalCount = pagedResult?.total ?? 0
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+
+  const { data: depFlags = {} } = useQuery({
+    queryKey: ['task-dep-flags', listId],
+    queryFn: () => dependenciesApi.getListFlags(listId!),
+    enabled: !!listId,
+  })
 
   // Group: parent tasks in order, each followed by its subtasks
   const tasks = (() => {
@@ -386,12 +393,24 @@ export default function ListPage() {
                           </button>
                         </div>
                       )}
-                      <button
-                        onClick={() => navigate(`/tasks/${task.id}`)}
-                        className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
-                      >
-                        {task.title}
-                      </button>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={() => navigate(`/tasks/${task.id}`)}
+                          className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
+                        >
+                          {task.title}
+                        </button>
+                        {depFlags[task.id]?.is_blocked && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 shrink-0" title="Blocked by another task">
+                            ⛔ Blocked
+                          </span>
+                        )}
+                        {depFlags[task.id]?.is_blocking && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 shrink-0" title="Blocking another task">
+                            ⚠ Blocking
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       {task.status_id && statusMap[task.status_id] ? (

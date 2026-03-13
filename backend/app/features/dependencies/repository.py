@@ -51,3 +51,25 @@ class DependencyRepository:
             .where(Task.deleted_at.is_(None))
         )
         return list(result.scalars().all())
+
+    async def get_dependency_flags(self, task_ids: list[UUID]) -> dict[UUID, dict]:
+        """Return {task_id: {is_blocked, is_blocking}} for a batch of task IDs."""
+        if not task_ids:
+            return {}
+        from sqlalchemy import distinct
+        blocked_result = await self.session.execute(
+            select(distinct(TaskDependency.task_id))
+            .where(TaskDependency.task_id.in_(task_ids))
+        )
+        blocked_ids = set(blocked_result.scalars().all())
+
+        blocking_result = await self.session.execute(
+            select(distinct(TaskDependency.depends_on_id))
+            .where(TaskDependency.depends_on_id.in_(task_ids))
+        )
+        blocking_ids = set(blocking_result.scalars().all())
+
+        return {
+            tid: {"is_blocked": tid in blocked_ids, "is_blocking": tid in blocking_ids}
+            for tid in task_ids
+        }

@@ -10,6 +10,7 @@ from app.features.dependencies.repository import DependencyRepository
 from app.features.tasks.repository import TaskRepository
 from app.features.tasks.schemas import TaskResponse
 from app.models.user import User
+from app.models.task import Task
 
 router = APIRouter(tags=["dependencies"])
 
@@ -62,6 +63,25 @@ async def add_dependency(
     await dep_repo.add(task_id, body.depends_on_id)
     await session.commit()
     return {"ok": True}
+
+
+@router.get("/lists/{list_id}/task-dependencies")
+async def get_list_dependency_flags(
+    list_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Return {task_id: {is_blocked, is_blocking}} for all tasks in the list."""
+    from sqlalchemy import select as sa_select
+    task_ids_result = await session.execute(
+        sa_select(Task.id)
+        .where(Task.list_id == list_id)
+        .where(Task.deleted_at.is_(None))
+    )
+    task_ids = list(task_ids_result.scalars().all())
+    dep_repo = DependencyRepository(session)
+    flags = await dep_repo.get_dependency_flags(task_ids)
+    return {str(k): v for k, v in flags.items()}
 
 
 @router.delete("/tasks/{task_id}/blocked-by/{depends_on_id}", status_code=status.HTTP_204_NO_CONTENT)
