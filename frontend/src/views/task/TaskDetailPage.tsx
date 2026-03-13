@@ -706,6 +706,7 @@ export default function TaskDetailPage() {
                 <input
                   key={task.start_date ?? 'start-none'}
                   type="date"
+                  lang="en"
                   defaultValue={task.start_date ? task.start_date.slice(0, 10) : ''}
                   onChange={(e) => updateTask.mutate({ start_date: e.target.value || undefined })}
                   className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -718,6 +719,7 @@ export default function TaskDetailPage() {
                 <input
                   key={task.due_date ?? 'none'}
                   type="date"
+                  lang="en"
                   defaultValue={task.due_date ? task.due_date.slice(0, 10) : ''}
                   onChange={(e) => updateTask.mutate({ due_date: e.target.value || undefined })}
                   className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -838,7 +840,7 @@ function CustomFieldInput({ field, value, onSave }: {
             className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
         )}
         {field.field_type === 'date' && (
-          <input type="date" defaultValue={currentVal as string ?? ''} onChange={(e) => onSave(e.target.value || null)}
+          <input type="date" lang="en" defaultValue={currentVal as string ?? ''} onChange={(e) => onSave(e.target.value || null)}
             className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
         )}
         {field.field_type === 'dropdown' && (
