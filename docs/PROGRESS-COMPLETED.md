@@ -171,3 +171,6 @@ _Completed: 2026-03-13_
 ### Frontend
 - [x] `api/links.ts` — `useTaskLinks`, `useAddLink`, `useDeleteLink` hooks
 - [x] `TaskDetailPage`: Links card — add URL + optional title, clickable links, delete
+- [x] Fix: `useAddLink` now invalidates audit cache so history updates immediately after adding a link
+- [x] Fix: `link_added` / `link_removed` history entries hide URL details — show action name only
+- [x] Fix: `api/links.ts` used default import for `apiClient` (caused blank screen) — corrected to named import
