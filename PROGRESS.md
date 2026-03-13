@@ -15,14 +15,14 @@
 | **Phase 6** | ✅ Done | C-04, C-05, A-04 | Custom field filtering, role-based field visibility, task links |
 | **Phase 7** | ✅ Done | M-01, M-03, M-04 | Teams, team roles, list visibility by team |
 | **Phase 8** | ✅ Done | M-07 | Workload view, full-text search, bulk ops, export, analytics |
+| **Phase 9** | ✅ Done | N-01, N-03 | Task watchers, watcher notifications, assignee notifications |
+| **Phase 10** | ✅ Done | TM-01, TM-03, TM-04 | Start date, time tracking, story points (backend + frontend) |
 
 ### Upcoming
 
 | Phase | Status | Stories | Description |
 |-------|--------|---------|-------------|
-| **Phase 9** | ✅ Done | N-01, N-03 | Task watchers (watch/unwatch button, watcher notifications on update/comment), assignee notifications, @mention confirmed working. N-02 digest deferred (needs SMTP) |
-| **Phase 10** | ✅ Done | TM-01, TM-03, TM-04 | Time management basics — start date, time tracking, story points |
-| **Phase 11** | 🔲 Not started | AU-02, AU-03 | Simple automation — overdue notifications, auto-close parent on subtasks done |
+| **Phase 11** | 🔲 Not started | AU-03 | Auto-close parent task when all subtasks done (AU-02 deferred) |
 | **Phase 12** | 🔲 Not started | AU-01, AU-04 | Advanced automation — trigger-action rules, Git commit keyword integration |
 | **Phase 13** | 🔲 Not started | TM-02 | Timeline / Gantt view |
 
@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 11 — AU-03: auto-close parent task when all subtasks are done (AU-02 deferred — needs scheduler+SMTP)
+- Phase 11 — AU-03: auto-close parent task when all subtasks are done
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
