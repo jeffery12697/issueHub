@@ -12,6 +12,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
+import { useTimeEntries, useLogTime, useDeleteTimeEntry } from '@/api/timeEntries'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 
@@ -33,7 +34,7 @@ const PRIORITY_DOT: Record<Priority, string> = {
   urgent: '#ef4444',
 }
 
-type DetailTab = 'subtasks' | 'dependencies' | 'links' | 'fields'
+type DetailTab = 'subtasks' | 'dependencies' | 'links' | 'fields' | 'time'
 
 export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -104,6 +105,14 @@ export default function TaskDetailPage() {
   const { data: watchStatus } = useWatchStatus(taskId)
   const watchTask = useWatchTask(taskId!)
   const unwatchTask = useUnwatchTask(taskId!)
+
+  const { data: timeSummary } = useTimeEntries(taskId)
+  const logTime = useLogTime(taskId!)
+  const deleteTimeEntry = useDeleteTimeEntry(taskId!)
+
+  const [logMinutes, setLogMinutes] = useState('')
+  const [logNote, setLogNote] = useState('')
+  const [addingTime, setAddingTime] = useState(false)
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -177,6 +186,7 @@ export default function TaskDetailPage() {
     { key: 'dependencies', label: 'Blocked by', count: blockedBy.length + blocking.length },
     { key: 'links', label: 'Links', count: links.length },
     ...(fieldDefs.length > 0 ? [{ key: 'fields' as DetailTab, label: 'Fields' }] : []),
+    { key: 'time' as DetailTab, label: 'Time', count: timeSummary?.entries.length },
   ]
 
   return (
@@ -457,6 +467,77 @@ export default function TaskDetailPage() {
                     })}
                   </div>
                 )}
+                {/* Time Tracking */}
+                {activeTab === 'time' && (
+                  <div>
+                    {timeSummary && timeSummary.total_minutes > 0 && (
+                      <p className="text-xs font-medium text-slate-500 mb-3">
+                        Total: <span className="text-violet-600 font-semibold">{formatMinutes(timeSummary.total_minutes)}</span>
+                      </p>
+                    )}
+
+                    {timeSummary && timeSummary.entries.length > 0 && (
+                      <ul className="space-y-1 mb-3">
+                        {timeSummary.entries.map((entry) => (
+                          <li key={entry.id} className="flex items-center gap-2 group px-2 py-1.5 rounded-lg hover:bg-slate-50">
+                            <span className="text-xs font-semibold text-violet-600 w-12 shrink-0">{formatMinutes(entry.duration_minutes)}</span>
+                            <span className="flex-1 text-xs text-slate-500 truncate">{entry.note ?? <span className="text-slate-300">—</span>}</span>
+                            <span className="text-xs text-slate-300 shrink-0">{new Date(entry.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <button
+                              onClick={() => deleteTimeEntry.mutate(entry.id)}
+                              className="text-slate-200 hover:text-red-400 text-xs transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                            >✕</button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {addingTime ? (
+                      <form
+                        className="space-y-2"
+                        onSubmit={(e) => {
+                          e.preventDefault()
+                          const mins = parseInt(logMinutes)
+                          if (!mins || mins < 1) return
+                          logTime.mutate(
+                            { duration_minutes: mins, note: logNote.trim() || undefined },
+                            { onSuccess: () => { setLogMinutes(''); setLogNote(''); setAddingTime(false) } }
+                          )
+                        }}
+                      >
+                        <div className="flex gap-2 items-center">
+                          <input
+                            autoFocus
+                            type="number"
+                            min={1}
+                            value={logMinutes}
+                            onChange={(e) => setLogMinutes(e.target.value)}
+                            placeholder="Minutes"
+                            className="w-24 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          />
+                          <input
+                            type="text"
+                            value={logNote}
+                            onChange={(e) => setLogNote(e.target.value)}
+                            placeholder="Note (optional)"
+                            className="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Log</button>
+                          <button type="button" onClick={() => { setAddingTime(false); setLogMinutes(''); setLogNote('') }} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => setAddingTime(true)}
+                        className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5"
+                      >
+                        <span className="text-lg leading-none">+</span> Log time
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -619,6 +700,18 @@ export default function TaskDetailPage() {
                 )}
               </div>
 
+              {/* Start Date */}
+              <div className="px-4 py-3">
+                <p className="text-xs font-medium text-slate-400 mb-2">Start Date</p>
+                <input
+                  key={task.start_date ?? 'start-none'}
+                  type="date"
+                  defaultValue={task.start_date ? task.start_date.slice(0, 10) : ''}
+                  onChange={(e) => updateTask.mutate({ start_date: e.target.value || undefined })}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
+
               {/* Due Date */}
               <div className="px-4 py-3">
                 <p className="text-xs font-medium text-slate-400 mb-2">Due Date</p>
@@ -627,6 +720,23 @@ export default function TaskDetailPage() {
                   type="date"
                   defaultValue={task.due_date ? task.due_date.slice(0, 10) : ''}
                   onChange={(e) => updateTask.mutate({ due_date: e.target.value || undefined })}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
+
+              {/* Story Points */}
+              <div className="px-4 py-3">
+                <p className="text-xs font-medium text-slate-400 mb-2">Story Points</p>
+                <input
+                  key={task.story_points ?? 'sp-none'}
+                  type="number"
+                  min={0}
+                  defaultValue={task.story_points ?? ''}
+                  onBlur={(e) => {
+                    const val = e.target.value ? parseInt(e.target.value) : null
+                    if (val !== task.story_points) updateTask.mutate({ story_points: val })
+                  }}
+                  placeholder="—"
                   className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               </div>
@@ -681,6 +791,13 @@ export default function TaskDetailPage() {
       </main>
     </div>
   )
+}
+
+function formatMinutes(mins: number): string {
+  if (mins < 60) return `${mins}m`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
 function CustomFieldInput({ field, value, onSave }: {

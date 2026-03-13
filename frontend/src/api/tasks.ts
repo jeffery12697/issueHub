@@ -17,6 +17,8 @@ export type Task = {
   priority: Priority
   assignee_ids: string[]
   due_date: string | null
+  start_date: string | null
+  story_points: number | null
   order_index: number
   depth: number
   subtask_count: number
@@ -29,6 +31,8 @@ export type CreateTaskData = {
   assignee_ids?: string[]
   reviewer_id?: string
   due_date?: string
+  start_date?: string
+  story_points?: number | null
   status_id?: string
 }
 
