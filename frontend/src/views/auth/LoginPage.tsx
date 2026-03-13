@@ -1,25 +1,45 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import axios from 'axios'
+
+const DEV_LOGIN = import.meta.env.VITE_ALLOW_DEV_LOGIN !== 'false'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { setAccessToken, setUser } = useAuthStore()
 
-  const devLogin = async () => {
-    const { data: { access_token } } = await axios.post('/api/v1/dev/token')
-    setAccessToken(access_token)
-    const { data: user } = await axios.get('/api/v1/auth/me', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    })
-    setUser(user)
-    navigate('/')
+  const [showDevForm, setShowDevForm] = useState(false)
+  const [email, setEmail] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const devLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+    setLoading(true)
+    setError('')
+    try {
+      const params = new URLSearchParams({ email: email.trim() })
+      if (displayName.trim()) params.set('display_name', displayName.trim())
+      const { data: { access_token } } = await axios.post(`/api/v1/dev/token?${params}`)
+      setAccessToken(access_token)
+      const { data: user } = await axios.get('/api/v1/auth/me', {
+        headers: { Authorization: `Bearer ${access_token}` },
+      })
+      setUser(user)
+      navigate('/')
+    } catch {
+      setError('Login failed. Check the email and try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 to-slate-100 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-10 w-full max-w-sm">
-        {/* Logo area */}
         <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center shrink-0">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -41,14 +61,58 @@ export default function LoginPage() {
           Continue with Google
         </a>
 
-        <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-          <button
-            onClick={devLogin}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors py-1"
-          >
-            Dev login (skip Google)
-          </button>
-        </div>
+        {DEV_LOGIN && (
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            {!showDevForm ? (
+              <div className="text-center">
+                <button
+                  onClick={() => setShowDevForm(true)}
+                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors py-1"
+                >
+                  Dev login (skip Google)
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={devLogin} className="space-y-3">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dev Login</p>
+                <input
+                  autoFocus
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  required
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Display name (optional)"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+                {error && <p className="text-xs text-red-500">{error}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-50"
+                  >
+                    {loading ? 'Logging in…' : 'Log in / Create'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDevForm(false)}
+                    className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400">New email = new account with its own workspace.</p>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

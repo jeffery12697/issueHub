@@ -23,5 +23,8 @@ class Settings(BaseSettings):
     # App
     frontend_url: str = "http://localhost:5173"
 
+    # Dev
+    allow_dev_login: bool = True  # Set ALLOW_DEV_LOGIN=false in production
+
 
 settings = Settings()
