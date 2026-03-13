@@ -293,3 +293,11 @@ _Completed: 2026-03-13_
 - **Due date picker in TaskDetailPage** — date input in right sidebar reads/writes task.due_date
 - **English locale for all dates** — all `toLocaleDateString`/`toLocaleString` calls now use `'en-US'`
 - **Delete button beautification** — new `DeleteButton` component (icon / text / button variants) with confirm modal dialog (warning icon, context-specific message, Cancel + Delete); replaces all bare text deletes and window.confirm() across ListPage, TaskDetailPage, ListSettingsPage, WorkspaceSettingsPage
+
+## Phase 9 — Notifications & Watchers (2026-03-13)
+- **N-01 Task Watchers** — `TaskWatcher` model + migration; `POST/DELETE/GET /tasks/{id}/watch`; Watch/Unwatch button in TaskDetailPage sidebar
+- **N-01 Watcher notifications** — watchers receive `task_updated` notification on task updates and new comments (actor excluded from own notifications)
+- **N-03 Assignee notifications** — `assigned` notification sent to newly added assignees
+- **N-03 @mention** — confirmed already working via comment creation service
+- **N-02** — `immediate/digest` preference deferred (requires SMTP infrastructure)
+- 8 backend tests all passing
