@@ -50,3 +50,6 @@ issueHub/
 | `docs/stories/STATUS.md` | S-01 ~ S-06: Per-list statuses, kanban, cross-list mapping |
 | `docs/stories/ORG_TEAM.md` | M-01 ~ M-04: Org, Team hierarchy, Space/List visibility |
 | `docs/stories/ASSIGNEE.md` | M-05 ~ M-08: Multi-assignee, My Tasks, workload, reviewer |
+| `docs/stories/TIME_MANAGEMENT.md` | TM-01 ~ TM-04: Due/start date, Gantt, time tracking, story points |
+| `docs/stories/AUTOMATION.md` | AU-01 ~ AU-04: Trigger-action rules, overdue notify, auto-close subtasks, Git integration |
+| `docs/stories/NOTIFICATIONS.md` | N-01 ~ N-03: Task watchers, notification frequency, @mention |
