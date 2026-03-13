@@ -7,7 +7,7 @@ import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
-import toast from 'react-hot-toast'
+import { toast } from '@/store/toastStore'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
