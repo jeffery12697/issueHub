@@ -313,3 +313,6 @@ _Completed: 2026-03-13_
 - **Workload story points** — workload API returns `total_story_points` per member; badge shows "X tasks · Y SP"; load color thresholds based on SP (≥20 red, ≥10 amber); per-task SP shown inline
 - **Analytics story points** — repository sums SP per status group and as workspace total; new Story Points stat card (violet); per-status SP shown in Tasks by Status bar chart; stat grid changed to 2×2
 - **Date input English locale** — added `lang="en"` to all `<input type="date">` elements (works in Firefox/Safari; Chrome requires browser language setting)
+
+## Phase 11 — Simple Automation (2026-03-13)
+- **AU-03 auto-close parent** — `maybe_close_parent()` in tasks router; after any subtask status update checks if all siblings have `is_complete=True`; finds first complete status in parent's list and applies it; writes `auto_closed` audit log; skips if parent already closed or list has no complete status; 5 tests passing

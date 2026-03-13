@@ -22,7 +22,7 @@
 
 | Phase | Status | Stories | Description |
 |-------|--------|---------|-------------|
-| **Phase 11** | 🔲 Not started | AU-03 | Auto-close parent task when all subtasks done (AU-02 deferred) |
+| **Phase 11** | ✅ Done | AU-03 | Auto-close parent task when all subtasks done |
 | **Phase 12** | 🔲 Not started | AU-01, AU-04 | Advanced automation — trigger-action rules, Git commit keyword integration |
 | **Phase 13** | 🔲 Not started | TM-02 | Timeline / Gantt view |
 
@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 11 — AU-03: auto-close parent task when all subtasks are done
+- Phase 12 — AU-01: trigger-action automation rules (AU-04 deferred — needs Git webhook)
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
