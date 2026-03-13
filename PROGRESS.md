@@ -1,20 +1,21 @@
 # IssueHub - Project Progress
 
-## Current Phase: Phase 4
+## Current Phase: Phase 5
 
 ## Phase Status
 
-| Phase | Status | Description |
-|-------|--------|-------------|
-| **Phase 0** | ✅ Done | Planning, architecture, documentation, user stories |
-| **Phase 1** | ✅ Done | Task CRUD, list status config, Board + List views |
-| **Phase 2** | ✅ Done | Subtasks, dependencies, promote, audit trail, comments |
-| **Phase 3** | ✅ Done | Custom fields, status mapping, list templates |
-| **Phase 4** | ✅ Done | WebSocket real-time, notifications |
-| **Phase 5** | ⏳ Not Started | Full-text search, bulk ops, export, analytics |
-| **Phase 6** | ⏳ Not Started | Teams + team roles (M-01, M-03) — no email invite |
-| **Phase 7** | ⏳ Not Started | List visibility by team (M-04), multi-assignee & workload (M-05~M-08) |
-| **Later** | ⏳ Deferred | Email invite flow (M-02) — needs SMTP infra, do when deploying for real users |
+| Phase | Status | Stories | Description |
+|-------|--------|---------|-------------|
+| **Phase 0** | ✅ Done | — | Planning, architecture, documentation, user stories |
+| **Phase 1** | ✅ Done | T-01, S-01~S-05 | Task CRUD, list status config, Board + List views |
+| **Phase 2** | ✅ Done | T-02~T-05, A-01~A-03, A-05 | Subtasks, dependencies, promote, audit trail, comments |
+| **Phase 3** | ✅ Done | C-01~C-03, S-04, S-06 | Custom fields, status mapping, list templates |
+| **Phase 4** | ✅ Done | A-02 (real-time) | WebSocket real-time, @mention notifications |
+| **Phase 5** | ⏳ Not Started | M-05, M-06, M-08 | Multi-assignee, reviewer, My Tasks page |
+| **Phase 6** | ⏳ Not Started | C-04, C-05, A-04 | Custom field filtering, role-based field visibility, attachments & links |
+| **Phase 7** | ⏳ Not Started | M-01, M-03, M-04 | Teams, team roles, list visibility by team |
+| **Phase 8** | ⏳ Not Started | M-07 | Workload view, full-text search, bulk ops, export, analytics |
+| **Later** | ⏳ Deferred | M-02 | Email invite flow — needs SMTP infra, do when deploying for real users |
 
 ## Phase 1 Checklist
 
@@ -102,8 +103,23 @@
 - [x] Notification dropdown (mark read, mark all read, link to task)
 - [x] NotificationBell added to WorkspacePage, ProjectPage, ListPage, BoardPage
 
+## Phase 5 Checklist — Multi-Assignee, Reviewer, My Tasks (M-05, M-06, M-08)
+
+### Backend
+- [ ] `Task.assignee_ids UUID[]` column + migration
+- [ ] `Task.reviewer_id UUID FK → User` column + migration
+- [ ] `PATCH /tasks/{id}` accepts `assignee_ids` and `reviewer_id`; writes audit entries on change
+- [ ] `GET /api/v1/me/tasks` — tasks where current user is in `assignee_ids`, filterable by status/priority/due_before
+- [ ] Tests for assignee, reviewer, and My Tasks endpoints
+
+### Frontend
+- [ ] Assignee multi-select on task detail (workspace members, avatar chips)
+- [ ] Reviewer selector on task detail
+- [ ] `MyTasksPage` — cross-list task list grouped by list or due date
+- [ ] Nav link to My Tasks in workspace sidebar
+
 ## Currently Working On
-- Phase 4 complete — ready for Phase 5
+- Planning Phase 5 (M-05, M-06, M-08)
 
 ## Completed Tasks
 All completed tasks are logged in `docs/PROGRESS-COMPLETED.md`.
