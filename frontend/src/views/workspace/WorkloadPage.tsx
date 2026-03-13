@@ -25,7 +25,8 @@ type WorkloadMember = {
   user_id: string
   display_name: string
   open_task_count: number
-  tasks: { id: string; title: string; priority: Priority; status_id: string | null }[]
+  total_story_points: number
+  tasks: { id: string; title: string; priority: Priority; status_id: string | null; story_points: number | null }[]
 }
 
 export default function WorkloadPage() {
@@ -33,6 +34,7 @@ export default function WorkloadPage() {
   const { data: workload = [], isLoading } = useWorkload(workspaceId)
 
   const totalTasks = workload.reduce((sum, m) => sum + m.open_task_count, 0)
+  const totalSP = workload.reduce((sum, m) => sum + m.total_story_points, 0)
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -45,7 +47,7 @@ export default function WorkloadPage() {
           <p className="text-sm text-slate-400 mt-1">
             {isLoading ? 'Loading…' : workload.length === 0
               ? 'No members found'
-              : `${workload.length} member${workload.length === 1 ? '' : 's'} · ${totalTasks} open task${totalTasks === 1 ? '' : 's'}`}
+              : `${workload.length} member${workload.length === 1 ? '' : 's'} · ${totalTasks} open task${totalTasks === 1 ? '' : 's'}${totalSP > 0 ? ` · ${totalSP} SP` : ''}`}
           </p>
         </div>
 
@@ -90,10 +92,12 @@ function MemberCard({ member }: { member: WorkloadMember }) {
     member.open_task_count === 1 ? '1 task' :
     `${member.open_task_count} tasks`
 
+  const spLoad = member.total_story_points > 0 ? `${member.total_story_points} SP` : null
+
   const loadColor =
+    member.total_story_points >= 20 ? 'bg-red-100 text-red-600' :
+    member.total_story_points >= 10 ? 'bg-amber-100 text-amber-700' :
     member.open_task_count === 0 ? 'bg-slate-100 text-slate-400' :
-    member.open_task_count >= 8 ? 'bg-red-100 text-red-600' :
-    member.open_task_count >= 4 ? 'bg-amber-100 text-amber-700' :
     'bg-emerald-100 text-emerald-700'
 
   return (
@@ -107,7 +111,7 @@ function MemberCard({ member }: { member: WorkloadMember }) {
         </span>
         <span className="flex-1 font-medium text-slate-800 text-sm">{member.display_name}</span>
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${loadColor}`}>
-          {taskLoad}
+          {taskLoad}{spLoad ? ` · ${spLoad}` : ''}
         </span>
         <span className="text-slate-300 text-xs ml-1">{expanded ? '▲' : '▼'}</span>
       </button>
@@ -128,6 +132,9 @@ function MemberCard({ member }: { member: WorkloadMember }) {
                   style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
                 />
                 <span className="flex-1 text-sm text-slate-700 truncate">{task.title}</span>
+                {task.story_points != null && (
+                  <span className="text-xs text-slate-400 shrink-0">{task.story_points} SP</span>
+                )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 shrink-0">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>

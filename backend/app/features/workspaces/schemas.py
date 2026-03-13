@@ -107,4 +107,5 @@ class MemberWorkloadResponse(BaseModel):
     user_id: UUID
     display_name: str
     open_task_count: int
+    total_story_points: int
     tasks: list

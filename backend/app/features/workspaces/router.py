@@ -221,10 +221,12 @@ async def get_workload(
     workload = []
     for row in members:
         tasks = await task_repo.list_my_tasks(workspace_id, row.id)
+        task_responses = [TaskResponse.model_validate(t) for t in tasks]
         workload.append(MemberWorkloadResponse(
             user_id=row.id,
             display_name=row.display_name,
             open_task_count=len(tasks),
-            tasks=[TaskResponse.model_validate(t) for t in tasks],
+            total_story_points=sum(t.story_points or 0 for t in task_responses),
+            tasks=task_responses,
         ))
     return workload
