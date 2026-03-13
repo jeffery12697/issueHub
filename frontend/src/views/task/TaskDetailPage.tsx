@@ -587,7 +587,7 @@ export default function TaskDetailPage() {
             </div>
 
             {/* History */}
-            {auditLogs.length > 0 && <HistorySection logs={auditLogs} />}
+            {auditLogs.length > 0 && <HistorySection logs={auditLogs} memberMap={memberMap} />}
           </div>
 
           {/* RIGHT — properties sidebar */}
@@ -855,9 +855,33 @@ function CustomFieldInput({ field, value, onSave }: {
   )
 }
 
-function HistorySection({ logs }: { logs: AuditLog[] }) {
+function resolveName(id: string | null | undefined, memberMap: Record<string, Member>): string {
+  if (!id) return '—'
+  return memberMap[id]?.display_name ?? id
+}
+
+function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Record<string, Member> }) {
   const [expanded, setExpanded] = useState(false)
   const visible = expanded ? logs : logs.slice(0, 5)
+
+  function renderValue(field: string, id: string | null | undefined): string {
+    if (field === 'reviewer_id') return resolveName(id, memberMap)
+    return id ?? '—'
+  }
+
+  function renderChange(field: string, val: unknown) {
+    if (field === 'assignee_ids') {
+      const [oldIds, newIds] = val as [string[], string[]]
+      const oldNames = oldIds.map((id) => resolveName(id, memberMap)).join(', ') || '—'
+      const newNames = newIds.map((id) => resolveName(id, memberMap)).join(', ') || '—'
+      return <span>assignees: <span className="line-through">{oldNames}</span> → <span className="text-slate-600">{newNames}</span></span>
+    }
+    const [oldVal, newVal] = val as [string, string?]
+    if (newVal === undefined) {
+      return <span>{field}: <span className="text-slate-500">edited</span></span>
+    }
+    return <span>{field.replace(/_id$/, '')}: <span className="line-through">{renderValue(field, oldVal) ?? '—'}</span> → <span className="text-slate-600">{renderValue(field, newVal)}</span></span>
+  }
 
   return (
     <div>
@@ -870,17 +894,11 @@ function HistorySection({ logs }: { logs: AuditLog[] }) {
               <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
               <span className="text-slate-500 capitalize">{log.action.replace(/_/g, ' ')}</span>
               {log.changes && !['link_added', 'link_removed'].includes(log.action) &&
-                Object.entries(log.changes).map(([field, val]) => {
-                  const [oldVal, newVal] = val as [string, string?]
-                  return (
-                    <div key={field} className="text-slate-400 mt-0.5">
-                      {newVal === undefined
-                        ? <span>{field}: <span className="text-slate-500">edited</span></span>
-                        : <span>{field}: <span className="line-through">{oldVal ?? '—'}</span> → <span className="text-slate-600">{newVal}</span></span>
-                      }
-                    </div>
-                  )
-                })
+                Object.entries(log.changes).map(([field, val]) => (
+                  <div key={field} className="text-slate-400 mt-0.5">
+                    {renderChange(field, val)}
+                  </div>
+                ))
               }
               <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString('en-US')}</div>
             </div>
