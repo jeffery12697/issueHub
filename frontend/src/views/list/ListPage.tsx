@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
+import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import HeaderActions from '@/components/HeaderActions'
 
@@ -47,6 +48,10 @@ export default function ListPage() {
     mutationFn: tasksApi.delete,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
   })
+
+  const workspaceId = tasks[0]?.workspace_id
+  const { data: members = [] } = useWorkspaceMembers(workspaceId)
+  const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
   const statusMap = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
 
@@ -118,6 +123,8 @@ export default function ListPage() {
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Priority</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Assignees</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Reviewer</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -153,6 +160,16 @@ export default function ListPage() {
                         {task.priority === 'none' ? '—' : task.priority}
                       </span>
                     </td>
+                    <td className="px-4 py-3">
+                      <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
+                    </td>
+                    <td className="px-4 py-3">
+                      {task.reviewer_id && memberMap[task.reviewer_id] ? (
+                        <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
+                      ) : (
+                        <span className="text-slate-300 text-xs">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => deleteTask.mutate(task.id)}
@@ -168,6 +185,35 @@ export default function ListPage() {
           </div>
         )}
       </main>
+    </div>
+  )
+}
+
+function Avatar({ member, title }: { member: Member; title?: string }) {
+  return (
+    <span
+      title={`${title ? title + ': ' : ''}${member.display_name}`}
+      className="inline-flex w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold items-center justify-center border-2 border-white shadow-sm select-none"
+    >
+      {member.display_name[0].toUpperCase()}
+    </span>
+  )
+}
+
+function AvatarStack({ ids, memberMap }: { ids: string[]; memberMap: Record<string, Member> }) {
+  if (ids.length === 0) return <span className="text-slate-300 text-xs">—</span>
+  return (
+    <div className="flex -space-x-1.5">
+      {ids.slice(0, 4).map((id) =>
+        memberMap[id] ? (
+          <Avatar key={id} member={memberMap[id]} />
+        ) : null
+      )}
+      {ids.length > 4 && (
+        <span className="inline-flex w-7 h-7 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold items-center justify-center border-2 border-white shadow-sm">
+          +{ids.length - 4}
+        </span>
+      )}
     </div>
   )
 }
