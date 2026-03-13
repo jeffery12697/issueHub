@@ -28,9 +28,13 @@
 
 ### Deferred
 
-| Phase | Status | Stories | Description |
-|-------|--------|---------|-------------|
-| **—** | ⏳ Deferred | M-02 | Email invite flow — needs SMTP infra, revisit when deploying for real users |
+| Story | Blocked by | Description |
+|-------|-----------|-------------|
+| M-02 | SMTP infra | Email invite flow — revisit when deploying for real users |
+| N-02 | SMTP infra | Notification digest (daily summary email) — immediate in-app already works |
+| AU-02 | Scheduler + SMTP | Overdue task auto-notifications — needs APScheduler/cron and email delivery |
+| AU-04 | Git webhook infra | Close task via Git commit keyword (`closes #id`) — needs a webhook endpoint + shared secret + GitHub/GitLab integration |
+| TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
 - Phase 10 — Time management basics (TM-01 start date, TM-03 time tracking, TM-04 story points)
