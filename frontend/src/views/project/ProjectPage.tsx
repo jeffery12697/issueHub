@@ -36,8 +36,8 @@ export default function ProjectPage() {
       <main className="max-w-4xl mx-auto py-10 px-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Projects</h2>
-            <p className="text-sm text-slate-400 mt-0.5">
+            <h2 className="text-2xl font-bold text-slate-900">Projects</h2>
+            <p className="text-sm text-slate-400 mt-1">
               {projects.length === 0 ? 'No projects yet' : `${projects.length} project${projects.length === 1 ? '' : 's'}`}
             </p>
           </div>
@@ -149,8 +149,8 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
       {/* Project header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className={`w-2.5 h-2.5 rounded-full ${dotColor} shrink-0`} />
-          <h3 className="font-semibold text-slate-900 text-sm">{project.name}</h3>
+          <div className={`w-3 h-3 rounded-full ${dotColor} shrink-0`} />
+          <h3 className="font-bold text-slate-900 text-base">{project.name}</h3>
           {lists.length > 0 && (
             <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
               {lists.length} {lists.length === 1 ? 'list' : 'lists'}
@@ -244,7 +244,7 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
                 </svg>
                 <Link
                   to={`/projects/${project.id}/lists/${list.id}`}
-                  className="flex-1 text-sm text-slate-700 hover:text-violet-700 transition-colors font-medium"
+                  className="flex-1 text-base text-slate-700 hover:text-violet-700 transition-colors font-medium"
                 >
                   {list.name}
                 </Link>

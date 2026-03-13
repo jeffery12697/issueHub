@@ -89,24 +89,24 @@ export default function ListPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">Home</Link>
+      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3">
+        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Home</Link>
         <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-800">{list?.name}</span>
+        <span className="text-base font-semibold text-slate-800">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           <Link
             to={`/projects/${projectId}/lists/${listId}/settings`}
-            className="text-slate-400 hover:text-slate-600 text-xs transition-colors"
+            className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
           >
             ⚙ Settings
           </Link>
           <div className="flex rounded-lg border border-slate-200 overflow-hidden">
-            <span className="bg-violet-600 text-white px-3 py-1.5 text-xs font-medium">
+            <span className="bg-violet-600 text-white px-3.5 py-2 text-sm font-medium">
               List
             </span>
             <Link
               to={`/projects/${projectId}/lists/${listId}/board`}
-              className="bg-white text-slate-500 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 transition-colors"
+              className="bg-white text-slate-500 px-3.5 py-2 text-sm font-medium hover:bg-slate-50 transition-colors"
             >
               Board
             </Link>
@@ -116,8 +116,11 @@ export default function ListPage() {
       </header>
 
       <main className="max-w-5xl mx-auto py-8 px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-slate-900">{list?.name}</h2>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">{list?.name}</h2>
+            <p className="text-sm text-slate-400 mt-0.5">{tasks.length} task{tasks.length === 1 ? '' : 's'}</p>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => tasksApi.exportCsv(listId!)}
@@ -182,7 +185,7 @@ export default function ListPage() {
         )}
 
         <div className="mb-5 flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-slate-400 font-medium shrink-0">Filter</span>
+          <span className="text-sm text-slate-400 font-medium shrink-0">Filter</span>
           <div className="w-px h-4 bg-slate-200 shrink-0" />
 
           {/* Status */}
@@ -289,13 +292,20 @@ export default function ListPage() {
         {isLoading ? (
           <p className="text-slate-400 text-sm">Loading...</p>
         ) : tasks.length === 0 ? (
-          <p className="text-slate-400 text-sm">No tasks yet.</p>
+          <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
+            <p className="text-slate-700 font-medium mb-1">No tasks yet</p>
+            <p className="text-slate-400 text-sm mb-4">Create your first task to get started.</p>
+            <button
+              onClick={() => setCreating(true)}
+              className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            >+ New task</button>
+          </div>
         ) : (
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 w-8">
+                  <th className="px-4 py-3.5 w-10">
                     <input
                       type="checkbox"
                       checked={tasks.length > 0 && selectedIds.size === tasks.length}
@@ -309,18 +319,18 @@ export default function ListPage() {
                       className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                     />
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Priority</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Assignees</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Reviewer</th>
-                  <th className="px-4 py-3"></th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Assignees</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviewer</th>
+                  <th className="px-4 py-3.5"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {tasks.map((task: Task) => (
                   <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''}`}>
-                    <td className="px-4 py-3 w-8">
+                    <td className="px-4 py-4 w-10">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(task.id)}
@@ -333,49 +343,49 @@ export default function ListPage() {
                         className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       <button
                         onClick={() => navigate(`/tasks/${task.id}`)}
-                        className="text-left font-medium text-slate-800 hover:text-violet-600 transition-colors"
+                        className="text-left font-semibold text-slate-800 hover:text-violet-600 transition-colors text-base"
                       >
                         {task.title}
                       </button>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       {task.status_id && statusMap[task.status_id] ? (
                         <span
-                          className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
                           style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
                         >
                           {statusMap[task.status_id].name}
                         </span>
                       ) : (
-                        <span className="text-slate-400 text-xs">—</span>
+                        <span className="text-slate-300 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="flex items-center gap-1.5 text-xs font-medium capitalize text-slate-600">
+                    <td className="px-4 py-4">
+                      <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
                         <span
-                          className="w-2 h-2 rounded-full inline-block shrink-0"
+                          className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                           style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
                         />
                         {task.priority === 'none' ? '—' : task.priority}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       {task.reviewer_id && memberMap[task.reviewer_id] ? (
                         <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
                       ) : (
-                        <span className="text-slate-300 text-xs">—</span>
+                        <span className="text-slate-300 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-4 text-right">
                       <button
                         onClick={() => deleteTask.mutate(task.id)}
-                        className="text-slate-300 hover:text-red-400 text-xs transition-colors"
+                        className="text-slate-300 hover:text-red-400 text-sm transition-colors"
                       >
                         Delete
                       </button>
@@ -417,7 +427,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`h-8 appearance-none pl-3 pr-7 rounded-full text-xs font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
+        className={`h-9 appearance-none pl-3.5 pr-8 rounded-full text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
           active
             ? 'border-violet-400 bg-violet-50 text-violet-700'
             : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700'

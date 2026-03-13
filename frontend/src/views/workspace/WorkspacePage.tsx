@@ -43,7 +43,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center justify-between">
+      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-violet-600 rounded-md flex items-center justify-center shrink-0">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -60,11 +60,11 @@ export default function WorkspacePage() {
       <main className="max-w-3xl mx-auto py-12 px-6">
         {/* Greeting */}
         <div className="mb-10">
-          <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">{greeting}</p>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <p className="text-sm text-slate-400 font-medium uppercase tracking-wider mb-1">{greeting}</p>
+          <h1 className="text-3xl font-bold text-slate-900">
             {user?.display_name ? `${user.display_name}` : 'Welcome back'}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-base text-slate-500 mt-1.5">
             {workspaces.length === 0
               ? 'Create a workspace to get started.'
               : `You have ${workspaces.length} workspace${workspaces.length === 1 ? '' : 's'}.`}
@@ -148,14 +148,14 @@ export default function WorkspacePage() {
                   to={`/workspaces/${ws.id}`}
                   className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-300 hover:shadow-md transition-all flex items-center gap-4"
                 >
-                  <div className={`${bg} ${fg} rounded-xl w-12 h-12 flex items-center justify-center text-lg font-bold shrink-0 shadow-sm`}>
+                  <div className={`${bg} ${fg} rounded-xl w-14 h-14 flex items-center justify-center text-xl font-bold shrink-0 shadow-sm`}>
                     {ws.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-900 font-semibold text-sm truncate group-hover:text-violet-700 transition-colors">
+                    <p className="text-slate-900 font-bold text-base truncate group-hover:text-violet-700 transition-colors">
                       {ws.name}
                     </p>
-                    <p className="text-slate-400 text-xs mt-0.5">Open workspace →</p>
+                    <p className="text-slate-400 text-sm mt-0.5">Open workspace →</p>
                   </div>
                 </Link>
               )
