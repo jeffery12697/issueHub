@@ -1,11 +1,11 @@
 # Automation User Stories (AU)
 
-| #     | As a... | I want to...                                                                          | So that...                          |
-|-------|---------|---------------------------------------------------------------------------------------|-------------------------------------|
-| AU-01 | PM      | 設定 trigger-action 規則（如：status 變為 Review → 自動 assign 給 reviewer）         | 減少手動流程切換                    |
-| AU-02 | 管理者  | 設定 overdue 任務自動發送通知                                                         | 不靠人工提醒                        |
-| AU-03 | PM      | 當所有 sub-tasks 完成時，自動更新 parent task status                                  | 減少重複更新                        |
-| AU-04 | 工程師  | 透過 Git commit message 的 keyword（如 `closes #123`）自動關閉 task                  | 開發與 issue 追蹤無縫整合          |
+| #     | As a...  | I want to...                                                                                      | So that...                                        |
+|-------|----------|---------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| AU-01 | PM       | Define trigger-action rules (e.g. status changes to Review → auto-assign reviewer)               | Manual handoff steps are eliminated               |
+| AU-02 | Admin    | Configure automatic notifications for overdue tasks                                               | No one has to manually chase overdue work         |
+| AU-03 | PM       | Automatically update a parent task's status when all its subtasks are completed                   | I don't have to update the parent task manually   |
+| AU-04 | Engineer | Close a task automatically via a Git commit message keyword (e.g. `closes #<task-id>`)           | Development and issue tracking are seamlessly linked |
 
 ## Notes
 

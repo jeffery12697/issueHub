@@ -1,11 +1,11 @@
 # Time Management User Stories (TM)
 
-| #     | As a... | I want to...                                          | So that...                        |
-|-------|---------|-------------------------------------------------------|-----------------------------------|
-| TM-01 | 工程師  | 在 task 上設定 due date 與 start date                 | 明確交期範圍                      |
-| TM-02 | PM      | 以甘特圖（Timeline view）呈現任務的時間排布           | 我可以規劃 sprint 與里程碑        |
-| TM-03 | 工程師  | 在 task 上記錄 time tracking（手動或計時器）          | 統計實際工時                      |
-| TM-04 | PM      | 設定 task 的估點（story points）並在 sprint 中做 velocity 計算 | 精準估算後續 sprint 容量 |
+| #     | As a...  | I want to...                                                                     | So that...                                      |
+|-------|----------|----------------------------------------------------------------------------------|-------------------------------------------------|
+| TM-01 | Engineer | Set a due date and start date on a task                                          | I have a clear delivery window                  |
+| TM-02 | PM       | View tasks on a Gantt / Timeline view                                            | I can plan sprints and milestones visually      |
+| TM-03 | Engineer | Log time on a task (manually or with a live timer)                               | I can track actual hours spent                  |
+| TM-04 | PM       | Set story points on a task and calculate sprint velocity                         | I can accurately estimate future sprint capacity |
 
 ## Notes
 

@@ -1,10 +1,10 @@
 # Notifications User Stories (N)
 
-| #    | As a... | I want to...                                       | So that...                          |
-|------|---------|----------------------------------------------------|-------------------------------------|
-| N-01 | 工程師  | 訂閱一個 task 的變更通知                           | 即使沒被 assign，也能追蹤動態      |
-| N-02 | 工程師  | 設定通知的頻率（即時 / 日摘）                      | 不被通知轟炸                        |
-| N-03 | 工程師  | 收到 @mention 時立即通知                           | 重要事項不遺漏                      |
+| #    | As a...  | I want to...                                                    | So that...                                             |
+|------|----------|-----------------------------------------------------------------|--------------------------------------------------------|
+| N-01 | Engineer | Subscribe to change notifications on a task                     | I can follow a task even if I'm not assigned to it     |
+| N-02 | Engineer | Control how often I receive notifications (immediate or digest) | I'm not overwhelmed by notification noise              |
+| N-03 | Engineer | Get an immediate notification when I am @mentioned              | I never miss something that needs my attention         |
 
 ## Notes
 
