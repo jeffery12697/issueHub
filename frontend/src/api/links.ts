@@ -22,7 +22,10 @@ export function useAddLink(taskId: string) {
   return useMutation({
     mutationFn: (data: { url: string; title?: string }) =>
       apiClient.post(`/tasks/${taskId}/links`, data).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['links', taskId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['links', taskId] })
+      qc.invalidateQueries({ queryKey: ['audit', taskId] })
+    },
   })
 }
 
