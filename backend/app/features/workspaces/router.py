@@ -83,10 +83,20 @@ async def delete_workspace(
 async def list_members(
     workspace_id: UUID,
     current_user: User = Depends(get_current_user),
-    service: WorkspaceService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
 ):
-    members = await service.list_members(workspace_id)
-    return [MemberResponse.model_validate(m) for m in members]
+    from sqlalchemy import select
+    from app.models.workspace import WorkspaceMember
+    from app.models.user import User as UserModel
+    result = await session.execute(
+        select(UserModel.id, UserModel.display_name, WorkspaceMember.role)
+        .join(WorkspaceMember, WorkspaceMember.user_id == UserModel.id)
+        .where(WorkspaceMember.workspace_id == workspace_id)
+    )
+    return [
+        MemberResponse(user_id=row.id, display_name=row.display_name, role=row.role)
+        for row in result.all()
+    ]
 
 
 @router.post("/{workspace_id}/members", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)

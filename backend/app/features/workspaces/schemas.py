@@ -87,6 +87,5 @@ class WorkspaceResponse(BaseModel):
 
 class MemberResponse(BaseModel):
     user_id: UUID
+    display_name: str
     role: WorkspaceRole
-
-    model_config = {"from_attributes": True}

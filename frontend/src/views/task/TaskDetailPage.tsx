@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
@@ -9,6 +9,7 @@ import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
 import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinition, type FieldValue } from '@/api/customFields'
 import { useAuthStore } from '@/store/authStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
+import { useWorkspaceMembers } from '@/api/workspaces'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -77,6 +78,7 @@ export default function TaskDetailPage() {
   const { data: comments = [] } = useComments(taskId!)
   const createComment = useCreateComment(taskId!)
   const deleteComment = useDeleteComment(taskId!)
+  const { data: members = [] } = useWorkspaceMembers(task?.workspace_id)
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -433,32 +435,14 @@ export default function TaskDetailPage() {
                 </ul>
               )}
 
-              <form
-                className="flex gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  if (!commentBody.trim()) return
-                  createComment.mutate(
-                    { body: commentBody.trim() },
-                    { onSuccess: () => setCommentBody('') },
-                  )
-                }}
-              >
-                <textarea
-                  value={commentBody}
-                  onChange={(e) => setCommentBody(e.target.value)}
-                  placeholder="Add a comment... Use @name to mention someone"
-                  rows={2}
-                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-                <button
-                  type="submit"
-                  disabled={!commentBody.trim()}
-                  className="self-end bg-violet-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-40"
-                >
-                  Post
-                </button>
-              </form>
+              <CommentForm
+                members={members}
+                onSubmit={(body) =>
+                  createComment.mutate({ body }, { onSuccess: () => setCommentBody('') })
+                }
+                value={commentBody}
+                onChange={setCommentBody}
+              />
             </div>
 
             {/* History */}
@@ -584,6 +568,99 @@ function HistorySection({ logs }: { logs: AuditLog[] }) {
         >
           {expanded ? '↑ Show less' : `↓ Show ${hidden} more`}
         </button>
+      )}
+    </div>
+  )
+}
+
+import type { Member } from '@/api/workspaces'
+
+function CommentForm({
+  members,
+  onSubmit,
+  value,
+  onChange,
+}: {
+  members: Member[]
+  onSubmit: (body: string) => void
+  value: string
+  onChange: (v: string) => void
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [mentionStart, setMentionStart] = useState(0)
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value
+    onChange(val)
+    const cursor = e.target.selectionStart ?? val.length
+    const before = val.slice(0, cursor)
+    const match = before.match(/@(\w*)$/)
+    if (match) {
+      setMentionQuery(match[1].toLowerCase())
+      setMentionStart(cursor - match[0].length)
+    } else {
+      setMentionQuery(null)
+    }
+  }
+
+  function insertMention(displayName: string) {
+    const after = value.slice(mentionStart + (mentionQuery?.length ?? 0) + 1)
+    const newVal = value.slice(0, mentionStart) + `@${displayName} ` + after
+    onChange(newVal)
+    setMentionQuery(null)
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
+  const suggestions = mentionQuery !== null
+    ? members.filter((m) => m.display_name.toLowerCase().includes(mentionQuery))
+    : []
+
+  return (
+    <div className="relative">
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!value.trim()) return
+          onSubmit(value.trim())
+        }}
+      >
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={(e) => { if (e.key === 'Escape') setMentionQuery(null) }}
+          placeholder="Add a comment... Type @ to mention someone"
+          rows={2}
+          className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
+        />
+        <button
+          type="submit"
+          disabled={!value.trim()}
+          className="self-end bg-violet-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-40"
+        >
+          Post
+        </button>
+      </form>
+
+      {suggestions.length > 0 && (
+        <ul className="absolute bottom-full mb-1 left-0 bg-white border border-slate-200 rounded-xl shadow-lg z-10 min-w-48 overflow-hidden">
+          {suggestions.map((m) => (
+            <li key={m.user_id}>
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); insertMention(m.display_name) }}
+                className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors flex items-center gap-2"
+              >
+                <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold flex items-center justify-center shrink-0">
+                  {m.display_name[0].toUpperCase()}
+                </span>
+                {m.display_name}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )

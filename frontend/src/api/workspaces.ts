@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { apiClient } from './client'
 
 export type Workspace = {
@@ -7,6 +8,7 @@ export type Workspace = {
 
 export type Member = {
   user_id: string
+  display_name: string
   role: 'owner' | 'admin' | 'member' | 'guest'
 }
 
@@ -17,4 +19,12 @@ export const workspacesApi = {
   update: (id: string, name: string) => apiClient.patch<Workspace>(`/workspaces/${id}`, { name }).then((r) => r.data),
   delete: (id: string) => apiClient.delete(`/workspaces/${id}`),
   listMembers: (id: string) => apiClient.get<Member[]>(`/workspaces/${id}/members`).then((r) => r.data),
+}
+
+export function useWorkspaceMembers(workspaceId: string | undefined) {
+  return useQuery({
+    queryKey: ['workspace-members', workspaceId],
+    queryFn: () => workspacesApi.listMembers(workspaceId!),
+    enabled: !!workspaceId,
+  })
 }
