@@ -12,6 +12,7 @@ import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
 import HeaderActions from '@/components/HeaderActions'
+import DeleteButton from '@/components/DeleteButton'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -195,12 +196,11 @@ export default function TaskDetailPage() {
               ↑ Promote
             </button>
           )}
-          <button
-            onClick={() => deleteTask.mutate()}
-            className="text-xs text-slate-400 hover:text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Delete
-          </button>
+          <DeleteButton
+            variant="button"
+            message={`Delete "${task.title}"? All subtasks and comments will be removed.`}
+            onConfirm={() => deleteTask.mutate()}
+          />
           <HeaderActions />
         </div>
       </header>
@@ -477,7 +477,13 @@ export default function TaskDetailPage() {
                           <span className="text-sm font-medium text-slate-800">{c.author_name}</span>
                           <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString('en-US')}</span>
                           {currentUser?.id === c.author_id && (
-                            <button onClick={() => deleteComment.mutate(c.id)} className="text-xs text-slate-300 hover:text-red-400 transition-colors ml-auto">Delete</button>
+                            <span className="ml-auto">
+                              <DeleteButton
+                                variant="text"
+                                message="Delete this comment? This cannot be undone."
+                                onConfirm={() => deleteComment.mutate(c.id)}
+                              />
+                            </span>
                           )}
                         </div>
                         <p className="text-sm text-slate-700 whitespace-pre-wrap">{c.body}</p>

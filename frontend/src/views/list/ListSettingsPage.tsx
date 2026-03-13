@@ -5,6 +5,7 @@ import { listsApi, type ListStatus } from '@/api/lists'
 import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType, type FieldDefinition } from '@/api/customFields'
 import { useTeams } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
+import DeleteButton from '@/components/DeleteButton'
 
 export default function ListSettingsPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
@@ -222,12 +223,11 @@ function StatusRow({
         Done
       </label>
 
-      <button
-        onClick={onDelete}
-        className="text-slate-300 hover:text-red-400 text-xs transition-colors"
-      >
-        Delete
-      </button>
+      <DeleteButton
+        variant="text"
+        message={`Delete status "${status.name}"? Tasks using it will lose their status.`}
+        onConfirm={onDelete}
+      />
     </div>
   )
 }
@@ -490,9 +490,11 @@ function FieldRow({
         >
           Roles {expanded ? '▲' : '▼'}
         </button>
-        <button onClick={onDelete} className="text-slate-300 hover:text-red-400 text-xs transition-colors">
-          Delete
-        </button>
+        <DeleteButton
+          variant="text"
+          message={`Delete field "${field.name}"? All task values for this field will be lost.`}
+          onConfirm={onDelete}
+        />
       </div>
       {expanded && (
         <div className="px-3 pb-3 space-y-2 border-t border-slate-100 pt-2">

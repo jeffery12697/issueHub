@@ -7,6 +7,7 @@ import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
+import DeleteButton from '@/components/DeleteButton'
 import { toast } from '@/store/toastStore'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
@@ -171,16 +172,12 @@ export default function ListPage() {
                 <option key={p} value={p} className="capitalize">{p}</option>
               ))}
             </select>
-            <button
-              onClick={() => {
-                if (window.confirm(`Delete ${selectedIds.size} task(s)?`)) {
-                  bulkDelete.mutate(Array.from(selectedIds))
-                }
-              }}
-              className="h-7 px-3 text-xs bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-100 transition-colors font-medium"
-            >
-              Delete
-            </button>
+            <DeleteButton
+              variant="button"
+              label="Delete"
+              message={`Permanently delete ${selectedIds.size} task${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`}
+              onConfirm={() => bulkDelete.mutate(Array.from(selectedIds))}
+            />
           </div>
         )}
 
@@ -387,12 +384,11 @@ export default function ListPage() {
                       <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <button
-                        onClick={() => deleteTask.mutate(task.id)}
-                        className="text-slate-300 hover:text-red-400 text-sm transition-colors"
-                      >
-                        Delete
-                      </button>
+                      <DeleteButton
+                        variant="icon"
+                        message={`Delete "${task.title}"? This cannot be undone.`}
+                        onConfirm={() => deleteTask.mutate(task.id)}
+                      />
                     </td>
                   </tr>
                 ))}

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { workspacesApi, useWorkspaceMembers, useInviteMember, useUpdateMemberRole, useRemoveMember } from '@/api/workspaces'
 import { useTeams, useCreateTeam, useDeleteTeam, useTeamMembers, useAddTeamMember, useRemoveTeamMember, type TeamRole } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
+import DeleteButton from '@/components/DeleteButton'
 import {
   useListTemplates, useCreateTemplate, useDeleteTemplate, useUpdateTemplate,
   type ListTemplate, type TemplateStatus, type TemplateField,
@@ -415,12 +416,11 @@ function TeamCard({
         >
           {expanded ? 'Collapse' : 'Manage'}
         </button>
-        <button
-          onClick={onDelete}
-          className="text-xs text-slate-300 hover:text-red-400 transition-colors"
-        >
-          Delete
-        </button>
+        <DeleteButton
+          variant="text"
+          message={`Delete team "${team.name}"? Members will lose access to team-restricted lists.`}
+          onConfirm={onDelete}
+        />
       </div>
 
       {expanded && (
@@ -645,12 +645,11 @@ function TemplateCard({
           >
             {showFieldEditor ? 'Hide fields' : 'Edit fields'}
           </button>
-          <button
-            onClick={onDelete}
-            className="text-xs text-slate-300 hover:text-red-400 transition-colors"
-          >
-            Delete
-          </button>
+          <DeleteButton
+            variant="text"
+            message={`Delete template "${template.name}"? This cannot be undone.`}
+            onConfirm={onDelete}
+          />
         </div>
       </div>
 
