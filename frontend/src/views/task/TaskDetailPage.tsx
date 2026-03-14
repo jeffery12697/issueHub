@@ -73,7 +73,7 @@ export default function TaskDetailPage() {
   const { data: projectTasksForSearch = [] } = useQuery({
     queryKey: ['project-tasks-search', task?.project_id],
     queryFn: () => tasksApi.listForProject(task!.project_id!, { page: 1, page_size: 500 }).then((r) => r.items),
-    enabled: !!task?.project_id && addingBlockedBy,
+    enabled: !!task?.project_id,
   })
 
   const addBlockedBy = useMutation({
@@ -272,7 +272,7 @@ export default function TaskDetailPage() {
             </div>
 
             {/* Tabs */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
               <div className="flex border-b border-slate-100">
                 {tabs.map((tab) => (
                   <button
