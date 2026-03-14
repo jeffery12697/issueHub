@@ -1,5 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useMyTasks } from '@/api/tasks'
+import { projectsApi, type Project } from '@/api/projects'
+import { useWorkspaceLists, type List } from '@/api/lists'
 import WorkspaceHeader from '@/components/WorkspaceHeader'
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -15,6 +18,15 @@ export default function MyTasksPage() {
   const navigate = useNavigate()
 
   const { data: tasks = [], isLoading } = useMyTasks(workspaceId)
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['projects', workspaceId],
+    queryFn: () => projectsApi.list(workspaceId!),
+    enabled: !!workspaceId,
+  })
+  const { data: lists = [] } = useWorkspaceLists(workspaceId)
+
+  const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]))
+  const listMap = Object.fromEntries(lists.map((l: List) => [l.id, l.name]))
 
   const overdue = tasks.filter((t) => t.due_date && new Date(t.due_date) < new Date())
   const upcoming = tasks.filter((t) => t.due_date && new Date(t.due_date) >= new Date())
@@ -65,13 +77,13 @@ export default function MyTasksPage() {
         ) : (
           <div className="space-y-6">
             {overdue.length > 0 && (
-              <TaskGroup title="Overdue" tasks={overdue} onOpen={(id) => navigate(`/tasks/${id}`)} accent="text-red-600" />
+              <TaskGroup title="Overdue" tasks={overdue} onOpen={(id) => navigate(`/tasks/${id}`)} accent="text-red-600" projectMap={projectMap} listMap={listMap} />
             )}
             {upcoming.length > 0 && (
-              <TaskGroup title="Upcoming" tasks={upcoming} onOpen={(id) => navigate(`/tasks/${id}`)} />
+              <TaskGroup title="Upcoming" tasks={upcoming} onOpen={(id) => navigate(`/tasks/${id}`)} projectMap={projectMap} listMap={listMap} />
             )}
             {noDueDate.length > 0 && (
-              <TaskGroup title="No due date" tasks={noDueDate} onOpen={(id) => navigate(`/tasks/${id}`)} />
+              <TaskGroup title="No due date" tasks={noDueDate} onOpen={(id) => navigate(`/tasks/${id}`)} projectMap={projectMap} listMap={listMap} />
             )}
           </div>
         )}
@@ -85,11 +97,15 @@ function TaskGroup({
   tasks,
   onOpen,
   accent = 'text-slate-500',
+  projectMap,
+  listMap,
 }: {
   title: string
-  tasks: { id: string; title: string; priority: string; due_date: string | null; status_id: string | null }[]
+  tasks: { id: string; title: string; priority: string; due_date: string | null; status_id: string | null; project_id: string; list_id: string | null }[]
   onOpen: (id: string) => void
   accent?: string
+  projectMap: Record<string, string>
+  listMap: Record<string, string>
 }) {
   return (
     <div>
@@ -112,6 +128,18 @@ function TaskGroup({
               {task.priority === 'none' ? '—' : task.priority}
             </span>
             <span className="flex-1 text-sm text-slate-800 truncate">{task.title}</span>
+            <span className="flex items-center gap-1 shrink-0">
+              {projectMap[task.project_id] && (
+                <span className="text-[11px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full truncate max-w-[100px]">
+                  {projectMap[task.project_id]}
+                </span>
+              )}
+              {task.list_id && listMap[task.list_id] && (
+                <span className="text-[11px] text-violet-500 bg-violet-50 px-2 py-0.5 rounded-full truncate max-w-[100px]">
+                  {listMap[task.list_id]}
+                </span>
+              )}
+            </span>
             {task.due_date && (
               <span className="text-xs text-slate-400 shrink-0">
                 {new Date(task.due_date).toLocaleDateString('en-US')}
