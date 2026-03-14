@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { workspacesApi, useWorkspaceMembers, useInviteMember, useUpdateMemberRole, useRemoveMember } from '@/api/workspaces'
+import { useAuthStore } from '@/store/authStore'
 import { useTeams, useCreateTeam, useDeleteTeam, useTeamMembers, useAddTeamMember, useRemoveTeamMember, type TeamRole } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
@@ -33,6 +34,7 @@ type ActiveTab = 'members' | 'templates' | 'teams'
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const [activeTab, setActiveTab] = useState<ActiveTab>('members')
+  const currentUserId = useAuthStore((s) => s.user?.id)
 
   const { data: workspace } = useQuery({
     queryKey: ['workspace', workspaceId],
@@ -40,7 +42,13 @@ export default function WorkspaceSettingsPage() {
     enabled: !!workspaceId,
   })
 
-  const { data: templates = [] } = useListTemplates(workspaceId)
+  const { data: members = [] } = useWorkspaceMembers(workspaceId)
+  const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+  const myRole = currentUserId ? memberMap[currentUserId]?.role : undefined
+  const canManageSettings = myRole === 'owner' || myRole === 'admin'
+
+  // Don't load templates unless the user can manage settings
+  const { data: templates = [] } = useListTemplates(canManageSettings ? workspaceId : undefined)
   const createTemplate = useCreateTemplate(workspaceId!)
   const deleteTemplate = useDeleteTemplate(workspaceId!)
   const updateTemplate = useUpdateTemplate(workspaceId)
@@ -48,6 +56,29 @@ export default function WorkspaceSettingsPage() {
   const [showNewTemplate, setShowNewTemplate] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [templatePreset, setTemplatePreset] = useState('Basic')
+
+  if (members.length > 0 && !canManageSettings) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+          <Link
+            to={`/workspaces/${workspaceId}`}
+            className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+          >
+            ← Back
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
+          <span className="text-slate-300">/</span>
+          <span className="text-sm font-medium text-slate-500">Settings</span>
+        </header>
+        <main className="max-w-3xl mx-auto py-20 px-6 text-center">
+          <p className="text-slate-700 font-semibold text-lg mb-2">Access denied</p>
+          <p className="text-slate-400 text-sm">Only workspace owners and admins can manage settings.</p>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

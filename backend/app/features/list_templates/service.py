@@ -13,6 +13,7 @@ from app.models.custom_field import CustomFieldDefinition
 from app.models.list_ import List
 from app.models.list_status import ListStatus, StatusCategory
 from app.models.list_template import ListTemplate
+from app.models.workspace import WorkspaceRole
 
 
 class ListTemplateService:
@@ -37,7 +38,7 @@ class ListTemplateService:
     async def create_template(
         self, workspace_id: UUID, dto: CreateTemplateDTO, actor_id: UUID
     ) -> ListTemplate:
-        await self._require_workspace_member(workspace_id, actor_id)
+        await self._require_admin(workspace_id, actor_id)
         full_dto = CreateTemplateDTO(
             workspace_id=workspace_id,
             name=dto.name,
@@ -49,14 +50,14 @@ class ListTemplateService:
     async def update_template(
         self, workspace_id: UUID, template_id: UUID, dto: UpdateTemplateDTO, actor_id: UUID
     ) -> ListTemplate:
-        await self._require_workspace_member(workspace_id, actor_id)
+        await self._require_admin(workspace_id, actor_id)
         template = await self._get_template_or_404(template_id, workspace_id)
         return await self.repo.update(template, dto)
 
     async def delete_template(
         self, workspace_id: UUID, template_id: UUID, actor_id: UUID
     ) -> None:
-        await self._require_workspace_member(workspace_id, actor_id)
+        await self._require_admin(workspace_id, actor_id)
         template = await self._get_template_or_404(template_id, workspace_id)
         await self.repo.delete(template)
 
@@ -123,6 +124,13 @@ class ListTemplateService:
             await session.flush()
 
         return list_
+
+    async def _require_admin(self, workspace_id: UUID, user_id: UUID) -> None:
+        member = await self.workspace_repo.get_member(workspace_id, user_id)
+        if not member or member.role not in {WorkspaceRole.owner, WorkspaceRole.admin}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+            )
 
     async def _require_workspace_member(self, workspace_id: UUID, user_id: UUID) -> None:
         member = await self.workspace_repo.get_member(workspace_id, user_id)
