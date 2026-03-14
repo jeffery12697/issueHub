@@ -93,6 +93,21 @@ async def test_create_automation_requires_auth(client: AsyncClient, db, user, wo
     assert r.status_code == 403
 
 
+async def test_create_automation_member_forbidden(client: AsyncClient, db, user, workspace, project, list_, headers):
+    """Workspace member (not admin/owner) cannot create automation rules."""
+    from app.models.workspace import WorkspaceMember, WorkspaceRole
+    member_user = await make_user(db, "member@example.com")
+    db.add(WorkspaceMember(workspace_id=workspace.id, user_id=member_user.id, role=WorkspaceRole.member))
+    await db.commit()
+
+    r = await client.post(
+        f"/api/v1/lists/{list_.id}/automations",
+        json={"trigger_type": "status_changed", "trigger_value": "x", "action_type": "set_priority", "action_value": "high"},
+        headers=auth_headers(member_user),
+    )
+    assert r.status_code == 403
+
+
 async def test_create_automation_non_member_forbidden(client: AsyncClient, db, user, workspace, project, list_, headers):
     """Non-member of workspace cannot create automations."""
     other = await make_user(db, "other@example.com")

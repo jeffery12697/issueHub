@@ -10,6 +10,7 @@ import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 import { toast } from '@/store/toastStore'
+import { useAuthStore } from '@/store/authStore'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -123,6 +124,9 @@ export default function ListPage() {
   const workspaceId = allTasks[0]?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+  const currentUserId = useAuthStore((s) => s.user?.id)
+  const myRole = currentUserId ? memberMap[currentUserId]?.role : undefined
+  const canManageSettings = myRole === 'owner' || myRole === 'admin'
 
   const statusMap = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
 
@@ -133,12 +137,14 @@ export default function ListPage() {
         <span className="text-slate-300">/</span>
         <span className="text-base font-semibold text-slate-800">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
-          <Link
-            to={`/projects/${projectId}/lists/${listId}/settings`}
-            className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
-          >
-            ⚙ Settings
-          </Link>
+          {canManageSettings && (
+            <Link
+              to={`/projects/${projectId}/lists/${listId}/settings`}
+              className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+            >
+              ⚙ Settings
+            </Link>
+          )}
           <div className="flex rounded-lg border border-slate-200 overflow-hidden">
             <span className="bg-violet-600 text-white px-3.5 py-2 text-sm font-medium">
               List

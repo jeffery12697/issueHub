@@ -16,6 +16,7 @@ from app.features.projects.repository import ProjectRepository
 from app.features.tasks.repository import TaskRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.models.custom_field import CustomFieldDefinition, CustomFieldValue
+from app.models.workspace import WorkspaceRole
 
 
 class CustomFieldService:
@@ -50,7 +51,7 @@ class CustomFieldService:
     async def create_field(
         self, list_id: UUID, dto: CreateFieldDTO, actor_id: UUID
     ) -> CustomFieldDefinition:
-        await self._require_list_member(list_id, actor_id)
+        await self._require_list_admin(list_id, actor_id)
         max_order = await self.repo.get_max_order_index(list_id)
         order_index = max_order + 100.0
         full_dto = CreateFieldDTO(
@@ -68,12 +69,12 @@ class CustomFieldService:
     async def update_field(
         self, list_id: UUID, field_id: UUID, dto: UpdateFieldDTO, actor_id: UUID
     ) -> CustomFieldDefinition:
-        await self._require_list_member(list_id, actor_id)
+        await self._require_list_admin(list_id, actor_id)
         field = await self._get_field_or_404(field_id, list_id)
         return await self.repo.update_field(field, dto)
 
     async def delete_field(self, list_id: UUID, field_id: UUID, actor_id: UUID) -> None:
-        await self._require_list_member(list_id, actor_id)
+        await self._require_list_admin(list_id, actor_id)
         field = await self._get_field_or_404(field_id, list_id)
         await self.repo.soft_delete_field(field)
 
@@ -165,6 +166,17 @@ class CustomFieldService:
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
         await self._require_workspace_member(project.workspace_id, user_id)
+
+    async def _require_list_admin(self, list_id: UUID, user_id: UUID) -> None:
+        list_ = await self.list_repo.get_by_id(list_id)
+        if not list_:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+        project = await self.project_repo.get_by_id(list_.project_id)
+        if not project:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        member = await self.workspace_repo.get_member(project.workspace_id, user_id)
+        if not member or member.role not in {WorkspaceRole.owner, WorkspaceRole.admin}:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     async def _require_workspace_member(self, workspace_id: UUID, user_id: UUID) -> None:
         member = await self.workspace_repo.get_member(workspace_id, user_id)

@@ -214,6 +214,21 @@ async def test_create_field_unauthenticated(client, list_):
     assert r.status_code == 403
 
 
+async def test_create_field_member_forbidden(client, list_, db, workspace):
+    """Workspace member (not admin/owner) cannot create custom fields."""
+    from app.models.workspace import WorkspaceMember, WorkspaceRole
+    member_user = await make_user(db, email="member@example.com")
+    db.add(WorkspaceMember(workspace_id=workspace.id, user_id=member_user.id, role=WorkspaceRole.member))
+    await db.commit()
+
+    r = await client.post(
+        f"/api/v1/lists/{list_.id}/custom-fields",
+        json={"name": "Notes", "field_type": "text"},
+        headers=auth_headers(member_user),
+    )
+    assert r.status_code == 403
+
+
 async def test_create_field_non_member(client, list_, db):
     other_user = await make_user(db, email="other@example.com")
     other_ws = await make_workspace(db, other_user, name="Other WS")
