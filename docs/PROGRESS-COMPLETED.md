@@ -320,6 +320,11 @@ _Completed: 2026-03-13_
 ## Phase 12 — Advanced Automation AU-01 (2026-03-14)
 - **AU-01 trigger-action rules** — `Automation` model + migration 0015; `trigger_type` (`status_changed`, `priority_changed`) + `trigger_value` matched against task updates; `action_type` (`set_status`, `set_priority`, `assign_reviewer`, `clear_assignees`) applied automatically; `AutomationRepository`, `AutomationService`, `AutomationRouter` with `GET/POST /lists/{id}/automations` and `DELETE /automations/{id}`; `AutomationRepository` injected into `TaskService`; `_run_automations()` evaluates rules after every update and writes `automation` audit log entry; 12 backend tests all passing; frontend: `automationsApi` + "Automations" tab in ListSettingsPage (trigger/action dropdowns with status and priority pickers)
 
+## Project Tasks Cross-List View (2026-03-14)
+- **GET /projects/{project_id}/tasks** — `list_for_project` in repository (filters by `project_id`, supports `list_id`/`priority`/`assignee_id`/`include_subtasks`, pagination, orders by `list_id, order_index`); `list_for_project` in service (404 on missing project, workspace member check); route in tasks router with `X-Total-Count` header
+- **Frontend** — `tasksApi.listForProject()` in `tasks.ts`; new `ProjectTasksPage.tsx` at `/projects/:projectId` with filter bar (list dropdown, priority dropdown, include subtasks toggle), task table (title, list badge, priority dot, status, assignee avatars, due date), pagination; route added to `index.tsx`; `ProjectPage.tsx` project name is now a link to `/projects/:projectId`, list hover actions include "All Tasks" link
+- 7 backend tests all passing (`tests/test_project_tasks.py`)
+
 ## Post-Phase 11 Polish (2026-03-13)
 - **Subtask depth enforcement** — `create_subtask` service raises HTTP 400 if `parent.depth > 0`; test updated to assert 400
 - **Subtasks in list page** — `include_subtasks=true` param on list endpoint; ListPage groups parent tasks + their subtasks interleaved, orphaned subtasks appended at end; subtask rows indented (`pl-10`) with `↳ Parent title` clickable breadcrumb
