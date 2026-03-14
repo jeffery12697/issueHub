@@ -290,18 +290,6 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
                   >
                     Board
                   </Link>
-                  <Link
-                    to={`/projects/${project.id}`}
-                    className="text-xs px-2.5 py-1 rounded-md border border-slate-200 text-slate-500 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50 transition-colors"
-                  >
-                    All Tasks
-                  </Link>
-                  <Link
-                    to={`/projects/${project.id}/analytics`}
-                    className="text-xs px-2.5 py-1 rounded-md border border-slate-200 text-slate-500 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50 transition-colors"
-                  >
-                    Analytics
-                  </Link>
                 </div>
               </li>
             ))}
