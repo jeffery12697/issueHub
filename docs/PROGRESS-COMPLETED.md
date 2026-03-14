@@ -348,3 +348,24 @@ _Completed: 2026-03-14_
 ### Project-Level Analytics
 - [x] **Backend** — `TaskRepository.analytics_for_project(project_id)`: total tasks, overdue count, tasks grouped by status with story points; `GET /projects/{project_id}/analytics` endpoint (workspace member check, resolves status names); reuses `AnalyticsResponse` + `StatusCount` schemas from workspaces
 - [x] **Frontend** — `useProjectAnalytics` hook + `ProjectAnalytics` type in `api/projects.ts`; `ProjectAnalyticsPage.tsx` at `/projects/:projectId/analytics` — stat cards (Total Tasks, Overdue, Statuses, Story Points) and Tasks by Status bar chart; project-level nav tabs (All Tasks | Analytics) in both `ProjectTasksPage` and `ProjectAnalyticsPage` headers matching workspace nav pattern; "Analytics" link added to project card hover actions in `ProjectPage.tsx`
+
+---
+
+## Sequential Task IDs & Blocker Search
+_Completed: 2026-03-14_
+
+### Sequential Task IDs (DEV-0001 style)
+- [x] **Backend** — `task_prefix` (String 10, default "TSK") + `next_task_number` (Integer, default 1) added to `Project` model; `task_number` + `task_key` (indexed) added to `Task` model; migration 0016 with Python-side backfill (generates prefix from name, assigns sequential numbers per project ordered by `created_at`)
+- [x] `ProjectRepository.claim_task_number()` — atomic `UPDATE ... RETURNING` increment (single round-trip, concurrency-safe)
+- [x] `TaskService.create()` + `create_subtask()` — call `claim_task_number`, build `task_key = f"{prefix}-{n:04d}"`, persist on task
+- [x] `ProjectRepository._make_prefix()` — multi-word → initials up to 4 chars; single word → first 4 uppercase alpha chars; fallback "TSK"
+- [x] `CreateProjectRequest` / `UpdateProjectRequest` / `ProjectResponse` schemas updated with `task_prefix`; `TaskResponse` updated with `task_number` + `task_key`
+- [x] **Frontend** — `task_key` monospace badge displayed in `ListPage`, `BoardPage`, `TaskDetailPage`, `ProjectTasksPage`; `ProjectPage` create form has `KEY` input (auto-fills from name, max 4 chars, uppercase)
+
+### Blocker Search Dropdown
+- [x] Replaced plain "Paste task ID" input with a search dropdown in `TaskDetailPage` dependencies tab
+- [x] Project tasks pre-loaded on page open via `tasksApi.listForProject`; filtered live by title or task_key as user types
+- [x] Dropdown shows `task_key` + title; selecting a result calls `addBlockedBy.mutate(id)` immediately
+- [x] Excludes current task and already-added blockers from results
+- [x] Fixed temporal dead zone bug (`addingBlockedBy` state moved before the query that referenced it)
+- [x] Fixed `overflow-hidden` on tabs container that was clipping the absolute-positioned dropdown
