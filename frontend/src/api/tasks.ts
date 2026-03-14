@@ -22,6 +22,8 @@ export type Task = {
   order_index: number
   depth: number
   subtask_count: number
+  task_number: number | null
+  task_key: string | null
 }
 
 export type CreateTaskData = {

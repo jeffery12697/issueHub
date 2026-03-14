@@ -400,6 +400,11 @@ export default function ListPage() {
                         </div>
                       )}
                       <div className="flex items-center gap-2 flex-wrap">
+                        {task.task_key && (
+                          <span className="text-[11px] font-mono font-semibold text-slate-400 shrink-0">
+                            {task.task_key}
+                          </span>
+                        )}
                         <button
                           onClick={() => navigate(`/tasks/${task.id}`)}
                           className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}

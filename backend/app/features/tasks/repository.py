@@ -20,7 +20,13 @@ class TaskRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, dto: CreateTaskDTO, order_index: float) -> Task:
+    async def create(
+        self,
+        dto: CreateTaskDTO,
+        order_index: float,
+        task_number: int | None = None,
+        task_key: str | None = None,
+    ) -> Task:
         depth = 0
         parent_path = None
 
@@ -47,6 +53,8 @@ class TaskRepository:
             order_index=order_index,
             depth=depth,
             path=Ltree("placeholder"),
+            task_number=task_number,
+            task_key=task_key,
         )
         self.session.add(task)
         await self.session.flush()

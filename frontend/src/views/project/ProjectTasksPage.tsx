@@ -206,6 +206,11 @@ export default function ProjectTasksPage() {
                         {task.parent_task_id && (
                           <div className="text-xs text-slate-300 mb-0.5">↳</div>
                         )}
+                        {task.task_key && (
+                          <span className="text-[11px] font-mono font-semibold text-slate-400 block mb-0.5">
+                            {task.task_key}
+                          </span>
+                        )}
                         <button
                           onClick={() => navigate(`/tasks/${task.id}`)}
                           className="text-left font-semibold text-slate-800 hover:text-violet-600 transition-colors"

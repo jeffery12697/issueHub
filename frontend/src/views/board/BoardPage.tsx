@@ -287,7 +287,12 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
         />
       )}
 
-      {/* Title */}
+      {/* Key + Title */}
+      {task.task_key && (
+        <span className="text-[10px] font-mono font-semibold text-slate-400 block mb-0.5">
+          {task.task_key}
+        </span>
+      )}
       <p className="text-sm font-medium text-slate-800 leading-snug group-hover:text-violet-700 transition-colors mb-2.5">
         {task.title}
       </p>

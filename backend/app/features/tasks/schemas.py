@@ -156,5 +156,7 @@ class TaskResponse(BaseModel):
     order_index: float
     depth: int
     subtask_count: int = 0
+    task_number: int | None = None
+    task_key: str | None = None
 
     model_config = {"from_attributes": True}

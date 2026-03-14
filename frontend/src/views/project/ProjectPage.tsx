@@ -18,16 +18,27 @@ export default function ProjectPage() {
   const { data: templates = [] } = useListTemplates(workspaceId)
 
   const [newProjectName, setNewProjectName] = useState('')
+  const [newProjectPrefix, setNewProjectPrefix] = useState('')
   const [creatingProject, setCreatingProject] = useState(false)
 
   const createProject = useMutation({
-    mutationFn: (name: string) => projectsApi.create(workspaceId!, { name }),
+    mutationFn: ({ name, prefix }: { name: string; prefix: string }) =>
+      projectsApi.create(workspaceId!, { name, task_prefix: prefix || undefined }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects', workspaceId] })
       setCreatingProject(false)
       setNewProjectName('')
+      setNewProjectPrefix('')
     },
   })
+
+  function autoPrefix(name: string) {
+    const clean = name.replace(/[^A-Za-z0-9 ]/g, '').toUpperCase()
+    const words = clean.split(' ').filter(Boolean)
+    return words.length > 1
+      ? words.map((w) => w[0]).join('').slice(0, 4)
+      : clean.replace(/[^A-Z]/g, '').slice(0, 4)
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -52,17 +63,30 @@ export default function ProjectPage() {
         {creatingProject && (
           <form
             className="mb-4 bg-white border border-violet-200 rounded-xl p-4 shadow-sm flex gap-2"
-            onSubmit={(e) => { e.preventDefault(); createProject.mutate(newProjectName) }}
+            onSubmit={(e) => {
+              e.preventDefault()
+              createProject.mutate({ name: newProjectName, prefix: newProjectPrefix || autoPrefix(newProjectName) })
+            }}
           >
             <input
               autoFocus
               value={newProjectName}
-              onChange={(e) => setNewProjectName(e.target.value)}
+              onChange={(e) => {
+                setNewProjectName(e.target.value)
+                setNewProjectPrefix(autoPrefix(e.target.value))
+              }}
               placeholder="Project name"
               className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
+            <input
+              value={newProjectPrefix}
+              onChange={(e) => setNewProjectPrefix(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4))}
+              placeholder="KEY"
+              title="Task ID prefix (e.g. DEV)"
+              className="w-20 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-violet-500 uppercase"
+            />
             <button type="submit" className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create</button>
-            <button type="button" onClick={() => { setCreatingProject(false); setNewProjectName('') }} className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
+            <button type="button" onClick={() => { setCreatingProject(false); setNewProjectName(''); setNewProjectPrefix('') }} className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
           </form>
         )}
 

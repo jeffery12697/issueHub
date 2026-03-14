@@ -58,6 +58,8 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
     order_index: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     path: Mapped[str] = mapped_column(LtreeType, nullable=False)
+    task_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    task_key: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
 
     subtasks: Mapped[list["Task"]] = relationship(
         "Task",

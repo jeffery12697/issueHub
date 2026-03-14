@@ -239,12 +239,19 @@ export default function TaskDetailPage() {
                   />
                 </form>
               ) : (
-                <h1
-                  className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-violet-600 transition-colors mb-4 leading-tight"
-                  onClick={() => { setTitle(task.title); setEditingTitle(true) }}
-                >
-                  {task.title}
-                </h1>
+                <>
+                  {task.task_key && (
+                    <span className="text-xs font-mono font-semibold text-slate-400 block mb-1">
+                      {task.task_key}
+                    </span>
+                  )}
+                  <h1
+                    className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-violet-600 transition-colors mb-4 leading-tight"
+                    onClick={() => { setTitle(task.title); setEditingTitle(true) }}
+                  >
+                    {task.title}
+                  </h1>
+                </>
               )}
               <RichTextEditor
                 key={task.id}

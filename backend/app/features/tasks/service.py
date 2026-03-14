@@ -32,8 +32,10 @@ class TaskService:
 
     async def create(self, dto: CreateTaskDTO) -> Task:
         await self._require_workspace_member(dto.workspace_id, dto.reporter_id)
+        task_number, task_prefix = await self.project_repo.claim_task_number(dto.project_id)
+        task_key = f"{task_prefix}-{task_number:04d}"
         order_index = await self.repo.get_max_order_index(dto.list_id) + 100.0
-        task = await self.repo.create(dto, order_index=order_index)
+        task = await self.repo.create(dto, order_index=order_index, task_number=task_number, task_key=task_key)
         await self.audit_repo.log(task.id, actor_id=dto.reporter_id, action="created")
         return task
 
@@ -42,6 +44,8 @@ class TaskService:
         if parent.depth > 0:
             raise HTTPException(status_code=400, detail="Subtasks cannot have subtasks")
         await self._require_workspace_member(parent.workspace_id, actor_id)
+        task_number, task_prefix = await self.project_repo.claim_task_number(parent.project_id)
+        task_key = f"{task_prefix}-{task_number:04d}"
         order_index = await self.repo.get_max_order_index(parent.list_id) + 100.0
         dto = body.to_dto(
             list_id=parent.list_id,
@@ -50,7 +54,7 @@ class TaskService:
             reporter_id=actor_id,
             parent_task_id=parent_task_id,
         )
-        task = await self.repo.create(dto, order_index=order_index)
+        task = await self.repo.create(dto, order_index=order_index, task_number=task_number, task_key=task_key)
         await self.audit_repo.log(task.id, actor_id=actor_id, action="created")
         return task
 

@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -16,3 +16,5 @@ class Project(Base, TimestampMixin, SoftDeleteMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    task_prefix: Mapped[str] = mapped_column(String(10), nullable=False, default="TSK")
+    next_task_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
