@@ -317,6 +317,9 @@ _Completed: 2026-03-13_
 ## Phase 11 — Simple Automation (2026-03-13)
 - **AU-03 auto-close parent** — `maybe_close_parent()` in tasks router; after any subtask status update checks if all siblings have `is_complete=True`; finds first complete status in parent's list and applies it; writes `auto_closed` audit log; skips if parent already closed or list has no complete status; 5 tests passing
 
+## Phase 12 — Advanced Automation AU-01 (2026-03-14)
+- **AU-01 trigger-action rules** — `Automation` model + migration 0015; `trigger_type` (`status_changed`, `priority_changed`) + `trigger_value` matched against task updates; `action_type` (`set_status`, `set_priority`, `assign_reviewer`, `clear_assignees`) applied automatically; `AutomationRepository`, `AutomationService`, `AutomationRouter` with `GET/POST /lists/{id}/automations` and `DELETE /automations/{id}`; `AutomationRepository` injected into `TaskService`; `_run_automations()` evaluates rules after every update and writes `automation` audit log entry; 12 backend tests all passing; frontend: `automationsApi` + "Automations" tab in ListSettingsPage (trigger/action dropdowns with status and priority pickers)
+
 ## Post-Phase 11 Polish (2026-03-13)
 - **Subtask depth enforcement** — `create_subtask` service raises HTTP 400 if `parent.depth > 0`; test updated to assert 400
 - **Subtasks in list page** — `include_subtasks=true` param on list endpoint; ListPage groups parent tasks + their subtasks interleaved, orphaned subtasks appended at end; subtask rows indented (`pl-10`) with `↳ Parent title` clickable breadcrumb
