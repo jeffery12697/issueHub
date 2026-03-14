@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Idle — Phase 12 complete (AU-01 trigger-action automation rules)
+- Project Tasks cross-list view: GET /projects/{project_id}/tasks + ProjectTasksPage frontend
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

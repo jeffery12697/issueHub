@@ -102,6 +102,17 @@ export const tasksApi = {
     apiClient.post<{ updated: number }>('/tasks/bulk-delete', { task_ids: taskIds }).then((r) => r.data),
   move: (taskId: string, listId: string) =>
     apiClient.patch<Task>(`/tasks/${taskId}/move`, { list_id: listId }).then((r) => r.data),
+  listForProject: (projectId: string, params: { page: number; page_size: number; list_id?: string; priority?: Priority; assignee_id?: string; include_subtasks?: boolean }) => {
+    const p: Record<string, string> = { page: String(params.page), page_size: String(params.page_size) }
+    if (params.list_id) p.list_id = params.list_id
+    if (params.priority) p.priority = params.priority
+    if (params.assignee_id) p.assignee_id = params.assignee_id
+    if (params.include_subtasks) p.include_subtasks = 'true'
+    return apiClient.get<Task[]>(`/projects/${projectId}/tasks`, { params: p }).then((r) => ({
+      items: r.data,
+      total: parseInt(r.headers['x-total-count'] ?? '0', 10),
+    }))
+  },
 }
 
 export function useMyTasks(workspaceId: string | undefined) {

@@ -119,6 +119,41 @@ class TaskRepository:
         result = await self.session.execute(q)
         return list(result.scalars().all()), total
 
+    async def list_for_project(
+        self,
+        project_id: UUID,
+        list_id: UUID | None = None,
+        priority: Priority | None = None,
+        assignee_id: UUID | None = None,
+        include_subtasks: bool = False,
+        page: int = 1,
+        page_size: int = 0,
+    ) -> tuple[list[Task], int]:
+        q = (
+            select(Task)
+            .where(Task.project_id == project_id)
+            .where(Task.deleted_at.is_(None))
+        )
+        if not include_subtasks:
+            q = q.where(Task.parent_task_id.is_(None))
+        if list_id:
+            q = q.where(Task.list_id == list_id)
+        if priority:
+            q = q.where(Task.priority == priority)
+        if assignee_id:
+            q = q.where(Task.assignee_ids.any(assignee_id))
+
+        count_result = await self.session.execute(
+            select(func.count()).select_from(q.subquery())
+        )
+        total = count_result.scalar_one()
+
+        q = q.order_by(Task.list_id, Task.order_index)
+        if page_size > 0:
+            q = q.offset((page - 1) * page_size).limit(page_size)
+        result = await self.session.execute(q)
+        return list(result.scalars().all()), total
+
     async def list_subtasks(self, parent_task_id: UUID) -> list[Task]:
         result = await self.session.execute(
             select(Task)

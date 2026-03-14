@@ -150,7 +150,12 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${dotColor} shrink-0`} />
-          <h3 className="font-bold text-slate-900 text-base">{project.name}</h3>
+          <Link
+              to={`/projects/${project.id}`}
+              className="font-bold text-slate-900 text-base hover:text-violet-700 transition-colors"
+            >
+              {project.name}
+            </Link>
           {lists.length > 0 && (
             <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
               {lists.length} {lists.length === 1 ? 'list' : 'lists'}
@@ -260,6 +265,12 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
                     className="text-xs px-2.5 py-1 rounded-md border border-slate-200 text-slate-500 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50 transition-colors"
                   >
                     Board
+                  </Link>
+                  <Link
+                    to={`/projects/${project.id}`}
+                    className="text-xs px-2.5 py-1 rounded-md border border-slate-200 text-slate-500 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50 transition-colors"
+                  >
+                    All Tasks
                   </Link>
                 </div>
               </li>

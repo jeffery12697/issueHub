@@ -130,6 +130,33 @@ async def list_tasks(
     return [TaskResponse.model_validate(t) for t in tasks]
 
 
+@router.get("/projects/{project_id}/tasks", response_model=list[TaskResponse])
+async def list_project_tasks(
+    project_id: UUID,
+    response: Response,
+    list_id: UUID | None = None,
+    priority: Priority | None = None,
+    assignee_id: UUID | None = None,
+    include_subtasks: bool = False,
+    page: int = 1,
+    page_size: int = 0,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+):
+    tasks, total = await service.list_for_project(
+        project_id,
+        user_id=current_user.id,
+        list_id=list_id,
+        priority=priority,
+        assignee_id=assignee_id,
+        include_subtasks=include_subtasks,
+        page=page,
+        page_size=page_size,
+    )
+    response.headers["X-Total-Count"] = str(total)
+    return [TaskResponse.model_validate(t) for t in tasks]
+
+
 @router.post("/lists/{list_id}/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_task(
     list_id: UUID,
