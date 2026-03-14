@@ -21,24 +21,29 @@ export default function ProjectAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Home</Link>
-        <span className="text-slate-300">/</span>
+      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-4">
+        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+        <span className="text-slate-200 shrink-0">/</span>
         <Link
           to={`/workspaces/${project?.workspace_id}`}
-          className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+          className="text-base font-semibold text-slate-800 truncate max-w-[160px]"
         >
           {project?.name}
         </Link>
-        <span className="text-slate-300">/</span>
-        <Link
-          to={`/projects/${projectId}`}
-          className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
-        >
-          All Tasks
-        </Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-800">Analytics</span>
+        <nav className="flex items-center gap-1 ml-2">
+          <Link
+            to={`/projects/${projectId}`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+          >
+            All Tasks
+          </Link>
+          <Link
+            to={`/projects/${projectId}/analytics`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 text-violet-700"
+          >
+            Analytics
+          </Link>
+        </nav>
         <div className="ml-auto"><HeaderActions /></div>
       </header>
 
