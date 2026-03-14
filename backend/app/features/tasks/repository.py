@@ -312,3 +312,38 @@ class TaskRepository:
         total_story_points = total_sp_result.scalar_one()
 
         return {"total": total, "overdue": overdue, "by_status": by_status, "total_story_points": total_story_points}
+
+    async def analytics_for_project(self, project_id: UUID) -> dict:
+        total_result = await self.session.execute(
+            select(func.count())
+            .select_from(Task)
+            .where(Task.project_id == project_id)
+            .where(Task.deleted_at.is_(None))
+        )
+        total = total_result.scalar_one()
+
+        overdue_result = await self.session.execute(
+            select(func.count())
+            .select_from(Task)
+            .where(Task.project_id == project_id)
+            .where(Task.deleted_at.is_(None))
+            .where(Task.due_date < func.now())
+        )
+        overdue = overdue_result.scalar_one()
+
+        by_status_result = await self.session.execute(
+            select(Task.status_id, func.count().label("count"), func.coalesce(func.sum(Task.story_points), 0).label("story_points"))
+            .where(Task.project_id == project_id)
+            .where(Task.deleted_at.is_(None))
+            .group_by(Task.status_id)
+        )
+        by_status = [{"status_id": row.status_id, "count": row.count, "story_points": row.story_points} for row in by_status_result.all()]
+
+        total_sp_result = await self.session.execute(
+            select(func.coalesce(func.sum(Task.story_points), 0))
+            .where(Task.project_id == project_id)
+            .where(Task.deleted_at.is_(None))
+        )
+        total_story_points = total_sp_result.scalar_one()
+
+        return {"total": total, "overdue": overdue, "by_status": by_status, "total_story_points": total_story_points}

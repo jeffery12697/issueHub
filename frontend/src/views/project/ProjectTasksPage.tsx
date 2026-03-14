@@ -94,7 +94,13 @@ export default function ProjectTasksPage() {
         </Link>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">All Tasks</span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            to={`/projects/${projectId}/analytics`}
+            className="text-sm text-slate-500 hover:text-violet-600 font-medium transition-colors"
+          >
+            Analytics
+          </Link>
           <HeaderActions />
         </div>
       </header>

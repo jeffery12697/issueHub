@@ -23,6 +23,7 @@ from app.features.tasks.schemas import (
 from app.features.lists.repository import ListRepository
 from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
+from app.features.workspaces.schemas import AnalyticsResponse, StatusCount
 from app.features.audit.repository import AuditRepository
 from app.features.automations.repository import AutomationRepository
 from app.features.notifications.repository import NotificationRepository
@@ -155,6 +156,54 @@ async def list_project_tasks(
     )
     response.headers["X-Total-Count"] = str(total)
     return [TaskResponse.model_validate(t) for t in tasks]
+
+
+@router.get("/projects/{project_id}/analytics", response_model=AnalyticsResponse)
+async def get_project_analytics(
+    project_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    project_repo = ProjectRepository(session)
+    project = await project_repo.get_by_id(project_id)
+    if not project:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    workspace_repo = WorkspaceRepository(session)
+    member = await workspace_repo.get_member(project.workspace_id, current_user.id)
+    if not member:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Not a workspace member")
+
+    task_repo = TaskRepository(session)
+    list_repo = ListRepository(session)
+
+    data = await task_repo.analytics_for_project(project_id)
+
+    status_ids = [row["status_id"] for row in data["by_status"] if row["status_id"] is not None]
+    status_name_map: dict = {}
+    for sid in status_ids:
+        s = await list_repo.get_status_by_id(sid)
+        if s:
+            status_name_map[str(sid)] = s.name
+
+    tasks_by_status = [
+        StatusCount(
+            status_id=row["status_id"],
+            status_name=status_name_map.get(str(row["status_id"])) if row["status_id"] else None,
+            count=row["count"],
+            story_points=row["story_points"],
+        )
+        for row in data["by_status"]
+    ]
+
+    return AnalyticsResponse(
+        total_tasks=data["total"],
+        overdue_tasks=data["overdue"],
+        total_story_points=data["total_story_points"],
+        tasks_by_status=tasks_by_status,
+    )
 
 
 @router.post("/lists/{list_id}/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
