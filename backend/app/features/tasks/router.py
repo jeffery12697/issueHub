@@ -24,6 +24,7 @@ from app.features.lists.repository import ListRepository
 from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.features.audit.repository import AuditRepository
+from app.features.automations.repository import AutomationRepository
 from app.features.notifications.repository import NotificationRepository
 from app.features.watchers.repository import WatcherRepository
 from app.models.task import Task, Priority
@@ -86,6 +87,7 @@ def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
         project_repo=ProjectRepository(session),
         workspace_repo=WorkspaceRepository(session),
         audit_repo=AuditRepository(session),
+        automation_repo=AutomationRepository(session),
     )
 
 

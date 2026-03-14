@@ -8,6 +8,8 @@ from app.features.lists.repository import ListRepository
 from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.features.audit.repository import AuditRepository
+from app.features.automations.repository import AutomationRepository
+from app.models.automation import ActionType, TriggerType
 from app.models.task import Task, Priority
 
 
@@ -19,12 +21,14 @@ class TaskService:
         project_repo: ProjectRepository,
         workspace_repo: WorkspaceRepository,
         audit_repo: AuditRepository,
+        automation_repo: AutomationRepository | None = None,
     ):
         self.repo = repo
         self.list_repo = list_repo
         self.project_repo = project_repo
         self.workspace_repo = workspace_repo
         self.audit_repo = audit_repo
+        self.automation_repo = automation_repo
 
     async def create(self, dto: CreateTaskDTO) -> Task:
         await self._require_workspace_member(dto.workspace_id, dto.reporter_id)
@@ -83,25 +87,64 @@ class TaskService:
     async def update(self, task_id: UUID, dto: UpdateTaskDTO, actor_id: UUID) -> Task:
         task = await self.get_or_404(task_id)
         await self._require_workspace_member(task.workspace_id, actor_id)
-        changes = _diff(task, dto)
+        raw_changes = _diff(task, dto)  # preserves status_id key for automation matching
         # Resolve status UUIDs to human-readable names in the audit log
-        if "status_id" in changes:
-            old_id, new_id = changes["status_id"]
+        audit_changes = dict(raw_changes)
+        if "status_id" in audit_changes:
+            old_id, new_id = audit_changes["status_id"]
             async def _status_name(sid: str | None) -> str | None:
                 if not sid:
                     return None
                 from uuid import UUID as _UUID
                 s = await self.list_repo.get_status_by_id(_UUID(sid))
                 return s.name if s else sid
-            changes["status"] = [
+            audit_changes["status"] = [
                 await _status_name(old_id),
                 await _status_name(new_id),
             ]
-            del changes["status_id"]
+            del audit_changes["status_id"]
         updated = await self.repo.update(task, dto)
-        if changes:
-            await self.audit_repo.log(task_id, actor_id=actor_id, action="updated", changes=changes)
+        if audit_changes:
+            await self.audit_repo.log(task_id, actor_id=actor_id, action="updated", changes=audit_changes)
+        if raw_changes and self.automation_repo:
+            await self._run_automations(updated, raw_changes)
         return updated
+
+    async def _run_automations(self, task: Task, raw_changes: dict) -> None:
+        automations = await self.automation_repo.list_for_list(task.list_id)
+        for auto in automations:
+            triggered = False
+            if auto.trigger_type == TriggerType.status_changed.value:
+                if "status_id" in raw_changes and raw_changes["status_id"][1] == auto.trigger_value:
+                    triggered = True
+            elif auto.trigger_type == TriggerType.priority_changed.value:
+                if "priority" in raw_changes and raw_changes["priority"][1] == auto.trigger_value:
+                    triggered = True
+
+            if not triggered:
+                continue
+
+            # Build a minimal UpdateTaskDTO for the action
+            action_dto: UpdateTaskDTO | None = None
+            if auto.action_type == ActionType.set_status.value:
+                from uuid import UUID as _UUID
+                action_dto = UpdateTaskDTO(status_id=_UUID(auto.action_value))
+            elif auto.action_type == ActionType.set_priority.value:
+                action_dto = UpdateTaskDTO(priority=Priority(auto.action_value))
+            elif auto.action_type == ActionType.assign_reviewer.value:
+                from uuid import UUID as _UUID
+                action_dto = UpdateTaskDTO(reviewer_id=_UUID(auto.action_value))
+            elif auto.action_type == ActionType.clear_assignees.value:
+                action_dto = UpdateTaskDTO(assignee_ids=())
+
+            if action_dto:
+                await self.repo.update(task, action_dto)
+                await self.audit_repo.log(
+                    task.id,
+                    actor_id=auto.created_by,
+                    action="automation",
+                    changes={"automation_id": str(auto.id), "action_type": auto.action_type},
+                )
 
     async def promote(self, task_id: UUID, actor_id: UUID) -> Task:
         task = await self.get_or_404(task_id)

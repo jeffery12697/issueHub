@@ -4,12 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi, type ListStatus } from '@/api/lists'
 import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType, type FieldDefinition } from '@/api/customFields'
 import { useTeams } from '@/api/teams'
+import { automationsApi, type Automation, type TriggerType, type ActionType, type CreateAutomationBody } from '@/api/automations'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 
 export default function ListSettingsPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
-  const [activeTab, setActiveTab] = useState<'statuses' | 'custom-fields' | 'visibility'>('statuses')
+  const [activeTab, setActiveTab] = useState<'statuses' | 'custom-fields' | 'visibility' | 'automations'>('statuses')
 
   const { data: list } = useQuery({
     queryKey: ['list', listId],
@@ -65,6 +66,16 @@ export default function ListSettingsPage() {
           >
             Visibility
           </button>
+          <button
+            onClick={() => setActiveTab('automations')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'automations'
+                ? 'bg-violet-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Automations
+          </button>
         </div>
 
         {activeTab === 'statuses' && listId && (
@@ -75,6 +86,9 @@ export default function ListSettingsPage() {
         )}
         {activeTab === 'visibility' && listId && list && (
           <VisibilityTab listId={listId} currentTeamIds={list.team_ids ?? []} />
+        )}
+        {activeTab === 'automations' && listId && (
+          <AutomationsTab listId={listId} statuses={list?.statuses ?? []} />
         )}
       </main>
     </div>
@@ -451,6 +465,206 @@ function RolePicker({ label, value, onChange }: { label: string; value: string[]
             {role}
           </label>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Automations ───────────────────────────────────────────────────────────────
+
+const TRIGGER_LABELS: Record<TriggerType, string> = {
+  status_changed: 'Status changes to',
+  priority_changed: 'Priority changes to',
+}
+
+const ACTION_LABELS: Record<ActionType, string> = {
+  set_status: 'Set status to',
+  set_priority: 'Set priority to',
+  assign_reviewer: 'Set reviewer to',
+  clear_assignees: 'Clear all assignees',
+}
+
+const PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'] as const
+
+function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListStatus[] }) {
+  const qc = useQueryClient()
+  const { data: automations = [] } = useQuery({
+    queryKey: ['automations', listId],
+    queryFn: () => automationsApi.list(listId),
+  })
+
+  const [triggerType, setTriggerType] = useState<TriggerType>('status_changed')
+  const [triggerValue, setTriggerValue] = useState('')
+  const [actionType, setActionType] = useState<ActionType>('set_priority')
+  const [actionValue, setActionValue] = useState('')
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['automations', listId] })
+
+  const createMutation = useMutation({
+    mutationFn: (body: CreateAutomationBody) => automationsApi.create(listId, body),
+    onSuccess: () => {
+      invalidate()
+      setTriggerValue('')
+      setActionValue('')
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => automationsApi.delete(id),
+    onSuccess: invalidate,
+  })
+
+  const needsActionValue = actionType !== 'clear_assignees'
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!triggerValue.trim()) return
+    if (needsActionValue && !actionValue.trim()) return
+    createMutation.mutate({
+      trigger_type: triggerType,
+      trigger_value: triggerValue,
+      action_type: actionType,
+      action_value: needsActionValue ? actionValue : null,
+    })
+  }
+
+  function describeAutomation(a: Automation): string {
+    const triggerLabel = TRIGGER_LABELS[a.trigger_type]
+    const actionLabel = ACTION_LABELS[a.action_type]
+    const triggerDisplay =
+      a.trigger_type === 'status_changed'
+        ? (statuses.find((s) => s.id === a.trigger_value)?.name ?? a.trigger_value)
+        : a.trigger_value
+    const actionDisplay =
+      a.action_type === 'set_status'
+        ? (statuses.find((s) => s.id === a.action_value)?.name ?? a.action_value ?? '')
+        : a.action_value ?? ''
+    return `When ${triggerLabel} "${triggerDisplay}" → ${actionLabel}${actionDisplay ? ` "${actionDisplay}"` : ''}`
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">
+        Automation Rules
+      </label>
+      <p className="text-sm text-slate-500 mb-4">
+        Automatically apply actions when a task is updated. Rules run in order.
+      </p>
+
+      {automations.length === 0 ? (
+        <p className="text-sm text-slate-400 mb-4">No automation rules yet.</p>
+      ) : (
+        <div className="space-y-2 mb-6">
+          {automations.map((a) => (
+            <div
+              key={a.id}
+              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
+            >
+              <span className="flex-1 text-sm text-slate-700">{describeAutomation(a)}</span>
+              <DeleteButton
+                variant="text"
+                message="Delete this automation rule?"
+                onConfirm={() => deleteMutation.mutate(a.id)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="border-t border-slate-100 pt-4">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Add Rule</p>
+        <form className="space-y-3" onSubmit={handleSubmit}>
+          <div className="flex gap-2 items-center flex-wrap">
+            <span className="text-sm text-slate-500 shrink-0">When</span>
+            <select
+              value={triggerType}
+              onChange={(e) => { setTriggerType(e.target.value as TriggerType); setTriggerValue('') }}
+              className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              {(Object.entries(TRIGGER_LABELS) as [TriggerType, string][]).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+            {triggerType === 'status_changed' ? (
+              <select
+                value={triggerValue}
+                onChange={(e) => setTriggerValue(e.target.value)}
+                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">— pick status —</option>
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            ) : (
+              <select
+                value={triggerValue}
+                onChange={(e) => setTriggerValue(e.target.value)}
+                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">— pick priority —</option>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="flex gap-2 items-center flex-wrap">
+            <span className="text-sm text-slate-500 shrink-0">Then</span>
+            <select
+              value={actionType}
+              onChange={(e) => { setActionType(e.target.value as ActionType); setActionValue('') }}
+              className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              {(Object.entries(ACTION_LABELS) as [ActionType, string][]).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+            {actionType === 'set_status' && (
+              <select
+                value={actionValue}
+                onChange={(e) => setActionValue(e.target.value)}
+                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">— pick status —</option>
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
+            {actionType === 'set_priority' && (
+              <select
+                value={actionValue}
+                onChange={(e) => setActionValue(e.target.value)}
+                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">— pick priority —</option>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            )}
+            {actionType === 'assign_reviewer' && (
+              <input
+                value={actionValue}
+                onChange={(e) => setActionValue(e.target.value)}
+                placeholder="User ID"
+                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-72"
+              />
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-60"
+            >
+              {createMutation.isPending ? 'Adding…' : 'Add Rule'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

@@ -23,6 +23,7 @@ from app.features.links.router import router as links_router
 from app.features.teams.router import router as teams_router
 from app.features.watchers.router import router as watchers_router
 from app.features.time_entries.router import router as time_entries_router
+from app.features.automations.router import router as automations_router
 
 
 @asynccontextmanager
@@ -63,6 +64,7 @@ app.include_router(links_router, prefix="/api/v1")
 app.include_router(teams_router, prefix="/api/v1")
 app.include_router(watchers_router, prefix="/api/v1")
 app.include_router(time_entries_router, prefix="/api/v1")
+app.include_router(automations_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 

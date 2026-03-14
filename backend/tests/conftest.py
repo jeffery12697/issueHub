@@ -33,11 +33,13 @@ import app.models.task_link  # noqa
 import app.models.team  # noqa
 import app.models.watcher  # noqa
 import app.models.time_entry  # noqa
+import app.models.automation  # noqa
 
 _base_url = settings.database_url.rsplit("/", 1)[0]
 TEST_DATABASE_URL = f"{_base_url}/issuehub_test"
 
 _TRUNCATE_ORDER = [
+    "automations",
     "time_entries",
     "task_watchers",
     "notifications",
