@@ -39,6 +39,8 @@ issueHub/
 | `docs/DEPLOYMENT.md` | Docker, env vars, prod setup |
 | `docs/VERIFICATION.md` | Pre-launch checklist, visual walkthrough, SQL spot checks |
 | `docs/PROJECT_STRUCTURE.md` | Canonical folder tree for backend + frontend |
+| `docs/EMAIL.md` | Email provider (Resend), transactional email helpers, templates, BackgroundTasks integration |
+| `docs/BACKGROUND_JOBS.md` | APScheduler setup, overdue task job (AU-02), notification digest job (N-02) |
 
 ## User Story Reference (read on demand)
 
