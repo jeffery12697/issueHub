@@ -67,6 +67,9 @@ export default function TaskDetailPage() {
     enabled: !!taskId,
   })
 
+  const [blockerQuery, setBlockerQuery] = useState('')
+  const [addingBlockedBy, setAddingBlockedBy] = useState(false)
+
   const { data: projectTasksForSearch = [] } = useQuery({
     queryKey: ['project-tasks-search', task?.project_id],
     queryFn: () => tasksApi.listForProject(task!.project_id!, { page: 1, page_size: 500 }).then((r) => r.items),
@@ -125,8 +128,6 @@ export default function TaskDetailPage() {
   const [title, setTitle] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [addingSubtask, setAddingSubtask] = useState(false)
-  const [blockerQuery, setBlockerQuery] = useState('')
-  const [addingBlockedBy, setAddingBlockedBy] = useState(false)
   const [addingLink, setAddingLink] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [linkTitle, setLinkTitle] = useState('')
