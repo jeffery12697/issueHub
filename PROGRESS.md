@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Idle — All planned features complete through Phase 12 + sequential task IDs + blocker search
+- Idle — All planned features complete through Phase 12 + ad-hoc improvements (My Tasks context, cross-list subtasks, sequential IDs, blocker search)
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

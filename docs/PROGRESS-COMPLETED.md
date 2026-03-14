@@ -369,3 +369,17 @@ _Completed: 2026-03-14_
 - [x] Excludes current task and already-added blockers from results
 - [x] Fixed temporal dead zone bug (`addingBlockedBy` state moved before the query that referenced it)
 - [x] Fixed `overflow-hidden` on tabs container that was clipping the absolute-positioned dropdown
+
+---
+
+## Post-Phase-12 Ad-hoc Improvements
+_Completed: 2026-03-14_
+
+### My Tasks — Project & List Context
+- [x] Each task row on `MyTasksPage` now shows a grey project pill and a violet list pill so users can see where the task lives at a glance
+- [x] Uses existing `projectsApi.list` + `useWorkspaceLists` hooks; builds lookup maps client-side; no backend changes needed
+
+### Subtasks in Different Lists
+- [x] **Backend** — `CreateTaskRequest` accepts optional `list_id`; `TaskService.create_subtask()` uses it if provided, validates it belongs to the same project (400 otherwise), falls back to parent's list
+- [x] **Frontend** — subtask form shows a list dropdown when the project has more than one list (defaults to "Same list"); subtask rows show a violet list badge when the subtask is in a different list than the parent
+- [x] 2 new backend tests: happy path (subtask in different list) + cross-project rejection
