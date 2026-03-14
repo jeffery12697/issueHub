@@ -67,9 +67,15 @@ export default function TaskDetailPage() {
     enabled: !!taskId,
   })
 
+  const { data: projectTasksForSearch = [] } = useQuery({
+    queryKey: ['project-tasks-search', task?.project_id],
+    queryFn: () => tasksApi.listForProject(task!.project_id!, { page: 1, page_size: 500 }).then((r) => r.items),
+    enabled: !!task?.project_id && addingBlockedBy,
+  })
+
   const addBlockedBy = useMutation({
     mutationFn: (id: string) => dependenciesApi.addBlockedBy(taskId!, id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['blocked-by', taskId] }); setBlockingInput('') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['blocked-by', taskId] }); setBlockerQuery(''); setAddingBlockedBy(false) },
   })
 
   const removeBlockedBy = useMutation({
@@ -119,7 +125,7 @@ export default function TaskDetailPage() {
   const [title, setTitle] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [addingSubtask, setAddingSubtask] = useState(false)
-  const [blockingInput, setBlockingInput] = useState('')
+  const [blockerQuery, setBlockerQuery] = useState('')
   const [addingBlockedBy, setAddingBlockedBy] = useState(false)
   const [addingLink, setAddingLink] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
@@ -363,19 +369,47 @@ export default function TaskDetailPage() {
                         </ul>
                       ) : !addingBlockedBy && <p className="text-sm text-slate-400 mb-2">No blockers.</p>}
 
-                      {addingBlockedBy ? (
-                        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); addBlockedBy.mutate(blockingInput) }}>
-                          <input
-                            autoFocus
-                            value={blockingInput}
-                            onChange={(e) => setBlockingInput(e.target.value)}
-                            placeholder="Paste task ID"
-                            className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                          />
-                          <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                          <button type="button" onClick={() => setAddingBlockedBy(false)} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
-                        </form>
-                      ) : (
+                      {addingBlockedBy ? (() => {
+                        const blockedByIds = new Set(blockedBy.map((t) => t.id))
+                        const q = blockerQuery.toLowerCase().trim()
+                        const filtered = projectTasksForSearch.filter((t) =>
+                          t.id !== taskId &&
+                          !blockedByIds.has(t.id) &&
+                          (q === '' || t.title.toLowerCase().includes(q) || (t.task_key ?? '').toLowerCase().includes(q))
+                        )
+                        return (
+                          <div className="relative">
+                            <div className="flex gap-2">
+                              <input
+                                autoFocus
+                                value={blockerQuery}
+                                onChange={(e) => setBlockerQuery(e.target.value)}
+                                placeholder="Search by name or task key…"
+                                className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                              />
+                              <button type="button" onClick={() => { setAddingBlockedBy(false); setBlockerQuery('') }} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                            </div>
+                            {filtered.length > 0 && (
+                              <ul className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                                {filtered.slice(0, 20).map((t) => (
+                                  <li key={t.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() => addBlockedBy.mutate(t.id)}
+                                      className="w-full text-left px-3 py-2 hover:bg-violet-50 flex items-center gap-2 text-sm transition-colors"
+                                    >
+                                      {t.task_key && (
+                                        <span className="text-[11px] font-mono font-semibold text-slate-400 shrink-0">{t.task_key}</span>
+                                      )}
+                                      <span className="text-slate-700 truncate">{t.title}</span>
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        )
+                      })() : (
                         <button onClick={() => setAddingBlockedBy(true)} className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5">
                           <span className="text-lg leading-none">+</span> Add blocker
                         </button>

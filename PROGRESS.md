@@ -37,7 +37,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Idle — Project analytics, workspace/list settings RBAC complete
+- Idle — Blocker search dropdown, sequential task IDs, project analytics, workspace/list settings RBAC complete
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
