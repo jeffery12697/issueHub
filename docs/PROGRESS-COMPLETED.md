@@ -333,3 +333,17 @@ _Completed: 2026-03-13_
 - **Task list pagination** — `list_for_list` runs count query, returns `(tasks, total)` tuple; router accepts `page`/`page_size` query params (default 0 = all, keeps BoardPage unaffected); sets `X-Total-Count` response header; CORS exposes that header; `tasksApi.listPaged()` reads header; ListPage uses page_size=50, prev/next + numbered page buttons, filter changes reset to page 1
 - **History assignee/reviewer names** — `HistorySection` receives `memberMap`; `reviewer_id` values resolved to display names; `assignee_ids` arrays resolved to comma-joined names; field labels strip `_id` suffix
 - **Blocked/Blocking badges on list page** — `GET /lists/{list_id}/task-dependencies` batch endpoint returns `{task_id: {is_blocked, is_blocking}}`; `DependencyRepository.get_dependency_flags()` runs two `SELECT DISTINCT` queries; ListPage fetches flags once per list and shows red ⛔ Blocked / amber ⚠ Blocking badges inline next to task title
+
+## RBAC Hardening & Project Analytics (2026-03-14)
+
+### Workspace settings restricted to owner/admin
+- **Backend** — `ListTemplateService`: `create_template`, `update_template`, `delete_template` upgraded from `_require_workspace_member` to `_require_admin` (owner/admin only); `WorkspaceRole` import added
+- **Frontend** — `WorkspaceHeader.tsx`: settings gear icon hidden for members using `useAuthStore` + `useWorkspaceMembers` role check; `WorkspaceSettingsPage.tsx`: access-denied message shown when member navigates directly to the URL; template queries skipped for non-admin users
+
+### List settings restricted to owner/admin (carried from Phase 12)
+- **Backend** — `CustomFieldService`: `create_field`, `update_field`, `delete_field` require owner/admin via `_require_list_admin` helper
+- **Frontend** — `ListPage.tsx`: ⚙ Settings link hidden for members via `canManageSettings` flag
+
+### Project-level analytics
+- **Backend** — `TaskRepository.analytics_for_project(project_id)`: total tasks, overdue count, tasks grouped by status with SP; `GET /projects/{project_id}/analytics` endpoint (workspace member check, resolves status names); reuses `AnalyticsResponse` + `StatusCount` schemas from workspaces
+- **Frontend** — `useProjectAnalytics` hook + `ProjectAnalytics` type in `api/projects.ts`; `ProjectAnalyticsPage.tsx` at `/projects/:projectId/analytics` with stat cards (Total Tasks, Overdue, Statuses, Story Points) and Tasks by Status bar chart; project-level nav tabs (All Tasks | Analytics) in both `ProjectTasksPage` and `ProjectAnalyticsPage` headers matching workspace nav pattern; "Analytics" link added to project card hover actions in `ProjectPage.tsx`
