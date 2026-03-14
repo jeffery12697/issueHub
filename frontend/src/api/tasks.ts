@@ -36,6 +36,7 @@ export type CreateTaskData = {
   start_date?: string
   story_points?: number | null
   status_id?: string
+  list_id?: string
 }
 
 export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id'>> & {

@@ -127,6 +127,7 @@ export default function TaskDetailPage() {
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [newSubtaskListId, setNewSubtaskListId] = useState('')
   const [addingSubtask, setAddingSubtask] = useState(false)
   const [addingLink, setAddingLink] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
@@ -170,10 +171,12 @@ export default function TaskDetailPage() {
   })
 
   const createSubtask = useMutation({
-    mutationFn: (title: string) => tasksApi.createSubtask(taskId!, { title }),
+    mutationFn: ({ title, list_id }: { title: string; list_id?: string }) =>
+      tasksApi.createSubtask(taskId!, { title, list_id: list_id || undefined }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['subtasks', taskId] })
       setNewSubtaskTitle('')
+      setNewSubtaskListId('')
       setAddingSubtask(false)
     },
   })
@@ -300,43 +303,71 @@ export default function TaskDetailPage() {
                 {/* Subtasks */}
                 {activeTab === 'subtasks' && (
                   <div>
-                    {subtasks.length > 0 && (
-                      <ul className="space-y-1 mb-3">
-                        {subtasks.map((sub) => (
-                          <li key={sub.id}>
-                            <button
-                              onClick={() => navigate(`/tasks/${sub.id}`)}
-                              className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors group"
-                            >
-                              <span className="w-4 h-4 rounded border-2 border-slate-200 group-hover:border-violet-300 shrink-0 transition-colors" />
-                              <span className="flex-1">{sub.title}</span>
-                              {sub.priority !== 'none' && (
-                                <span className={`text-xs capitalize font-medium ${PRIORITY_COLORS[sub.priority]}`}>
-                                  {sub.priority}
-                                </span>
-                              )}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {subtasks.length > 0 && (() => {
+                      const listMap = Object.fromEntries(workspaceLists.map((l) => [l.id, l.name]))
+                      return (
+                        <ul className="space-y-1 mb-3">
+                          {subtasks.map((sub) => (
+                            <li key={sub.id}>
+                              <button
+                                onClick={() => navigate(`/tasks/${sub.id}`)}
+                                className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-slate-700 transition-colors group"
+                              >
+                                <span className="w-4 h-4 rounded border-2 border-slate-200 group-hover:border-violet-300 shrink-0 transition-colors" />
+                                <span className="flex-1">{sub.title}</span>
+                                {sub.list_id && sub.list_id !== task.list_id && listMap[sub.list_id] && (
+                                  <span className="text-[11px] text-violet-500 bg-violet-50 px-2 py-0.5 rounded-full shrink-0">
+                                    {listMap[sub.list_id]}
+                                  </span>
+                                )}
+                                {sub.priority !== 'none' && (
+                                  <span className={`text-xs capitalize font-medium shrink-0 ${PRIORITY_COLORS[sub.priority]}`}>
+                                    {sub.priority}
+                                  </span>
+                                )}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )
+                    })()}
 
-                    {addingSubtask ? (
-                      <form
-                        className="flex gap-2"
-                        onSubmit={(e) => { e.preventDefault(); createSubtask.mutate(newSubtaskTitle) }}
-                      >
-                        <input
-                          autoFocus
-                          value={newSubtaskTitle}
-                          onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                          placeholder="Subtask title"
-                          className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                        />
-                        <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                        <button type="button" onClick={() => setAddingSubtask(false)} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
-                      </form>
-                    ) : task.depth === 0 ? (
+                    {addingSubtask ? (() => {
+                      const projectLists = workspaceLists.filter((l) => l.project_id === task.project_id)
+                      return (
+                        <form
+                          className="space-y-2"
+                          onSubmit={(e) => {
+                            e.preventDefault()
+                            createSubtask.mutate({ title: newSubtaskTitle, list_id: newSubtaskListId || undefined })
+                          }}
+                        >
+                          <div className="flex gap-2">
+                            <input
+                              autoFocus
+                              value={newSubtaskTitle}
+                              onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                              placeholder="Subtask title"
+                              className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                            />
+                            {projectLists.length > 1 && (
+                              <select
+                                value={newSubtaskListId}
+                                onChange={(e) => setNewSubtaskListId(e.target.value)}
+                                className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                              >
+                                <option value="">Same list</option>
+                                {projectLists.filter((l) => l.id !== task.list_id).map((l) => (
+                                  <option key={l.id} value={l.id}>{l.name}</option>
+                                ))}
+                              </select>
+                            )}
+                            <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
+                            <button type="button" onClick={() => { setAddingSubtask(false); setNewSubtaskListId('') }} className="text-xs px-2 text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+                          </div>
+                        </form>
+                      )
+                    })() : task.depth === 0 ? (
                       <button
                         onClick={() => setAddingSubtask(true)}
                         className="text-sm text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5"

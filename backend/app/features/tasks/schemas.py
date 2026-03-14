@@ -58,6 +58,7 @@ class CreateTaskRequest(BaseModel):
     start_date: datetime | None = None
     story_points: int | None = None
     status_id: UUID | None = None
+    list_id: UUID | None = None  # optional override for subtask list assignment
 
     def to_dto(
         self,

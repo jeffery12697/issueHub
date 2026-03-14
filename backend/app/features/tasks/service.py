@@ -44,11 +44,21 @@ class TaskService:
         if parent.depth > 0:
             raise HTTPException(status_code=400, detail="Subtasks cannot have subtasks")
         await self._require_workspace_member(parent.workspace_id, actor_id)
+
+        # Resolve which list the subtask belongs to
+        if body.list_id and body.list_id != parent.list_id:
+            target_list = await self.list_repo.get_by_id(body.list_id)
+            if not target_list or target_list.project_id != parent.project_id:
+                raise HTTPException(status_code=400, detail="List does not belong to the same project")
+            subtask_list_id = body.list_id
+        else:
+            subtask_list_id = parent.list_id
+
         task_number, task_prefix = await self.project_repo.claim_task_number(parent.project_id)
         task_key = f"{task_prefix}-{task_number:04d}"
-        order_index = await self.repo.get_max_order_index(parent.list_id) + 100.0
+        order_index = await self.repo.get_max_order_index(subtask_list_id) + 100.0
         dto = body.to_dto(
-            list_id=parent.list_id,
+            list_id=subtask_list_id,
             workspace_id=parent.workspace_id,
             project_id=parent.project_id,
             reporter_id=actor_id,

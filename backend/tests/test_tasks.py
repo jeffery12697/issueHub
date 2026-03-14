@@ -1,4 +1,5 @@
 import pytest
+from tests.conftest import make_list
 
 
 async def test_create_task(client, list_, headers):
@@ -151,3 +152,38 @@ async def test_task_order_index_increments(client, list_, headers):
     t1 = (await client.post(f"/api/v1/lists/{list_.id}/tasks", json={"title": "T1"}, headers=headers)).json()
     t2 = (await client.post(f"/api/v1/lists/{list_.id}/tasks", json={"title": "T2"}, headers=headers)).json()
     assert t2["order_index"] > t1["order_index"]
+
+
+async def test_subtask_can_be_assigned_to_different_list(client, db, project, list_, headers):
+    """Subtask created with an explicit list_id ends up in that list."""
+    other_list = await make_list(db, project, name="Other List")
+    await db.commit()
+    parent = (await client.post(
+        f"/api/v1/lists/{list_.id}/tasks", json={"title": "Parent"}, headers=headers
+    )).json()
+    r = await client.post(
+        f"/api/v1/tasks/{parent['id']}/subtasks",
+        json={"title": "Child", "list_id": str(other_list.id)},
+        headers=headers,
+    )
+    assert r.status_code == 201
+    data = r.json()
+    assert data["list_id"] == str(other_list.id)
+    assert data["parent_task_id"] == parent["id"]
+
+
+async def test_subtask_rejects_list_from_different_project(client, db, workspace, list_, headers):
+    """Creating a subtask with a list_id from another project returns 400."""
+    from tests.conftest import make_project
+    other_project = await make_project(db, workspace, name="Other Project")
+    other_list = await make_list(db, other_project, name="Other List")
+    await db.commit()
+    parent = (await client.post(
+        f"/api/v1/lists/{list_.id}/tasks", json={"title": "Parent"}, headers=headers
+    )).json()
+    r = await client.post(
+        f"/api/v1/tasks/{parent['id']}/subtasks",
+        json={"title": "Child", "list_id": str(other_list.id)},
+        headers=headers,
+    )
+    assert r.status_code == 400
