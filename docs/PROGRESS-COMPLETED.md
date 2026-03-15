@@ -383,3 +383,10 @@ _Completed: 2026-03-14_
 - [x] **Backend** — `CreateTaskRequest` accepts optional `list_id`; `TaskService.create_subtask()` uses it if provided, validates it belongs to the same project (400 otherwise), falls back to parent's list
 - [x] **Frontend** — subtask form shows a list dropdown when the project has more than one list (defaults to "Same list"); subtask rows show a violet list badge when the subtask is in a different list than the parent
 - [x] 2 new backend tests: happy path (subtask in different list) + cross-project rejection
+
+### Email Service (SMTP)
+- [x] `app/core/email.py` — async `send_email(to, subject, html)` using `smtplib` + `asyncio.to_thread`; no-op when `MAIL_ENABLED=false` or credentials missing
+- [x] `app/core/email_templates.py` — templates for mention, assignment, watcher, overdue, digest
+- [x] `app/core/config.py` — `mail_server`, `mail_port`, `mail_sender_name`, `mail_sender_email`, `mail_username`, `mail_password`, `mail_enabled` settings
+- [x] `POST /api/v1/dev/mail/test` — test endpoint to verify SMTP delivery (Mailtrap tested and confirmed working)
+- [x] No extra packages — uses Python built-in `smtplib`
