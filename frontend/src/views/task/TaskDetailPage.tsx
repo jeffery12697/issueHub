@@ -36,6 +36,14 @@ const PRIORITY_DOT: Record<Priority, string> = {
   urgent: '#ef4444',
 }
 
+const PRIORITY_CHIP: Record<Priority, string> = {
+  none: 'border-slate-200 text-slate-400',
+  low: 'bg-sky-50 border-sky-200 text-sky-700',
+  medium: 'bg-amber-50 border-amber-200 text-amber-700',
+  high: 'bg-orange-50 border-orange-200 text-orange-700',
+  urgent: 'bg-red-50 border-red-200 text-red-700',
+}
+
 type DetailTab = 'subtasks' | 'dependencies' | 'links' | 'fields' | 'time'
 
 export default function TaskDetailPage() {
@@ -135,6 +143,8 @@ export default function TaskDetailPage() {
   const [linkTitle, setLinkTitle] = useState('')
   const [commentBody, setCommentBody] = useState('')
   const [activeTab, setActiveTab] = useState<DetailTab>('subtasks')
+  const [statusOpen, setStatusOpen] = useState(false)
+  const [priorityOpen, setPriorityOpen] = useState(false)
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) => tasksApi.update(taskId!, data),
@@ -182,9 +192,7 @@ export default function TaskDetailPage() {
     },
   })
 
-  if (isLoading) return (
-    <div className="flex items-center justify-center h-screen text-slate-400 text-sm">Loading…</div>
-  )
+  if (isLoading) return <LoadingSkeleton />
   if (!task) return (
     <div className="flex items-center justify-center h-screen text-slate-400 text-sm">Task not found</div>
   )
@@ -203,16 +211,34 @@ export default function TaskDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+
+      {/* Sticky Header */}
+      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3 sticky top-0 z-20 shadow-sm">
         <button
           onClick={() => navigate(-1)}
-          className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-1.5 transition-colors shrink-0"
+          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors shrink-0 text-sm font-medium"
         >
-          ← Back
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
         </button>
-        <span className="text-slate-200">|</span>
-        <span className="text-sm text-slate-500 truncate min-w-0">{task.title}</span>
+        {list && (
+          <>
+            <span className="text-slate-300">/</span>
+            <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[140px]">
+              {list.name}
+            </span>
+          </>
+        )}
+        {task.task_key && (
+          <>
+            <span className="text-slate-300">/</span>
+            <span className="text-xs font-mono font-semibold text-slate-400 shrink-0">{task.task_key}</span>
+          </>
+        )}
+        <span className="text-slate-200 hidden sm:block">/</span>
+        <span className="text-sm text-slate-500 truncate min-w-0 hidden sm:block">{task.title}</span>
         <div className="ml-auto flex items-center gap-2 shrink-0">
           {task.parent_task_id && (
             <button
@@ -235,10 +261,15 @@ export default function TaskDetailPage() {
         <div className="flex gap-8 items-start">
 
           {/* LEFT — main content */}
-          <div className="flex-1 min-w-0 space-y-6">
+          <div className="flex-1 min-w-0 space-y-5">
 
-            {/* Title + Description */}
-            <div>
+            {/* Title + Description card */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              {task.task_key && (
+                <span className="text-[11px] font-mono font-semibold text-slate-400 block mb-1.5 tracking-wide">
+                  {task.task_key}
+                </span>
+              )}
               {editingTitle ? (
                 <form onSubmit={(e) => { e.preventDefault(); updateTask.mutate({ title }); setEditingTitle(false) }}>
                   <input
@@ -246,23 +277,20 @@ export default function TaskDetailPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onBlur={() => { updateTask.mutate({ title }); setEditingTitle(false) }}
-                    className="w-full text-2xl font-bold border-0 border-b-2 border-violet-400 outline-none pb-1 text-slate-900 bg-transparent mb-4"
+                    className="w-full text-2xl font-bold border-0 border-b-2 border-violet-400 outline-none pb-1 text-slate-900 bg-transparent mb-5"
                   />
                 </form>
               ) : (
-                <>
-                  {task.task_key && (
-                    <span className="text-xs font-mono font-semibold text-slate-400 block mb-1">
-                      {task.task_key}
-                    </span>
-                  )}
-                  <h1
-                    className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-violet-600 transition-colors mb-4 leading-tight"
-                    onClick={() => { setTitle(task.title); setEditingTitle(true) }}
-                  >
-                    {task.title}
-                  </h1>
-                </>
+                <h1
+                  className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-violet-700 transition-colors mb-5 leading-tight group flex items-start gap-2"
+                  onClick={() => { setTitle(task.title); setEditingTitle(true) }}
+                >
+                  <span className="flex-1">{task.title}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-2 opacity-0 group-hover:opacity-30 transition-opacity">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </h1>
               )}
               <RichTextEditor
                 key={task.id}
@@ -273,17 +301,19 @@ export default function TaskDetailPage() {
                   }
                 }}
               />
-              <AttachmentList taskId={task.id} />
+              <div className="mt-5 pt-4 border-t border-slate-100">
+                <AttachmentList taskId={task.id} />
+              </div>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs card */}
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
-              <div className="flex border-b border-slate-100">
+              <div className="flex border-b border-slate-100 overflow-x-auto">
                 {tabs.map((tab) => (
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`px-4 py-3 text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    className={`px-4 py-3 text-sm font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                       activeTab === tab.key
                         ? 'text-violet-600 border-b-2 border-violet-600 -mb-px'
                         : 'text-slate-500 hover:text-slate-700'
@@ -308,7 +338,7 @@ export default function TaskDetailPage() {
                     {subtasks.length > 0 && (() => {
                       const listMap = Object.fromEntries(workspaceLists.map((l) => [l.id, l.name]))
                       return (
-                        <ul className="space-y-1 mb-3">
+                        <ul className="space-y-0.5 mb-3">
                           {subtasks.map((sub) => (
                             <li key={sub.id}>
                               <button
@@ -476,7 +506,7 @@ export default function TaskDetailPage() {
                     {links.length > 0 && (
                       <ul className="space-y-1 mb-3">
                         {links.map((link) => (
-                          <li key={link.id} className="flex items-center gap-2 group">
+                          <li key={link.id} className="flex items-center gap-2 group px-2 py-1.5 rounded-lg hover:bg-slate-50">
                             <span className="text-slate-300 text-xs shrink-0">🔗</span>
                             <a
                               href={link.url}
@@ -542,17 +572,23 @@ export default function TaskDetailPage() {
                     })}
                   </div>
                 )}
+
                 {/* Time Tracking */}
                 {activeTab === 'time' && (
                   <div>
                     {timeSummary && timeSummary.total_minutes > 0 && (
-                      <p className="text-xs font-medium text-slate-500 mb-3">
-                        Total: <span className="text-violet-600 font-semibold">{formatMinutes(timeSummary.total_minutes)}</span>
-                      </p>
+                      <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-500 shrink-0">
+                          <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p className="text-xs font-medium text-slate-600">
+                          Total logged: <span className="text-violet-600 font-semibold">{formatMinutes(timeSummary.total_minutes)}</span>
+                        </p>
+                      </div>
                     )}
 
                     {timeSummary && timeSummary.entries.length > 0 && (
-                      <ul className="space-y-1 mb-3">
+                      <ul className="space-y-0.5 mb-3">
                         {timeSummary.entries.map((entry) => (
                           <li key={entry.id} className="flex items-center gap-2 group px-2 py-1.5 rounded-lg hover:bg-slate-50">
                             <span className="text-xs font-semibold text-violet-600 w-12 shrink-0">{formatMinutes(entry.duration_minutes)}</span>
@@ -616,42 +652,55 @@ export default function TaskDetailPage() {
               </div>
             </div>
 
-            {/* Comments */}
-            <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">
+            {/* Comments card */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-slate-700 mb-5 flex items-center gap-2">
                 Comments
                 {comments.length > 0 && (
-                  <span className="ml-2 text-xs font-normal text-slate-400">{comments.length}</span>
+                  <span className="text-xs font-normal bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{comments.length}</span>
                 )}
               </h3>
 
-              {comments.length > 0 && (
-                <ul className="space-y-3 mb-4">
+              {comments.length > 0 ? (
+                <ul className="space-y-4 mb-6">
                   {comments.map((c) => (
                     <li key={c.id} className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                         {c.author_name?.[0]?.toUpperCase() ?? '?'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2 mb-1">
-                          <span className="text-sm font-medium text-slate-800">{c.author_name}</span>
-                          <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString('en-US')}</span>
-                          {currentUser?.id === c.author_id && (
-                            <span className="ml-auto">
-                              <DeleteButton
-                                variant="text"
-                                message="Delete this comment? This cannot be undone."
-                                onConfirm={() => deleteComment.mutate(c.id)}
-                              />
+                        <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                          <div className="flex items-baseline gap-2 mb-1.5">
+                            <span className="text-sm font-semibold text-slate-800">{c.author_name}</span>
+                            <span className="text-xs text-slate-400">
+                              {new Date(c.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                             </span>
-                          )}
+                            {currentUser?.id === c.author_id && (
+                              <span className="ml-auto">
+                                <DeleteButton
+                                  variant="text"
+                                  message="Delete this comment? This cannot be undone."
+                                  onConfirm={() => deleteComment.mutate(c.id)}
+                                />
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{c.body}</p>
                         </div>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{c.body}</p>
-                        <AttachmentList taskId={task.id} commentId={c.id} />
+                        {<div className="mt-2 px-1"><AttachmentList taskId={task.id} commentId={c.id} /></div>}
                       </div>
                     </li>
                   ))}
                 </ul>
+              ) : (
+                <div className="text-center py-8 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
+                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                    </svg>
+                  </div>
+                  <p className="text-sm text-slate-400">No comments yet</p>
+                </div>
               )}
 
               <CommentForm
@@ -662,61 +711,104 @@ export default function TaskDetailPage() {
               />
             </div>
 
-            {/* History */}
-            {auditLogs.length > 0 && <HistorySection logs={auditLogs} memberMap={memberMap} />}
+            {/* History card */}
+            {auditLogs.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                <HistorySection logs={auditLogs} memberMap={memberMap} />
+              </div>
+            )}
           </div>
 
-          {/* RIGHT — properties sidebar */}
-          <div className="w-64 shrink-0">
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm divide-y divide-slate-100">
+          {/* RIGHT — sticky properties sidebar */}
+          <div className="w-64 shrink-0 sticky top-20 self-start">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
 
               {/* Status */}
               {statuses.length > 0 && (
-                <div className="px-4 py-3">
-                  <p className="text-xs font-medium text-slate-400 mb-2">Status</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {statuses.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() => updateTask.mutate({ status_id: s.id })}
-                        className="text-xs px-2.5 py-1 rounded-full border font-medium transition-all"
-                        style={
-                          task.status_id === s.id
-                            ? { backgroundColor: s.color + '20', color: s.color, borderColor: s.color + '60' }
-                            : { borderColor: '#e2e8f0', color: '#94a3b8' }
-                        }
-                      >
-                        {s.name}
-                      </button>
-                    ))}
-                  </div>
+                <div className="relative px-4 py-3 border-b border-slate-100">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</p>
+                  <button
+                    onClick={() => { setStatusOpen((o) => !o); setPriorityOpen(false) }}
+                    className="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full"
+                    style={
+                      currentStatus
+                        ? { backgroundColor: currentStatus.color + '18', color: currentStatus.color, borderColor: currentStatus.color + '55' }
+                        : { borderColor: '#e2e8f0', color: '#94a3b8' }
+                    }
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: currentStatus?.color ?? '#cbd5e1' }} />
+                    <span className="flex-1 text-left">{currentStatus?.name ?? 'No status'}</span>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </button>
+                  {statusOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setStatusOpen(false)} />
+                      <div className="absolute left-4 right-4 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-xl py-1">
+                        {statuses.map((s) => (
+                          <button
+                            key={s.id}
+                            onClick={() => { updateTask.mutate({ status_id: s.id }); setStatusOpen(false) }}
+                            className="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-slate-50 transition-colors"
+                          >
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                            <span className={`text-sm flex-1 ${task.status_id === s.id ? 'font-semibold text-slate-900' : 'text-slate-600'}`}>{s.name}</span>
+                            {task.status_id === s.id && (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-violet-600 shrink-0">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
               {/* Priority */}
-              <div className="px-4 py-3">
-                <p className="text-xs font-medium text-slate-400 mb-2">Priority</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PRIORITIES.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => updateTask.mutate({ priority: p })}
-                      className={`text-xs px-2.5 py-1 rounded-full border font-medium capitalize transition-all flex items-center gap-1 ${
-                        task.priority === p
-                          ? 'border-slate-300 bg-slate-900 text-white'
-                          : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[p] }} />
-                      {p === 'none' ? '—' : p}
-                    </button>
-                  ))}
-                </div>
+              <div className="relative px-4 py-3 border-b border-slate-100">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Priority</p>
+                <button
+                  onClick={() => { setPriorityOpen((o) => !o); setStatusOpen(false) }}
+                  className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full ${PRIORITY_CHIP[task.priority]}`}
+                >
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[task.priority] }} />
+                  <span className="flex-1 text-left capitalize">{task.priority === 'none' ? 'No priority' : task.priority}</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                </button>
+                {priorityOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setPriorityOpen(false)} />
+                    <div className="absolute left-4 right-4 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-xl py-1">
+                      {PRIORITIES.map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => { updateTask.mutate({ priority: p }); setPriorityOpen(false) }}
+                          className="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-slate-50 transition-colors"
+                        >
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[p] }} />
+                          <span className={`text-sm flex-1 capitalize ${task.priority === p ? 'font-semibold text-slate-900' : 'text-slate-600'}`}>
+                            {p === 'none' ? 'No priority' : p}
+                          </span>
+                          {task.priority === p && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-violet-600 shrink-0">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Assignees */}
-              <div className="px-4 py-3">
-                <p className="text-xs font-medium text-slate-400 mb-2">Assignees</p>
+              <div className="px-4 py-3 border-b border-slate-100">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Assignees</p>
                 {task.assignee_ids.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {task.assignee_ids.map((id) => {
@@ -752,8 +844,8 @@ export default function TaskDetailPage() {
               </div>
 
               {/* Reviewer */}
-              <div className="px-4 py-3">
-                <p className="text-xs font-medium text-slate-400 mb-2">Reviewer</p>
+              <div className="px-4 py-3 border-b border-slate-100">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Reviewer</p>
                 {task.reviewer_id && memberMap[task.reviewer_id] ? (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-slate-700">
@@ -776,35 +868,35 @@ export default function TaskDetailPage() {
                 )}
               </div>
 
-              {/* Start Date */}
-              <div className="px-4 py-3">
-                <p className="text-xs font-medium text-slate-400 mb-2">Start Date</p>
-                <input
-                  key={task.start_date ?? 'start-none'}
-                  type="date"
-                  lang="en"
-                  defaultValue={task.start_date ? task.start_date.slice(0, 10) : ''}
-                  onChange={(e) => updateTask.mutate({ start_date: e.target.value || undefined })}
-                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              </div>
-
-              {/* Due Date */}
-              <div className="px-4 py-3">
-                <p className="text-xs font-medium text-slate-400 mb-2">Due Date</p>
-                <input
-                  key={task.due_date ?? 'none'}
-                  type="date"
-                  lang="en"
-                  defaultValue={task.due_date ? task.due_date.slice(0, 10) : ''}
-                  onChange={(e) => updateTask.mutate({ due_date: e.target.value || undefined })}
-                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
+              {/* Dates */}
+              <div className="px-4 py-3 border-b border-slate-100 space-y-3">
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Start Date</p>
+                  <input
+                    key={task.start_date ?? 'start-none'}
+                    type="date"
+                    lang="en"
+                    defaultValue={task.start_date ? task.start_date.slice(0, 10) : ''}
+                    onChange={(e) => updateTask.mutate({ start_date: e.target.value || undefined })}
+                    className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Due Date</p>
+                  <input
+                    key={task.due_date ?? 'none'}
+                    type="date"
+                    lang="en"
+                    defaultValue={task.due_date ? task.due_date.slice(0, 10) : ''}
+                    onChange={(e) => updateTask.mutate({ due_date: e.target.value || undefined })}
+                    className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
               </div>
 
               {/* Story Points */}
-              <div className="px-4 py-3">
-                <p className="text-xs font-medium text-slate-400 mb-2">Story Points</p>
+              <div className="px-4 py-3 border-b border-slate-100">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Story Points</p>
                 <input
                   key={task.story_points ?? 'sp-none'}
                   type="number"
@@ -821,8 +913,8 @@ export default function TaskDetailPage() {
 
               {/* Move to List */}
               {workspaceLists.length > 1 && (
-                <div className="px-4 py-3">
-                  <p className="text-xs font-medium text-slate-400 mb-2">Move to List</p>
+                <div className="px-4 py-3 border-b border-slate-100">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Move to List</p>
                   <select
                     value=""
                     onChange={(e) => { if (e.target.value) moveTask.mutate(e.target.value) }}
@@ -867,6 +959,33 @@ export default function TaskDetailPage() {
 
         </div>
       </main>
+    </div>
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="bg-white border-b border-slate-200 h-14 shadow-sm" />
+      <div className="max-w-6xl mx-auto py-8 px-6">
+        <div className="flex gap-8">
+          <div className="flex-1 space-y-5">
+            <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+              <div className="h-7 bg-slate-100 rounded-lg animate-pulse w-1/2" />
+              <div className="space-y-2.5 mt-2">
+                <div className="h-4 bg-slate-100 rounded animate-pulse" />
+                <div className="h-4 bg-slate-100 rounded animate-pulse w-4/5" />
+                <div className="h-4 bg-slate-100 rounded animate-pulse w-3/5" />
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl h-48 animate-pulse" />
+            <div className="bg-white border border-slate-200 rounded-xl h-32 animate-pulse" />
+          </div>
+          <div className="w-64 shrink-0">
+            <div className="bg-white border border-slate-200 rounded-xl h-[480px] animate-pulse" />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -936,6 +1055,17 @@ function resolveName(id: string | null | undefined, memberMap: Record<string, Me
   return memberMap[id]?.display_name ?? id
 }
 
+const ACTION_DOT: Record<string, string> = {
+  created: 'bg-emerald-400',
+  updated: 'bg-blue-400',
+  time_logged: 'bg-violet-400',
+  attachment_added: 'bg-amber-400',
+  attachment_removed: 'bg-red-300',
+  comment_created: 'bg-sky-400',
+  link_added: 'bg-teal-400',
+  link_removed: 'bg-red-300',
+}
+
 function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Record<string, Member> }) {
   const [expanded, setExpanded] = useState(false)
   const visible = expanded ? logs : logs.slice(0, 5)
@@ -950,24 +1080,26 @@ function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Reco
       const [oldIds, newIds] = val as [string[], string[]]
       const oldNames = oldIds.map((id) => resolveName(id, memberMap)).join(', ') || '—'
       const newNames = newIds.map((id) => resolveName(id, memberMap)).join(', ') || '—'
-      return <span>assignees: <span className="line-through">{oldNames}</span> → <span className="text-slate-600">{newNames}</span></span>
+      return <span>assignees: <span className="line-through text-slate-400">{oldNames}</span> → <span className="text-slate-600">{newNames}</span></span>
     }
     const [oldVal, newVal] = val as [string, string?]
     if (newVal === undefined) {
       return <span>{field}: <span className="text-slate-500">edited</span></span>
     }
-    return <span>{field.replace(/_id$/, '')}: <span className="line-through">{renderValue(field, oldVal) ?? '—'}</span> → <span className="text-slate-600">{renderValue(field, newVal)}</span></span>
+    return <span>{field.replace(/_id$/, '')}: <span className="line-through text-slate-400">{renderValue(field, oldVal) ?? '—'}</span> → <span className="text-slate-600">{renderValue(field, newVal)}</span></span>
   }
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-slate-700 mb-3">History</h3>
+      <h3 className="text-sm font-semibold text-slate-700 mb-4">History</h3>
       <ul className="space-y-3">
         {visible.map((log) => (
           <li key={log.id} className="flex gap-3 text-xs">
-            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
-            <div>
-              <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
+            <div className="flex flex-col items-center shrink-0 pt-0.5">
+              <span className={`w-2 h-2 rounded-full shrink-0 ${ACTION_DOT[log.action] ?? 'bg-slate-300'}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold text-slate-700">{log.actor_name}</span>{' '}
               <span className="text-slate-500 capitalize">{log.action.replace(/_/g, ' ')}</span>
               {log.action === 'time_logged' && log.changes && (
                 <div className="text-slate-400 mt-0.5">
@@ -982,14 +1114,17 @@ function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Reco
                   </div>
                 ))
               }
-              <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString('en-US')}</div>
+              <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</div>
             </div>
           </li>
         ))}
       </ul>
       {logs.length > 5 && (
-        <button onClick={() => setExpanded((v) => !v)} className="mt-2 text-xs text-slate-400 hover:text-violet-600 transition-colors">
-          {expanded ? '↑ Show less' : `↓ ${logs.length - 5} more`}
+        <button onClick={() => setExpanded((v) => !v)} className="mt-3 text-xs text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1">
+          {expanded
+            ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg> Show less</>
+            : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg> {logs.length - 5} more</>
+          }
         </button>
       )}
     </div>
@@ -1028,24 +1163,6 @@ function CommentForm({ members, onSubmit, value, onChange }: {
 
   return (
     <div className="relative">
-      <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!value.trim()) return; onSubmit(value.trim()) }}>
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleChange}
-          onKeyDown={(e) => { if (e.key === 'Escape') setMentionQuery(null) }}
-          placeholder="Write a comment… @ to mention"
-          rows={2}
-          className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
-        />
-        <button
-          type="submit"
-          disabled={!value.trim()}
-          className="self-end bg-violet-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-40 font-medium"
-        >
-          Post
-        </button>
-      </form>
       {suggestions.length > 0 && (
         <ul className="absolute bottom-full mb-1 left-0 bg-white border border-slate-200 rounded-xl shadow-lg z-10 min-w-48 overflow-hidden">
           {suggestions.map((m) => (
@@ -1064,6 +1181,34 @@ function CommentForm({ members, onSubmit, value, onChange }: {
           ))}
         </ul>
       )}
+      <form onSubmit={(e) => { e.preventDefault(); if (!value.trim()) return; onSubmit(value.trim()) }}>
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          onKeyDown={(e) => { if (e.key === 'Escape') setMentionQuery(null) }}
+          placeholder="Write a comment… use @ to mention someone"
+          rows={3}
+          className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 transition-shadow"
+        />
+        {value.trim() && (
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="text-xs text-slate-400 hover:text-slate-600 px-3 py-1.5 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              type="submit"
+              className="bg-violet-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            >
+              Post comment
+            </button>
+          </div>
+        )}
+      </form>
     </div>
   )
 }
