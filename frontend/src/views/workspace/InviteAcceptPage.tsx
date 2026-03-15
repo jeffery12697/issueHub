@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { workspacesApi, useAcceptInvite } from '@/api/workspaces'
+import { useAuthStore } from '@/store/authStore'
 
 export default function InviteAcceptPage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
+  const currentUser = useAuthStore((s) => s.user)
   const acceptInvite = useAcceptInvite()
   const [accepted, setAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -80,7 +82,14 @@ export default function InviteAcceptPage() {
         <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-2 mb-4">{error}</p>
       )}
 
-      {!invite.accepted_at && !isExpired && (
+      {!invite.accepted_at && !isExpired && currentUser && currentUser.email !== invite.email && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+          This invite was sent to <strong>{invite.email}</strong>, but you're signed in as <strong>{currentUser.email}</strong>.
+          Please sign in with the correct account to accept.
+        </div>
+      )}
+
+      {!invite.accepted_at && !isExpired && currentUser?.email === invite.email && (
         <button
           onClick={handleAccept}
           disabled={acceptInvite.isPending}

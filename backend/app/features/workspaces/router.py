@@ -205,6 +205,8 @@ async def accept_invite(
     invite = await repo.get_invite_by_token(token)
     if not invite:
         raise HTTPException(status_code=404, detail="Invite not found")
+    if invite.email != current_user.email:
+        raise HTTPException(status_code=403, detail="This invite was sent to a different email address")
     if invite.accepted_at is not None:
         raise HTTPException(status_code=409, detail="Invite already accepted")
     if invite.expires_at < datetime.now(timezone.utc):

@@ -123,3 +123,23 @@ async def test_accept_nonexistent_invite_returns_404(client, user, headers):
     """Accepting a bogus token returns 404."""
     r = await client.post("/api/v1/workspaces/invites/notarealtoken/accept", headers=headers)
     assert r.status_code == 404
+
+
+async def test_accept_invite_wrong_email_returns_403(client, db, workspace, headers):
+    """A user whose email doesn't match the invite is rejected with 403."""
+    wrong_user = await make_user(db, "wrong@example.com")
+    await db.commit()
+
+    with patch("app.features.workspaces.router.send_email", new_callable=AsyncMock):
+        await _send_invite(client, workspace.id, "rightperson@example.com", headers)
+
+    from sqlalchemy import select
+    from app.models.workspace import WorkspaceInvite
+    inv_res = await db.execute(select(WorkspaceInvite).where(WorkspaceInvite.email == "rightperson@example.com"))
+    inv = inv_res.scalar_one()
+
+    r = await client.post(
+        f"/api/v1/workspaces/invites/{inv.token}/accept",
+        headers=auth_headers(wrong_user),
+    )
+    assert r.status_code == 403
