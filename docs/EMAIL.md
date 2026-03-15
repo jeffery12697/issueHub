@@ -8,102 +8,75 @@ Transactional emails are sent when an event occurs (mention, assignment, watcher
 
 ## Provider
 
-Use **[Resend](https://resend.com)** (recommended) or SendGrid.
+**SMTP** via Python's built-in `smtplib` — no extra package needed.
 
-- Clean REST API, no SMTP server needed — just an API key
-- Free tier: 3,000 emails/month
-- Simple Python SDK
-
-```bash
-pip install resend
-```
+- Dev/test: [Mailtrap](https://mailtrap.io) sandbox (`sandbox.smtp.mailtrap.io:2525`)
+- Prod: swap in any SMTP provider (SendGrid, AWS SES, Postmark, etc.) by updating env vars
 
 ---
 
-## New env vars (`.env`)
+## Env vars (`.env`)
 
 ```env
-RESEND_API_KEY=re_xxxxxxxxxxxx
-EMAIL_FROM=noreply@yourdomain.com
-EMAIL_ENABLED=true          # set false in dev to skip sending
+MAIL_SERVER=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_SENDER_NAME=IssueHub
+MAIL_SENDER_EMAIL=noreply@issuehub.app
+MAIL_USERNAME=your-mailtrap-username
+MAIL_PASSWORD=your-mailtrap-password
+MAIL_ENABLED=false          # set true to actually send emails
 ```
 
-Add to `app/core/config.py`:
+In `app/core/config.py`:
 
 ```python
-resend_api_key: str = ""
-email_from: str = "noreply@issuehub.app"
-email_enabled: bool = False
+mail_server: str = "sandbox.smtp.mailtrap.io"
+mail_port: int = 2525
+mail_sender_name: str = "IssueHub"
+mail_sender_email: str = "noreply@issuehub.app"
+mail_username: str = ""
+mail_password: str = ""
+mail_enabled: bool = False
 ```
 
 ---
 
-## New module: `app/core/email.py`
+## `app/core/email.py`
 
-Single async helper — all email sending goes through here:
+Async wrapper around `smtplib` — runs blocking SMTP in a thread pool via `asyncio.to_thread`:
 
 ```python
-import resend
-from app.core.config import settings
-
 async def send_email(to: str, subject: str, html: str) -> None:
-    if not settings.email_enabled or not settings.resend_api_key:
-        return  # no-op in dev
-    resend.api_key = settings.resend_api_key
-    resend.Emails.send({
-        "from": settings.email_from,
-        "to": to,
-        "subject": subject,
-        "html": html,
-    })
+    """No-op when MAIL_ENABLED=false or credentials are missing."""
+    if not settings.mail_enabled or not settings.mail_username or not settings.mail_password:
+        return
+    await asyncio.to_thread(_send_smtp, to, subject, html)
 ```
 
 ---
 
-## Email templates: `app/core/email_templates.py`
+## `app/core/email_templates.py`
 
-Plain Python f-strings — no template engine needed:
+Plain Python f-strings — no template engine:
 
-```python
-def mention_email(actor: str, task_title: str, task_url: str) -> str:
-    return f"""
-    <p><strong>{actor}</strong> mentioned you in a comment on
-    <a href="{task_url}">{task_title}</a>.</p>
-    """
-
-def assignment_email(actor: str, task_title: str, task_url: str) -> str:
-    return f"""
-    <p>You were assigned to <a href="{task_url}">{task_title}</a>
-    by <strong>{actor}</strong>.</p>
-    """
-
-def watcher_update_email(task_title: str, field: str, task_url: str) -> str:
-    return f"""
-    <p>A task you are watching was updated:
-    <a href="{task_url}">{task_title}</a> — {field} changed.</p>
-    """
-
-def overdue_email(task_title: str, task_url: str, due_date: str) -> str:
-    return f"""
-    <p>A task assigned to you is overdue:
-    <a href="{task_url}">{task_title}</a> (due {due_date}).</p>
-    """
-
-def digest_email(notifications: list) -> str:
-    items = "".join(f"<li>{n.body}</li>" for n in notifications)
-    return f"<p>Your IssueHub updates:</p><ul>{items}</ul>"
-```
+| Function | Used for |
+|----------|----------|
+| `mention_email(actor, task_title, task_url)` | @mention in comment |
+| `assignment_email(actor, task_title, task_url)` | Task assigned |
+| `watcher_update_email(task_title, field, task_url)` | Watcher task updated |
+| `overdue_email(task_title, task_url, due_date)` | Overdue task (scheduler) |
+| `digest_email(notifications)` | Daily digest (scheduler) |
 
 ---
 
 ## Where to fire emails
 
-Use FastAPI `BackgroundTasks` — runs after the response is sent, no delay for the caller, no extra infrastructure:
+Use FastAPI `BackgroundTasks` — runs after the response is sent:
 
-| Event | Where to add | Template |
-|-------|-------------|----------|
+| Event | Where | Template |
+|-------|-------|----------|
 | @mention in comment | `comments/router.py` after `create_comment` | `mention_email` |
-| Task assigned to user | `tasks/router.py` after `PATCH` when `assignee_ids` grows | `assignment_email` |
+| Task assigned | `tasks/router.py` after PATCH when `assignee_ids` grows | `assignment_email` |
 | Watcher task updated | existing watcher notification logic | `watcher_update_email` |
 | Task overdue | APScheduler job (see `BACKGROUND_JOBS.md`) | `overdue_email` |
 | Notification digest | APScheduler job (see `BACKGROUND_JOBS.md`) | `digest_email` |
@@ -116,10 +89,7 @@ from app.core.email import send_email
 from app.core.email_templates import mention_email
 
 @router.post("/tasks/{task_id}/comments", ...)
-async def create_comment(
-    ...,
-    background_tasks: BackgroundTasks,
-):
+async def create_comment(..., background_tasks: BackgroundTasks):
     comment = await service.create_comment(task_id, body, actor_id=current_user.id)
     await session.commit()
 
@@ -135,25 +105,11 @@ async def create_comment(
 
 ---
 
-## Implementation Steps
-
-| Step | Work | Story |
-|------|------|-------|
-| 1 | Add `resend` to `requirements.txt`, add env vars to `config.py` | — |
-| 2 | Create `app/core/email.py` + `app/core/email_templates.py` | — |
-| 3 | Email on @mention | N-03 |
-| 4 | Email on assignment | M-05 |
-| 5 | Email on watcher update | N-01 |
-| 6 | Overdue + digest emails via scheduler | AU-02, N-02 (see `BACKGROUND_JOBS.md`) |
-
-Steps 1–5 require no scheduler and can ship independently.
-
----
-
 ## Key Decisions
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| Provider | Resend | Simple REST API, no SMTP server, generous free tier |
-| Delivery method | FastAPI `BackgroundTasks` | Non-blocking, zero infrastructure overhead |
-| Dev mode | `EMAIL_ENABLED=false` skips all sends | No accidental emails during development |
+| Provider | SMTP (`smtplib`) | Built-in, no extra package, works with any SMTP server |
+| Dev testing | Mailtrap sandbox | Catches emails without delivering to real inboxes |
+| Async | `asyncio.to_thread` | Non-blocking; smtplib is synchronous |
+| Dev mode | `MAIL_ENABLED=false` skips all sends | No accidental emails during development |

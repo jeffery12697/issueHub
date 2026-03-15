@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     # App
     frontend_url: str = "http://localhost:5173"
 
+    # Email (SMTP)
+    mail_server: str = "sandbox.smtp.mailtrap.io"
+    mail_port: int = 2525
+    mail_sender_name: str = "IssueHub"
+    mail_sender_email: str = "noreply@issuehub.app"
+    mail_username: str = ""
+    mail_password: str = ""
+    mail_enabled: bool = False  # Set MAIL_ENABLED=true to actually send emails
+
     # Dev
     allow_dev_login: bool = True  # Set ALLOW_DEV_LOGIN=false in production
 
