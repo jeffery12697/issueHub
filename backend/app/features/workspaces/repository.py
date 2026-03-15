@@ -95,6 +95,12 @@ class WorkspaceRepository:
             await self.session.delete(member)
             await self.session.flush()
 
+    async def get_user_by_id(self, user_id: UUID) -> User | None:
+        result = await self.session.execute(
+            select(User).where(User.id == user_id).where(User.deleted_at.is_(None))
+        )
+        return result.scalar_one_or_none()
+
     async def list_member_users(self, workspace_id: UUID) -> list[User]:
         result = await self.session.execute(
             select(User)

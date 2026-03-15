@@ -2,13 +2,16 @@ import csv
 import io
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import get_current_user
 from app.core.pubsub import publish_task_event, publish_list_event
+from app.core.email import send_email
+from app.core.email_templates import assignment_email, watcher_update_email
+from app.core.config import settings
 from app.features.tasks.repository import TaskRepository
 from app.features.tasks.service import TaskService
 from app.features.tasks.schemas import (
@@ -285,6 +288,7 @@ async def promote_task(
 async def update_task(
     task_id: UUID,
     body: UpdateTaskRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
@@ -297,6 +301,8 @@ async def update_task(
     await session.commit()
 
     notif_repo = NotificationRepository(session)
+    ws_repo = WorkspaceRepository(session)
+    task_url = f"{settings.frontend_url}/tasks/{task_id}"
 
     # Notify newly added assignees
     if body.assignee_ids is not None:
@@ -310,6 +316,14 @@ async def update_task(
                     body=f"{current_user.display_name} assigned you to \"{task.title}\"",
                     meta={"task_id": str(task_id)},
                 )
+                user = await ws_repo.get_user_by_id(UUID(uid_str))
+                if user and user.email:
+                    background_tasks.add_task(
+                        send_email,
+                        to=user.email,
+                        subject=f"You were assigned to \"{task.title}\"",
+                        html=assignment_email(current_user.display_name, task.title, task_url),
+                    )
 
     # Notify watchers (except the actor)
     watcher_repo = WatcherRepository(session)
@@ -323,6 +337,14 @@ async def update_task(
                 body=f"{current_user.display_name} updated \"{task.title}\"",
                 meta={"task_id": str(task_id)},
             )
+            user = await ws_repo.get_user_by_id(watcher_id)
+            if user and user.email:
+                background_tasks.add_task(
+                    send_email,
+                    to=user.email,
+                    subject=f"\"{task.title}\" was updated",
+                    html=watcher_update_email(task.title, "task", task_url),
+                )
 
     if watcher_ids or (body.assignee_ids is not None):
         await session.commit()
