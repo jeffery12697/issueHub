@@ -141,17 +141,24 @@ def invite_email(inviter: str, workspace_name: str, invite_url: str) -> str:
     return _render(f"You're invited to join {workspace_name}", body)
 
 
-def digest_email(notifications: list) -> str:
-    rows = "".join(
-        f"""
+def digest_email(notifications: list, frontend_url: str = "") -> str:
+    def _row(n) -> str:
+        task_id = n.task_id or (n.meta or {}).get("task_id")
+        link = (
+            f' &nbsp;<a href="{frontend_url}/tasks/{task_id}" '
+            f'style="font-size:13px;color:#7c3aed;text-decoration:none;white-space:nowrap;">View&nbsp;&rarr;</a>'
+            if task_id and frontend_url
+            else ""
+        )
+        return f"""
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #f4f4f5;font-size:14px;color:#3f3f46;line-height:1.5;">
-            {n.body}
+            {n.body}{link}
           </td>
         </tr>
         """
-        for n in notifications
-    )
+
+    rows = "".join(_row(n) for n in notifications)
     count = len(notifications)
     summary = f"{count} new update{'s' if count != 1 else ''}"
     body = (
