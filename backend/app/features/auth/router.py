@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 from app.core.security import create_access_token, create_refresh_token, decode_token, get_current_user
 from app.core.config import settings
-from app.features.auth.schemas import TokenResponse, UserResponse
+from app.features.auth.schemas import TokenResponse, UserResponse, UserPreferencesResponse, UpdatePreferencesRequest
 from app.features.auth import service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -65,6 +65,25 @@ async def logout(response: Response):
 @router.get("/me", response_model=UserResponse)
 async def me(current_user=Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
+
+
+@router.get("/preferences", response_model=UserPreferencesResponse)
+async def get_preferences(current_user=Depends(get_current_user)):
+    return UserPreferencesResponse.model_validate(current_user)
+
+
+@router.patch("/preferences", response_model=UserPreferencesResponse)
+async def update_preferences(
+    body: UpdatePreferencesRequest,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    if body.notification_preference not in ("immediate", "digest"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail="notification_preference must be 'immediate' or 'digest'")
+    current_user.notification_preference = body.notification_preference
+    await session.commit()
+    return UserPreferencesResponse.model_validate(current_user)
 
 
 @router.get("/users/search", response_model=UserResponse | None)

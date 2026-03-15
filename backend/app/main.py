@@ -26,12 +26,21 @@ from app.features.teams.router import router as teams_router
 from app.features.watchers.router import router as watchers_router
 from app.features.time_entries.router import router as time_entries_router
 from app.features.automations.router import router as automations_router
+from app.core.scheduler import scheduler
+from app.jobs.overdue import check_overdue_tasks
+from app.jobs.digest import send_notification_digest
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    scheduler.add_job(check_overdue_tasks, "cron", hour=8, minute=0, id="check_overdue_tasks")
+    scheduler.add_job(send_notification_digest, "cron", hour=8, minute=0, id="send_notification_digest")
+    scheduler.start()
+
     task = asyncio.create_task(redis_listener())
     yield
+
+    scheduler.shutdown(wait=False)
     task.cancel()
     try:
         await task

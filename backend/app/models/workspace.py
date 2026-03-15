@@ -1,7 +1,9 @@
 import enum
+import secrets
+from datetime import datetime, timedelta
 from uuid import uuid4
 
-from sqlalchemy import Enum, ForeignKey, String
+from sqlalchemy import DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,3 +40,30 @@ class WorkspaceMember(Base, TimestampMixin):
     )
 
     workspace: Mapped["Workspace"] = relationship(back_populates="members")
+
+
+class WorkspaceInvite(Base, TimestampMixin):
+    __tablename__ = "workspace_invites"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    workspace_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=False, index=True
+    )
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[WorkspaceRole] = mapped_column(
+        Enum(WorkspaceRole), nullable=False, default=WorkspaceRole.member
+    )
+    token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    invited_by: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    @staticmethod
+    def make_token() -> str:
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def make_expires_at() -> datetime:
+        return datetime.utcnow() + timedelta(days=7)

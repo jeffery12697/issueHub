@@ -1,3 +1,4 @@
+from datetime import timedelta
 from uuid import UUID
 from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,3 +49,26 @@ class NotificationRepository:
             .where(Notification.is_read == False)  # noqa: E712
         )
         return result.scalar_one()
+
+    async def get_unread_grouped_by_user(self, since_hours: int) -> dict[UUID, list[Notification]]:
+        """Return unread notifications from the past N hours, grouped by user_id.
+        Only includes users with notification_preference = 'digest'.
+        """
+        from app.models.user import User
+        cutoff = func.now() - func.cast(
+            func.concat(since_hours, " hours"), type_=None
+        )
+        result = await self.session.execute(
+            select(Notification)
+            .join(User, User.id == Notification.user_id)
+            .where(Notification.is_read == False)  # noqa: E712
+            .where(Notification.created_at >= func.now() - timedelta(hours=since_hours))
+            .where(User.notification_preference == "digest")
+            .where(User.deleted_at.is_(None))
+            .order_by(Notification.created_at.desc())
+        )
+        notifications = result.scalars().all()
+        grouped: dict[UUID, list[Notification]] = {}
+        for n in notifications:
+            grouped.setdefault(n.user_id, []).append(n)
+        return grouped

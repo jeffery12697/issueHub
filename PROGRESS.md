@@ -24,20 +24,18 @@
 |-------|--------|---------|-------------|
 | **Phase 11** | ✅ Done | AU-03 | Auto-close parent task when all subtasks done |
 | **Phase 12** | ✅ Done | AU-01 | Advanced automation — trigger-action rules (AU-04 deferred: needs Git webhook infra) |
-| **Phase 13** | 🔲 Not started | TM-02 | Timeline / Gantt view |
+| **Phase 13** | ✅ Done | M-02, N-02, AU-02 | Email invites, notification digest, overdue task notifications |
+| **Phase 14** | 🔲 Not started | TM-02 | Timeline / Gantt view |
 
 ### Deferred
 
 | Story | Blocked by | Description |
 |-------|-----------|-------------|
-| M-02 | SMTP infra | Email invite flow — revisit when deploying for real users |
-| N-02 | SMTP infra | Notification digest (daily summary email) — immediate in-app already works |
-| AU-02 | Scheduler + SMTP | Overdue task auto-notifications — needs APScheduler/cron and email delivery |
 | AU-04 | Git webhook infra | Close task via Git commit keyword (`closes #id`) — needs a webhook endpoint + shared secret + GitHub/GitLab integration |
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Idle — All planned features complete through Phase 12 + ad-hoc improvements (My Tasks context, cross-list subtasks, sequential IDs, blocker search)
+- Idle — All planned features complete through Phase 13
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

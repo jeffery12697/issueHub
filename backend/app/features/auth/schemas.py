@@ -15,3 +15,13 @@ class UserResponse(BaseModel):
     avatar_url: str | None
 
     model_config = {"from_attributes": True}
+
+
+class UserPreferencesResponse(BaseModel):
+    notification_preference: str
+
+    model_config = {"from_attributes": True}
+
+
+class UpdatePreferencesRequest(BaseModel):
+    notification_preference: str  # "immediate" | "digest"

@@ -9,6 +9,9 @@ AsyncSessionFactory = async_sessionmaker(
     expire_on_commit=False,
 )
 
+# Alias used by background jobs
+AsyncSessionLocal = AsyncSessionFactory
+
 
 async def get_session() -> AsyncSession:
     async with AsyncSessionFactory() as session:

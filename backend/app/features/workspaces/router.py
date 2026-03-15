@@ -1,10 +1,13 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import get_current_user
+from app.core.email import send_email
+from app.core.email_templates import invite_email
+from app.core.config import settings
 from app.features.workspaces.repository import WorkspaceRepository
 from app.features.workspaces.service import WorkspaceService
 from app.features.workspaces.schemas import (
@@ -12,6 +15,8 @@ from app.features.workspaces.schemas import (
     UpdateWorkspaceRequest,
     InviteMemberRequest,
     UpdateMemberRoleRequest,
+    SendInviteRequest,
+    InviteResponse,
     WorkspaceResponse,
     MemberResponse,
     AnalyticsResponse,
@@ -144,6 +149,80 @@ async def remove_member(
     session: AsyncSession = Depends(get_session),
 ):
     await service.remove_member(workspace_id, user_id, actor_id=current_user.id)
+    await session.commit()
+
+
+@router.post("/{workspace_id}/invites", response_model=InviteResponse, status_code=status.HTTP_201_CREATED)
+async def send_workspace_invite(
+    workspace_id: UUID,
+    body: SendInviteRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    repo = WorkspaceRepository(session)
+    member = await repo.get_member(workspace_id, current_user.id)
+    if not member or member.role not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Only owners and admins can send invites")
+
+    workspace = await repo.get_by_id(workspace_id)
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    invite = await repo.create_invite(body.to_dto(workspace_id, invited_by=current_user.id))
+    await session.commit()
+
+    invite_url = f"{settings.frontend_url}/invites/{invite.token}"
+    background_tasks.add_task(
+        send_email,
+        to=body.email,
+        subject=f"You're invited to join {workspace.name} on IssueHub",
+        html=invite_email(current_user.display_name, workspace.name, invite_url),
+    )
+    return InviteResponse.model_validate(invite)
+
+
+@router.get("/invites/{token}", response_model=InviteResponse)
+async def get_invite(
+    token: str,
+    session: AsyncSession = Depends(get_session),
+):
+    repo = WorkspaceRepository(session)
+    invite = await repo.get_invite_by_token(token)
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    return InviteResponse.model_validate(invite)
+
+
+@router.post("/invites/{token}/accept", status_code=status.HTTP_204_NO_CONTENT)
+async def accept_invite(
+    token: str,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    from datetime import datetime, timezone
+    repo = WorkspaceRepository(session)
+    invite = await repo.get_invite_by_token(token)
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    if invite.accepted_at is not None:
+        raise HTTPException(status_code=409, detail="Invite already accepted")
+    if invite.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="Invite has expired")
+
+    # Add as workspace member if not already
+    existing = await repo.get_member(invite.workspace_id, current_user.id)
+    if not existing:
+        from app.features.workspaces.schemas import InviteMemberDTO
+        await repo.add_member(
+            InviteMemberDTO(
+                workspace_id=invite.workspace_id,
+                user_id=current_user.id,
+                role=invite.role,
+                invited_by=invite.invited_by,
+            )
+        )
+    await repo.accept_invite(invite)
     await session.commit()
 
 

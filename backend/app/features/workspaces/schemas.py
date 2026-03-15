@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -111,3 +112,39 @@ class MemberWorkloadResponse(BaseModel):
     open_task_count: int
     total_story_points: int
     tasks: list
+
+
+# --- Invite DTOs ---
+
+@dataclass(frozen=True)
+class CreateInviteDTO:
+    workspace_id: UUID
+    email: str
+    role: WorkspaceRole
+    invited_by: UUID
+
+
+# --- Invite Schemas ---
+
+class SendInviteRequest(BaseModel):
+    email: str
+    role: WorkspaceRole = WorkspaceRole.member
+
+    def to_dto(self, workspace_id: UUID, invited_by: UUID) -> CreateInviteDTO:
+        return CreateInviteDTO(
+            workspace_id=workspace_id,
+            email=self.email,
+            role=self.role,
+            invited_by=invited_by,
+        )
+
+
+class InviteResponse(BaseModel):
+    id: UUID
+    workspace_id: UUID
+    email: str
+    role: WorkspaceRole
+    expires_at: datetime
+    accepted_at: datetime | None
+
+    model_config = {"from_attributes": True}

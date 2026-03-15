@@ -204,6 +204,7 @@ class TaskRepository:
             task.reviewer_id = dto.reviewer_id  # None clears it, UUID sets it
         if dto.due_date is not None:
             task.due_date = dto.due_date
+            task.overdue_notified = False  # reset so the next overdue scan can fire again
         if dto.start_date is not None:
             task.start_date = dto.start_date
         if dto.story_points is not None:
@@ -283,6 +284,26 @@ class TaskRepository:
         )
         await self.session.flush()
         return result.rowcount
+
+    async def get_newly_overdue(self) -> list[Task]:
+        """Return tasks that are past their due date and haven't been notified yet."""
+        from sqlalchemy import text as sa_text
+        result = await self.session.execute(
+            select(Task)
+            .where(Task.deleted_at.is_(None))
+            .where(Task.due_date.isnot(None))
+            .where(Task.due_date < func.now())
+            .where(Task.overdue_notified == False)  # noqa: E712
+        )
+        return list(result.scalars().all())
+
+    async def mark_overdue_notified(self, task_id: UUID) -> None:
+        await self.session.execute(
+            update(Task)
+            .where(Task.id == task_id)
+            .values(overdue_notified=True)
+        )
+        await self.session.flush()
 
     async def analytics_for_workspace(self, workspace_id: UUID) -> dict:
         from sqlalchemy import text as sa_text

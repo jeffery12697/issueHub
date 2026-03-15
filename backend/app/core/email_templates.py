@@ -128,6 +128,19 @@ def overdue_email(task_title: str, task_url: str, due_date: str) -> str:
     return _render("Task overdue", body)
 
 
+def invite_email(inviter: str, workspace_name: str, invite_url: str) -> str:
+    body = (
+        _heading("You're invited to IssueHub")
+        + _subtext(
+            f"<strong style='color:#18181b;'>{inviter}</strong> has invited you to join "
+            f"the workspace <strong style='color:#18181b;'>{workspace_name}</strong>."
+        )
+        + _CTA_BUTTON.format(url=invite_url, label="Accept invitation")
+        + f'<p style="margin:16px 0 0;font-size:13px;color:#a1a1aa;">This invitation expires in 7 days.</p>'
+    )
+    return _render(f"You're invited to join {workspace_name}", body)
+
+
 def digest_email(notifications: list) -> str:
     rows = "".join(
         f"""

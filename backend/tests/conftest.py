@@ -56,6 +56,7 @@ _TRUNCATE_ORDER = [
     "projects",
     "team_members",
     "teams",
+    "workspace_invites",
     "workspace_members",
     "workspaces",
     "users",

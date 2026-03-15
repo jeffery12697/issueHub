@@ -1,15 +1,17 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
-from app.models.workspace import Workspace, WorkspaceMember, WorkspaceRole
+from app.models.workspace import Workspace, WorkspaceMember, WorkspaceInvite, WorkspaceRole
 from app.features.workspaces.schemas import (
     CreateWorkspaceDTO,
     UpdateWorkspaceDTO,
     InviteMemberDTO,
     UpdateMemberRoleDTO,
+    CreateInviteDTO,
 )
 
 
@@ -100,6 +102,29 @@ class WorkspaceRepository:
             select(User).where(User.id == user_id).where(User.deleted_at.is_(None))
         )
         return result.scalar_one_or_none()
+
+    async def create_invite(self, dto: CreateInviteDTO) -> WorkspaceInvite:
+        invite = WorkspaceInvite(
+            workspace_id=dto.workspace_id,
+            email=dto.email,
+            role=dto.role,
+            token=WorkspaceInvite.make_token(),
+            invited_by=dto.invited_by,
+            expires_at=WorkspaceInvite.make_expires_at(),
+        )
+        self.session.add(invite)
+        await self.session.flush()
+        return invite
+
+    async def get_invite_by_token(self, token: str) -> WorkspaceInvite | None:
+        result = await self.session.execute(
+            select(WorkspaceInvite).where(WorkspaceInvite.token == token)
+        )
+        return result.scalar_one_or_none()
+
+    async def accept_invite(self, invite: WorkspaceInvite) -> None:
+        invite.accepted_at = datetime.utcnow()
+        await self.session.flush()
 
     async def list_member_users(self, workspace_id: UUID) -> list[User]:
         result = await self.session.execute(

@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from uuid import UUID as PyUUID, uuid4
 
-from sqlalchemy import ARRAY, DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy_utils import LtreeType
@@ -60,6 +60,7 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
     path: Mapped[str] = mapped_column(LtreeType, nullable=False)
     task_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     task_key: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    overdue_notified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     subtasks: Mapped[list["Task"]] = relationship(
         "Task",
