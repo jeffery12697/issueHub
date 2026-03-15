@@ -26,13 +26,16 @@ from app.features.teams.router import router as teams_router
 from app.features.watchers.router import router as watchers_router
 from app.features.time_entries.router import router as time_entries_router
 from app.features.automations.router import router as automations_router
+from app.features.attachments.router import router as attachments_router
 from app.core.scheduler import scheduler
+from app.core import storage
 from app.jobs.overdue import check_overdue_tasks
 from app.jobs.digest import send_notification_digest
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    storage.ensure_bucket()
     scheduler.add_job(check_overdue_tasks, "cron", hour=8, minute=0, id="check_overdue_tasks")
     scheduler.add_job(send_notification_digest, "cron", hour=8, minute=0, id="send_notification_digest")
     scheduler.start()
@@ -76,6 +79,7 @@ app.include_router(teams_router, prefix="/api/v1")
 app.include_router(watchers_router, prefix="/api/v1")
 app.include_router(time_entries_router, prefix="/api/v1")
 app.include_router(automations_router, prefix="/api/v1")
+app.include_router(attachments_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 

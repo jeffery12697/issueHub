@@ -16,6 +16,7 @@ import { useTimeEntries, useLogTime, useDeleteTimeEntry } from '@/api/timeEntrie
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 import RichTextEditor from '@/components/RichTextEditor'
+import AttachmentList from '@/components/AttachmentList'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -272,6 +273,7 @@ export default function TaskDetailPage() {
                   }
                 }}
               />
+              <AttachmentList taskId={task.id} />
             </div>
 
             {/* Tabs */}
@@ -645,6 +647,7 @@ export default function TaskDetailPage() {
                           )}
                         </div>
                         <p className="text-sm text-slate-700 whitespace-pre-wrap">{c.body}</p>
+                        <AttachmentList taskId={task.id} commentId={c.id} />
                       </div>
                     </li>
                   ))}

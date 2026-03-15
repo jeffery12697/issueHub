@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     mail_password: str = ""
     mail_enabled: bool = False  # Set MAIL_ENABLED=true to actually send emails
 
+    # Storage (S3 / MinIO)
+    s3_endpoint_url: str = "http://minio:9000"
+    s3_access_key: str = "issuehub"
+    s3_secret_key: str = "issuehub123"
+    s3_bucket: str = "issuehub-attachments"
+    s3_public_url: str = "http://localhost:9000"  # used to build presigned URLs visible to browser
+
     # Dev
     allow_dev_login: bool = True  # Set ALLOW_DEV_LOGIN=false in production
 
