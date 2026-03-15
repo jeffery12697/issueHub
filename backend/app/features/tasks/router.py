@@ -29,6 +29,7 @@ from app.features.workspaces.repository import WorkspaceRepository
 from app.features.workspaces.schemas import AnalyticsResponse, StatusCount
 from app.features.audit.repository import AuditRepository
 from app.features.automations.repository import AutomationRepository
+from app.features.teams.repository import TeamRepository
 from app.features.notifications.repository import NotificationRepository
 from app.features.watchers.repository import WatcherRepository
 from app.models.task import Task, Priority
@@ -92,6 +93,7 @@ def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
         workspace_repo=WorkspaceRepository(session),
         audit_repo=AuditRepository(session),
         automation_repo=AutomationRepository(session),
+        team_repo=TeamRepository(session),
     )
 
 

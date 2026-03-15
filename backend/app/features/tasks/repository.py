@@ -136,6 +136,7 @@ class TaskRepository:
     async def list_for_project(
         self,
         project_id: UUID,
+        list_ids_allowed: list[UUID] | None = None,
         list_id: UUID | None = None,
         priority: Priority | None = None,
         priorities_not: list[Priority] | None = None,
@@ -151,6 +152,9 @@ class TaskRepository:
         )
         if not include_subtasks:
             q = q.where(Task.parent_task_id.is_(None))
+        # Restrict to lists the user is allowed to see
+        if list_ids_allowed is not None:
+            q = q.where(Task.list_id.in_(list_ids_allowed))
         if list_id:
             q = q.where(Task.list_id == list_id)
         if priority:

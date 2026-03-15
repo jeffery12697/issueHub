@@ -9,8 +9,10 @@ from app.features.projects.repository import ProjectRepository
 from app.features.workspaces.repository import WorkspaceRepository
 from app.features.audit.repository import AuditRepository
 from app.features.automations.repository import AutomationRepository
+from app.features.teams.repository import TeamRepository
 from app.models.automation import ActionType, TriggerType
 from app.models.task import Task, Priority
+from app.models.workspace import WorkspaceRole
 
 
 class TaskService:
@@ -22,6 +24,7 @@ class TaskService:
         workspace_repo: WorkspaceRepository,
         audit_repo: AuditRepository,
         automation_repo: AutomationRepository | None = None,
+        team_repo: TeamRepository | None = None,
     ):
         self.repo = repo
         self.list_repo = list_repo
@@ -29,6 +32,7 @@ class TaskService:
         self.workspace_repo = workspace_repo
         self.audit_repo = audit_repo
         self.automation_repo = automation_repo
+        self.team_repo = team_repo
 
     async def create(self, dto: CreateTaskDTO) -> Task:
         await self._require_workspace_member(dto.workspace_id, dto.reporter_id)
@@ -110,8 +114,27 @@ class TaskService:
         project = await self.project_repo.get_by_id(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
-        await self._require_workspace_member(project.workspace_id, user_id)
-        return await self.repo.list_for_project(project_id, list_id, priority, priorities_not, assignee_id, include_subtasks, page, page_size)
+        ws_member = await self.workspace_repo.get_member(project.workspace_id, user_id)
+        if not ws_member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
+
+        # Compute which lists the user can see (mirrors ListService.list_for_project)
+        list_ids_allowed: list[UUID] | None = None
+        if ws_member.role not in {WorkspaceRole.owner, WorkspaceRole.admin}:
+            all_lists = await self.list_repo.list_for_project(project_id)
+            user_team_ids: set[UUID] = set()
+            if self.team_repo is not None:
+                user_team_ids = set(
+                    await self.team_repo.get_user_team_ids(project.workspace_id, user_id)
+                )
+            list_ids_allowed = [
+                l.id for l in all_lists
+                if not l.team_ids or (user_team_ids & set(l.team_ids))
+            ]
+
+        return await self.repo.list_for_project(
+            project_id, list_ids_allowed, list_id, priority, priorities_not, assignee_id, include_subtasks, page, page_size
+        )
 
     async def list_subtasks(self, parent_task_id: UUID, user_id: UUID) -> list[Task]:
         parent = await self.get_or_404(parent_task_id)
