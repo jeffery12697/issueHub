@@ -66,7 +66,7 @@ async def create_comment(
                 meta={"comment_id": str(comment.id)},
             )
             user = await ws_repo.get_user_by_id(user_id)
-            if user and user.email:
+            if user and user.email and user.notification_preference == "immediate":
                 background_tasks.add_task(
                     send_email,
                     to=user.email,
@@ -87,7 +87,7 @@ async def create_comment(
                 meta={"comment_id": str(comment.id)},
             )
             user = await ws_repo.get_user_by_id(watcher_id)
-            if user and user.email:
+            if user and user.email and user.notification_preference == "immediate":
                 background_tasks.add_task(
                     send_email,
                     to=user.email,

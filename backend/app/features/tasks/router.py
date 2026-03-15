@@ -317,7 +317,7 @@ async def update_task(
                     meta={"task_id": str(task_id)},
                 )
                 user = await ws_repo.get_user_by_id(UUID(uid_str))
-                if user and user.email:
+                if user and user.email and user.notification_preference == "immediate":
                     background_tasks.add_task(
                         send_email,
                         to=user.email,
@@ -338,7 +338,7 @@ async def update_task(
                 meta={"task_id": str(task_id)},
             )
             user = await ws_repo.get_user_by_id(watcher_id)
-            if user and user.email:
+            if user and user.email and user.notification_preference == "immediate":
                 background_tasks.add_task(
                     send_email,
                     to=user.email,
