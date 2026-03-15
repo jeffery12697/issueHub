@@ -79,7 +79,9 @@ class TaskService:
         list_id: UUID,
         user_id: UUID,
         status_id: UUID | None = None,
+        status_ids_not: list[UUID] | None = None,
         priority: Priority | None = None,
+        priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         cf_filters: dict[UUID, str] | None = None,
         include_subtasks: bool = False,
@@ -91,7 +93,7 @@ class TaskService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
         project = await self.project_repo.get_by_id(list_.project_id)
         await self._require_workspace_member(project.workspace_id, user_id)
-        return await self.repo.list_for_list(list_id, status_id, priority, assignee_id, cf_filters, include_subtasks, page, page_size)
+        return await self.repo.list_for_list(list_id, status_id, status_ids_not, priority, priorities_not, assignee_id, cf_filters, include_subtasks, page, page_size)
 
     async def list_for_project(
         self,
@@ -99,6 +101,7 @@ class TaskService:
         user_id: UUID,
         list_id: UUID | None = None,
         priority: Priority | None = None,
+        priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         include_subtasks: bool = False,
         page: int = 1,
@@ -108,7 +111,7 @@ class TaskService:
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
         await self._require_workspace_member(project.workspace_id, user_id)
-        return await self.repo.list_for_project(project_id, list_id, priority, assignee_id, include_subtasks, page, page_size)
+        return await self.repo.list_for_project(project_id, list_id, priority, priorities_not, assignee_id, include_subtasks, page, page_size)
 
     async def list_subtasks(self, parent_task_id: UUID, user_id: UUID) -> list[Task]:
         parent = await self.get_or_404(parent_task_id)

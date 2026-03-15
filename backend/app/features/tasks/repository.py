@@ -77,7 +77,9 @@ class TaskRepository:
         self,
         list_id: UUID,
         status_id: UUID | None = None,
+        status_ids_not: list[UUID] | None = None,
         priority: Priority | None = None,
+        priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         cf_filters: dict[UUID, str] | None = None,
         include_subtasks: bool = False,
@@ -95,8 +97,12 @@ class TaskRepository:
             q = q.where(Task.parent_task_id.is_(None))
         if status_id:
             q = q.where(Task.status_id == status_id)
+        if status_ids_not:
+            q = q.where(Task.status_id.notin_(status_ids_not))
         if priority:
             q = q.where(Task.priority == priority)
+        if priorities_not:
+            q = q.where(Task.priority.notin_(priorities_not))
         if assignee_id:
             q = q.where(Task.assignee_ids.any(assignee_id))
         if cf_filters:
@@ -132,6 +138,7 @@ class TaskRepository:
         project_id: UUID,
         list_id: UUID | None = None,
         priority: Priority | None = None,
+        priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         include_subtasks: bool = False,
         page: int = 1,
@@ -148,6 +155,8 @@ class TaskRepository:
             q = q.where(Task.list_id == list_id)
         if priority:
             q = q.where(Task.priority == priority)
+        if priorities_not:
+            q = q.where(Task.priority.notin_(priorities_not))
         if assignee_id:
             q = q.where(Task.assignee_ids.any(assignee_id))
 

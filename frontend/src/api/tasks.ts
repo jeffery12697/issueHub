@@ -57,10 +57,12 @@ export const tasksApi = {
     }
     return apiClient.get<Task[]>(`/lists/${listId}/tasks`, { params: p }).then((r) => r.data)
   },
-  listPaged: (listId: string, params: { page: number; page_size: number; status_id?: string; priority?: Priority; cf?: Record<string, string>; include_subtasks?: boolean }) => {
+  listPaged: (listId: string, params: { page: number; page_size: number; status_id?: string; status_id_not?: string; priority?: Priority; priority_not?: string; cf?: Record<string, string>; include_subtasks?: boolean }) => {
     const p: Record<string, string> = { page: String(params.page), page_size: String(params.page_size) }
     if (params.status_id) p.status_id = params.status_id
+    if (params.status_id_not) p.status_id_not = params.status_id_not
     if (params.priority) p.priority = params.priority
+    if (params.priority_not) p.priority_not = params.priority_not
     if (params.include_subtasks) p.include_subtasks = 'true'
     if (params.cf) {
       for (const [fieldId, value] of Object.entries(params.cf)) {
@@ -105,10 +107,11 @@ export const tasksApi = {
     apiClient.post<{ updated: number }>('/tasks/bulk-delete', { task_ids: taskIds }).then((r) => r.data),
   move: (taskId: string, listId: string) =>
     apiClient.patch<Task>(`/tasks/${taskId}/move`, { list_id: listId }).then((r) => r.data),
-  listForProject: (projectId: string, params: { page: number; page_size: number; list_id?: string; priority?: Priority; assignee_id?: string; include_subtasks?: boolean }) => {
+  listForProject: (projectId: string, params: { page: number; page_size: number; list_id?: string; priority?: Priority; priority_not?: string; assignee_id?: string; include_subtasks?: boolean }) => {
     const p: Record<string, string> = { page: String(params.page), page_size: String(params.page_size) }
     if (params.list_id) p.list_id = params.list_id
     if (params.priority) p.priority = params.priority
+    if (params.priority_not) p.priority_not = params.priority_not
     if (params.assignee_id) p.assignee_id = params.assignee_id
     if (params.include_subtasks) p.include_subtasks = 'true'
     return apiClient.get<Task[]>(`/projects/${projectId}/tasks`, { params: p }).then((r) => ({

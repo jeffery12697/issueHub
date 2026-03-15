@@ -6,6 +6,7 @@ import { listsApi } from '@/api/lists'
 import { projectsApi } from '@/api/projects'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
+import FilterBar, { type FilterRule } from '@/components/FilterBar'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1', low: '#38bdf8', medium: '#fbbf24', high: '#f97316', urgent: '#ef4444',
@@ -29,10 +30,14 @@ export default function ProjectTasksPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
-  const [listFilter, setListFilter] = useState('')
-  const [priorityFilter, setPriorityFilter] = useState<Priority | ''>('')
+  const [filterRules, setFilterRules] = useState<FilterRule[]>([])
   const [includeSubtasks, setIncludeSubtasks] = useState(false)
   const [page, setPage] = useState(1)
+
+  // Derive API params from filter rules
+  const listEq = filterRules.find((r) => r.field === 'list' && r.op === 'eq')?.value
+  const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
+  const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -58,12 +63,13 @@ export default function ProjectTasksPage() {
   const listMap = Object.fromEntries(lists.map((l) => [l.id, l]))
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ['project-tasks', projectId, listFilter, priorityFilter, includeSubtasks, page],
+    queryKey: ['project-tasks', projectId, filterRules, includeSubtasks, page],
     queryFn: () => tasksApi.listForProject(projectId!, {
       page,
       page_size: PAGE_SIZE,
-      list_id: listFilter || undefined,
-      priority: (priorityFilter as Priority) || undefined,
+      list_id: listEq || undefined,
+      priority: priorityEq || undefined,
+      priority_not: priorityNots.join(',') || undefined,
       include_subtasks: includeSubtasks,
     }),
     enabled: !!projectId,
@@ -77,9 +83,8 @@ export default function ProjectTasksPage() {
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
-  const hasFilters = !!(listFilter || priorityFilter)
+  const hasFilters = filterRules.length > 0
   function resetPage() { setPage(1) }
-  function clearFilters() { setListFilter(''); setPriorityFilter(''); resetPage() }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -121,54 +126,38 @@ export default function ProjectTasksPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="mb-5 flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-slate-400 font-medium shrink-0">Filter</span>
-          <div className="w-px h-4 bg-slate-200 shrink-0" />
-
-          <FilterSelect
-            value={listFilter}
-            onChange={(v) => { setListFilter(v); resetPage() }}
-            label="List"
-            active={!!listFilter}
-            activeLabel={listFilter ? listMap[listFilter]?.name : undefined}
-          >
-            <option value="">All lists</option>
-            {lists.map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            value={priorityFilter}
-            onChange={(v) => { setPriorityFilter(v as Priority | ''); resetPage() }}
-            label="Priority"
-            active={!!priorityFilter}
-            activeLabel={priorityFilter || undefined}
-          >
-            <option value="">All priorities</option>
-            {PRIORITIES.filter((p) => p !== 'none').map((p) => (
-              <option key={p} value={p} className="capitalize">{p}</option>
-            ))}
-          </FilterSelect>
-
-          <label className="flex items-center gap-2 text-sm text-slate-500 cursor-pointer select-none ml-1">
-            <input
-              type="checkbox"
-              checked={includeSubtasks}
-              onChange={(e) => { setIncludeSubtasks(e.target.checked); resetPage() }}
-              className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
-            />
-            Subtasks
-          </label>
-
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
-            >
-              <span>✕</span> Clear
-            </button>
-          )}
+        <div className="mb-5 space-y-2">
+          <FilterBar
+            fields={[
+              {
+                id: 'list',
+                label: 'List',
+                options: lists.map((l) => ({ value: l.id, label: l.name })),
+                ops: ['eq'],
+              },
+              {
+                id: 'priority',
+                label: 'Priority',
+                options: PRIORITIES.filter((p) => p !== 'none').map((p) => ({
+                  value: p,
+                  label: p.charAt(0).toUpperCase() + p.slice(1),
+                })),
+              },
+            ]}
+            rules={filterRules}
+            onRulesChange={(rules, reset) => { setFilterRules(rules); if (reset) resetPage() }}
+            extra={
+              <label className="flex items-center gap-2 text-sm text-slate-500 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeSubtasks}
+                  onChange={(e) => { setIncludeSubtasks(e.target.checked); resetPage() }}
+                  className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
+                />
+                Subtasks
+              </label>
+            }
+          />
         </div>
 
         {/* Table */}
@@ -384,30 +373,3 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
   return <span className="text-xs text-slate-500">{label}</span>
 }
 
-function FilterSelect({
-  value, onChange, label, active, activeLabel, children,
-}: {
-  value: string
-  onChange: (v: string) => void
-  label: string
-  active: boolean
-  activeLabel?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`h-9 appearance-none pl-3.5 pr-8 rounded-full text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
-          active
-            ? 'border-violet-400 bg-violet-50 text-violet-700'
-            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700'
-        }`}
-      >
-        {children}
-      </select>
-      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-current opacity-60">▾</span>
-    </div>
-  )
-}

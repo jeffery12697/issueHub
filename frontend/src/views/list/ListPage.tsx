@@ -9,6 +9,7 @@ import { useListSocket } from '@/hooks/useTaskSocket'
 import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
+import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { toast } from '@/store/toastStore'
 import { useAuthStore } from '@/store/authStore'
 
@@ -36,20 +37,27 @@ export default function ListPage() {
 
   const [newTitle, setNewTitle] = useState('')
   const [creating, setCreating] = useState(false)
-  const [statusFilter, setStatusFilter] = useState('')
-  const [priorityFilter, setPriorityFilter] = useState<Priority | ''>('')
+  const [filterRules, setFilterRules] = useState<FilterRule[]>([])
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 50
 
+  // Derive API params from filter rules
+  const statusEq = filterRules.find((r) => r.field === 'status' && r.op === 'eq')?.value
+  const statusNots = filterRules.filter((r) => r.field === 'status' && r.op === 'neq').map((r) => r.value)
+  const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
+  const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
+
   const { data: pagedResult, isLoading } = useQuery({
-    queryKey: ['tasks', listId, statusFilter, priorityFilter, cfFilters, page],
+    queryKey: ['tasks', listId, filterRules, cfFilters, page],
     queryFn: () => tasksApi.listPaged(listId!, {
       page,
       page_size: PAGE_SIZE,
-      status_id: statusFilter || undefined,
-      priority: (priorityFilter as Priority) || undefined,
+      status_id: statusEq || undefined,
+      status_id_not: statusNots.join(',') || undefined,
+      priority: priorityEq || undefined,
+      priority_not: priorityNots.join(',') || undefined,
       cf: cfFilters,
       include_subtasks: true,
     }),
@@ -228,88 +236,80 @@ export default function ListPage() {
           </div>
         )}
 
-        <div className="mb-5 flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-slate-400 font-medium shrink-0">Filter</span>
-          <div className="w-px h-4 bg-slate-200 shrink-0" />
-
-          {/* Status */}
-          <FilterSelect
-            value={statusFilter}
-            onChange={(v) => { setStatusFilter(v); setPage(1) }}
-            label="Status"
-            active={!!statusFilter}
-            activeLabel={(list?.statuses ?? []).find((s) => s.id === statusFilter)?.name}
-          >
-            <option value="">All statuses</option>
-            {(list?.statuses ?? []).map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </FilterSelect>
-
-          {/* Priority */}
-          <FilterSelect
-            value={priorityFilter}
-            onChange={(v) => { setPriorityFilter(v as Priority | ''); setPage(1) }}
-            label="Priority"
-            active={!!priorityFilter}
-            activeLabel={priorityFilter || undefined}
-          >
-            <option value="">All priorities</option>
-            {PRIORITIES.filter((p) => p !== 'none').map((p) => (
-              <option key={p} value={p} className="capitalize">{p}</option>
-            ))}
-          </FilterSelect>
-
-          {/* Custom fields */}
-          {fieldDefs.map((field) => {
-            const val = cfFilters[field.id] ?? ''
-            const set = (v: string) => { setCfFilters((prev) => { const next = { ...prev }; if (v) next[field.id] = v; else delete next[field.id]; return next }); setPage(1) }
-            if (field.field_type === 'dropdown' || field.field_type === 'checkbox') {
-              return (
-                <FilterSelect
-                  key={field.id}
-                  value={val}
-                  onChange={set}
-                  label={field.name}
-                  active={!!val}
-                  activeLabel={val === 'true' ? 'Yes' : val === 'false' ? 'No' : val}
-                >
-                  <option value="">All</option>
-                  {field.field_type === 'checkbox' ? (
-                    <>
-                      <option value="true">Yes</option>
-                      <option value="false">No</option>
-                    </>
-                  ) : (
-                    (field.options_json ?? []).map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))
+        <div className="mb-5 space-y-2">
+          <FilterBar
+            fields={[
+              {
+                id: 'status',
+                label: 'Status',
+                options: (list?.statuses ?? []).map((s) => ({ value: s.id, label: s.name })),
+              },
+              {
+                id: 'priority',
+                label: 'Priority',
+                options: PRIORITIES.filter((p) => p !== 'none').map((p) => ({
+                  value: p,
+                  label: p.charAt(0).toUpperCase() + p.slice(1),
+                })),
+              },
+            ]}
+            rules={filterRules}
+            onRulesChange={(rules, reset) => { setFilterRules(rules); if (reset) setPage(1) }}
+            extra={
+              fieldDefs.length > 0 ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {fieldDefs.map((field) => {
+                    const val = cfFilters[field.id] ?? ''
+                    const set = (v: string) => {
+                      setCfFilters((prev) => { const next = { ...prev }; if (v) next[field.id] = v; else delete next[field.id]; return next })
+                      setPage(1)
+                    }
+                    if (field.field_type === 'dropdown' || field.field_type === 'checkbox') {
+                      return (
+                        <div key={field.id} className="relative">
+                          <select
+                            value={val}
+                            onChange={(e) => set(e.target.value)}
+                            className={`h-8 appearance-none pl-3 pr-7 rounded-full text-xs font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
+                              val ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                            }`}
+                          >
+                            <option value="">{field.name}: All</option>
+                            {field.field_type === 'checkbox' ? (
+                              <><option value="true">Yes</option><option value="false">No</option></>
+                            ) : (
+                              (field.options_json ?? []).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)
+                            )}
+                          </select>
+                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-60">▾</span>
+                        </div>
+                      )
+                    }
+                    return (
+                      <input
+                        key={field.id}
+                        type={field.field_type === 'number' ? 'number' : field.field_type === 'date' ? 'date' : 'text'}
+                        value={val}
+                        onChange={(e) => set(e.target.value)}
+                        placeholder={field.name}
+                        className={`h-8 border rounded-full px-3 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 w-32 transition-colors ${
+                          val ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                        }`}
+                      />
+                    )
+                  })}
+                  {Object.keys(cfFilters).length > 0 && (
+                    <button
+                      onClick={() => { setCfFilters({}); setPage(1) }}
+                      className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
+                    >
+                      ✕ Clear fields
+                    </button>
                   )}
-                </FilterSelect>
-              )
+                </div>
+              ) : undefined
             }
-            return (
-              <input
-                key={field.id}
-                type={field.field_type === 'number' ? 'number' : field.field_type === 'date' ? 'date' : 'text'}
-                value={val}
-                onChange={(e) => set(e.target.value)}
-                placeholder={field.name}
-                className={`h-8 border rounded-full px-3 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 w-32 transition-colors ${
-                  val ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                }`}
-              />
-            )
-          })}
-
-          {(statusFilter || priorityFilter || Object.keys(cfFilters).length > 0) && (
-            <button
-              onClick={() => { setStatusFilter(''); setPriorityFilter(''); setCfFilters({}); setPage(1) }}
-              className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
-            >
-              <span>✕</span> Clear
-            </button>
-          )}
+          />
         </div>
 
         {creating && (
@@ -527,33 +527,6 @@ function Avatar({ member, title }: { member: Member; title?: string }) {
   )
 }
 
-function FilterSelect({
-  value, onChange, label, active, activeLabel, children,
-}: {
-  value: string
-  onChange: (v: string) => void
-  label: string
-  active: boolean
-  activeLabel?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`h-9 appearance-none pl-3.5 pr-8 rounded-full text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
-          active
-            ? 'border-violet-400 bg-violet-50 text-violet-700'
-            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700'
-        }`}
-      >
-        {children}
-      </select>
-      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-current opacity-60">▾</span>
-    </div>
-  )
-}
 
 function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; statusComplete: boolean | undefined }) {
   if (!dueDate) return <span className="text-slate-300 text-xs">—</span>

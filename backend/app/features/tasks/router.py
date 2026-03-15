@@ -101,7 +101,9 @@ async def list_tasks(
     request: Request,
     response: Response,
     status_id: UUID | None = None,
+    status_id_not: str | None = None,
     priority: Priority | None = None,
+    priority_not: str | None = None,
     assignee_id: UUID | None = None,
     include_subtasks: bool = False,
     page: int = 1,
@@ -119,11 +121,28 @@ async def list_tasks(
             except ValueError:
                 pass
 
+    # Parse comma-separated exclusion params
+    status_ids_not: list[UUID] | None = None
+    if status_id_not:
+        try:
+            status_ids_not = [UUID(s.strip()) for s in status_id_not.split(",") if s.strip()]
+        except ValueError:
+            pass
+
+    priorities_not: list[Priority] | None = None
+    if priority_not:
+        try:
+            priorities_not = [Priority(p.strip()) for p in priority_not.split(",") if p.strip()]
+        except ValueError:
+            pass
+
     tasks, total = await service.list_for_list(
         list_id,
         user_id=current_user.id,
         status_id=status_id,
+        status_ids_not=status_ids_not,
         priority=priority,
+        priorities_not=priorities_not,
         assignee_id=assignee_id,
         cf_filters=cf_filters if cf_filters else None,
         include_subtasks=include_subtasks,
@@ -140,6 +159,7 @@ async def list_project_tasks(
     response: Response,
     list_id: UUID | None = None,
     priority: Priority | None = None,
+    priority_not: str | None = None,
     assignee_id: UUID | None = None,
     include_subtasks: bool = False,
     page: int = 1,
@@ -147,11 +167,19 @@ async def list_project_tasks(
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
+    priorities_not: list[Priority] | None = None
+    if priority_not:
+        try:
+            priorities_not = [Priority(p.strip()) for p in priority_not.split(",") if p.strip()]
+        except ValueError:
+            pass
+
     tasks, total = await service.list_for_project(
         project_id,
         user_id=current_user.id,
         list_id=list_id,
         priority=priority,
+        priorities_not=priorities_not,
         assignee_id=assignee_id,
         include_subtasks=include_subtasks,
         page=page,
