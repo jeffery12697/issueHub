@@ -391,3 +391,35 @@ _Completed: 2026-03-14_
 - [x] `POST /api/v1/dev/mail/test` — test endpoint to verify SMTP delivery (Mailtrap tested and confirmed working)
 - [x] No extra packages — uses Python built-in `smtplib`
 - [x] Wired to events via `BackgroundTasks`: @mention in comment, task assignment, watcher on comment, watcher on task update
+
+---
+
+## Phase 13 — Email Invites, Notification Digest, Overdue Notifications
+_Completed: 2026-03-15_
+
+### M-02 — Workspace Email Invite Flow
+- [x] `WorkspaceInvite` model — `id`, `workspace_id`, `email`, `role`, `token` (URL-safe 32 bytes), `invited_by`, `expires_at` (7 days), `accepted_at`
+- [x] Migration `0017_add_workspace_invites.py`
+- [x] `invite_email()` template — "You're invited to join {workspace}" with CTA button
+- [x] `POST /workspaces/{id}/invites` — owner/admin only, creates invite + sends email via `BackgroundTasks`
+- [x] `GET /workspaces/invites/{token}` — public endpoint to read invite details before accepting
+- [x] `POST /workspaces/invites/{token}/accept` — authenticated; validates expiry + not-already-accepted; creates `WorkspaceMember`, marks invite accepted
+- [x] 6 tests: happy path, 403 for plain members, get-by-token, accept adds member, double-accept 409, bogus token 404
+
+### N-02 — Notification Preferences & Daily Digest
+- [x] `notification_preference` column on `User` (`immediate` | `digest`, default `immediate`) — migration `0018`
+- [x] `GET /auth/preferences` — returns current preference
+- [x] `PATCH /auth/preferences` — validates value, updates and persists immediately
+- [x] `NotificationRepository.get_unread_grouped_by_user(since_hours)` — joins `users`, filters by `notification_preference = 'digest'`, groups by `user_id`
+- [x] `app/jobs/digest.py` — daily cron at 08:00 Asia/Taipei: emails each digest-preference user their past-24h unread notifications
+- [x] `apscheduler==3.10.4` added to `requirements.txt`; `app/core/scheduler.py` holds the `AsyncIOScheduler`
+- [x] Scheduler registered in `app/main.py` lifespan
+- [x] 5 tests: default immediate, update to digest/back, invalid value 422, digest repo filter
+
+### AU-02 — Overdue Task Auto-Notifications
+- [x] `overdue_notified: bool` on `Task` (default `False`) — migration `0019`
+- [x] `TaskRepository.get_newly_overdue()` — tasks where `due_date < now` AND `overdue_notified = false` AND not deleted
+- [x] `TaskRepository.mark_overdue_notified(task_id)` — sets flag to prevent re-send
+- [x] `TaskRepository.update()` — resets `overdue_notified = False` whenever `due_date` is changed
+- [x] `app/jobs/overdue.py` — daily cron at 08:00 Asia/Taipei: emails all assignees of newly-overdue tasks using `overdue_email()` template
+- [x] 6 tests: past-due found, future excluded, already-notified excluded, mark-notified works, update resets flag, no-due-date excluded
