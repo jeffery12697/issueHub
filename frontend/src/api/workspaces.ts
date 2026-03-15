@@ -40,6 +40,15 @@ export type UserSearchResult = {
   display_name: string
 }
 
+export type WorkspaceInvite = {
+  id: string
+  workspace_id: string
+  email: string
+  role: string
+  expires_at: string
+  accepted_at: string | null
+}
+
 export const workspacesApi = {
   list: () => apiClient.get<Workspace[]>('/workspaces').then((r) => r.data),
   get: (id: string) => apiClient.get<Workspace>(`/workspaces/${id}`).then((r) => r.data),
@@ -55,6 +64,12 @@ export const workspacesApi = {
     apiClient.delete(`/workspaces/${id}/members/${userId}`),
   searchUser: (email: string) =>
     apiClient.get<UserSearchResult | null>('/auth/users/search', { params: { email } }).then((r) => r.data),
+  sendInvite: (workspaceId: string, email: string, role: string) =>
+    apiClient.post<WorkspaceInvite>(`/workspaces/${workspaceId}/invites`, { email, role }).then((r) => r.data),
+  getInvite: (token: string) =>
+    apiClient.get<WorkspaceInvite>(`/workspaces/invites/${token}`).then((r) => r.data),
+  acceptInvite: (token: string) =>
+    apiClient.post(`/workspaces/invites/${token}/accept`),
   getAnalytics: (workspaceId: string) =>
     apiClient.get<AnalyticsResponse>(`/workspaces/${workspaceId}/analytics`).then((r) => r.data),
   getWorkload: (workspaceId: string) =>
@@ -92,6 +107,21 @@ export function useRemoveMember(workspaceId: string) {
   return useMutation({
     mutationFn: (userId: string) => workspacesApi.removeMember(workspaceId, userId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace-members', workspaceId] }),
+  })
+}
+
+export function useSendInvite(workspaceId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ email, role }: { email: string; role: string }) =>
+      workspacesApi.sendInvite(workspaceId, email, role),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workspace-members', workspaceId] }),
+  })
+}
+
+export function useAcceptInvite() {
+  return useMutation({
+    mutationFn: (token: string) => workspacesApi.acceptInvite(token),
   })
 }
 

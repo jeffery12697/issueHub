@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { workspacesApi, useWorkspaceMembers, useInviteMember, useUpdateMemberRole, useRemoveMember } from '@/api/workspaces'
+import { workspacesApi, useWorkspaceMembers, useInviteMember, useUpdateMemberRole, useRemoveMember, useSendInvite } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
 import { useTeams, useCreateTeam, useDeleteTeam, useTeamMembers, useAddTeamMember, useRemoveTeamMember, type TeamRole } from '@/api/teams'
 import HeaderActions from '@/components/HeaderActions'
@@ -219,6 +219,7 @@ const WORKSPACE_ROLES = ['member', 'admin', 'owner']
 function MembersTab({ workspaceId }: { workspaceId: string }) {
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const inviteMember = useInviteMember(workspaceId)
+  const sendInvite = useSendInvite(workspaceId)
   const updateRole = useUpdateMemberRole(workspaceId)
   const removeMember = useRemoveMember(workspaceId)
 
@@ -226,12 +227,14 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
   const [searchResult, setSearchResult] = useState<{ id: string; email: string; display_name: string } | null | undefined>(undefined)
   const [inviteRole, setInviteRole] = useState('member')
   const [searching, setSearching] = useState(false)
+  const [inviteSent, setInviteSent] = useState(false)
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchEmail.trim()) return
     setSearching(true)
     setSearchResult(undefined)
+    setInviteSent(false)
     try {
       const result = await workspacesApi.searchUser(searchEmail.trim())
       setSearchResult(result)
@@ -240,11 +243,23 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
     }
   }
 
-  const handleInvite = () => {
+  const handleAddExisting = () => {
     if (!searchResult) return
     inviteMember.mutate(
       { user_id: searchResult.id, role: inviteRole },
       { onSuccess: () => { setSearchEmail(''); setSearchResult(undefined) } }
+    )
+  }
+
+  const handleSendEmailInvite = () => {
+    sendInvite.mutate(
+      { email: searchEmail.trim(), role: inviteRole },
+      {
+        onSuccess: () => {
+          setInviteSent(true)
+          setSearchResult(undefined)
+        },
+      }
     )
   }
 
@@ -261,7 +276,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
           <input
             type="email"
             value={searchEmail}
-            onChange={(e) => { setSearchEmail(e.target.value); setSearchResult(undefined) }}
+            onChange={(e) => { setSearchEmail(e.target.value); setSearchResult(undefined); setInviteSent(false) }}
             placeholder="Search by email"
             className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
@@ -273,9 +288,41 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
             {searching ? 'Searching…' : 'Search'}
           </button>
         </form>
-        {searchResult === null && (
-          <p className="text-sm text-red-400">No user found with that email.</p>
+
+        {inviteSent && (
+          <p className="text-sm text-green-600 font-medium">
+            ✓ Invite email sent to {searchEmail}
+          </p>
         )}
+
+        {/* User not found — offer email invite */}
+        {searchResult === null && !inviteSent && (
+          <div className="p-3 bg-slate-50 rounded-lg space-y-2">
+            <p className="text-sm text-slate-600">
+              No account found for <strong>{searchEmail}</strong>. Send them an invite email?
+            </p>
+            <div className="flex items-center gap-2">
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value)}
+                className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                {WORKSPACE_ROLES.map((r) => (
+                  <option key={r} value={r} className="capitalize">{r}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleSendEmailInvite}
+                disabled={sendInvite.isPending}
+                className="bg-violet-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-50"
+              >
+                {sendInvite.isPending ? 'Sending…' : 'Send invite'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* User found */}
         {searchResult && (
           <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
             <div className="flex-1">
@@ -296,7 +343,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
                   ))}
                 </select>
                 <button
-                  onClick={handleInvite}
+                  onClick={handleAddExisting}
                   className="bg-violet-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
                 >
                   Add

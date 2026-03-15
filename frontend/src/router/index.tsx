@@ -18,6 +18,7 @@ import AnalyticsPage from '@/views/workspace/AnalyticsPage'
 import WorkloadPage from '@/views/workspace/WorkloadPage'
 import ProjectTasksPage from '@/views/project/ProjectTasksPage'
 import ProjectAnalyticsPage from '@/views/project/ProjectAnalyticsPage'
+import InviteAcceptPage from '@/views/workspace/InviteAcceptPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { accessToken, setUser } = useAuthStore()
@@ -47,6 +48,7 @@ export default function AppRouter() {
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+        <Route path="/invites/:token" element={<InviteAcceptPage />} />
         <Route path="/" element={<WorkspacePage />} />
         <Route path="/workspaces/:workspaceId" element={<ProjectPage />} />
         <Route path="/workspaces/:workspaceId/settings" element={<WorkspaceSettingsPage />} />
