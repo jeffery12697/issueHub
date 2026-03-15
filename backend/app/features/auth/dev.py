@@ -16,6 +16,22 @@ from app.models.workspace import Workspace, WorkspaceMember, WorkspaceRole
 router = APIRouter(prefix="/dev", tags=["dev"])
 
 
+@router.post("/run/digest")
+async def run_digest():
+    """Manually trigger the notification digest job. Dev only."""
+    from app.jobs.digest import send_notification_digest
+    await send_notification_digest()
+    return {"triggered": True}
+
+
+@router.post("/run/overdue")
+async def run_overdue():
+    """Manually trigger the overdue-task notification job. Dev only."""
+    from app.jobs.overdue import check_overdue_tasks
+    await check_overdue_tasks()
+    return {"triggered": True}
+
+
 @router.post("/token", response_model=TokenResponse)
 async def dev_token(
     email: str = "dev@example.com",
