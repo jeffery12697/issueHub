@@ -29,6 +29,21 @@
 .prose ul[data-type="taskList"] li > div { @apply flex-1; }
 .prose ul[data-type="taskList"] li[data-checked="true"] > div { @apply line-through text-slate-400; }
 
+/* Tables */
+.prose table { @apply w-full border-collapse mb-3 text-sm; }
+.prose table th { @apply bg-slate-50 font-semibold text-slate-700 border border-slate-200 px-3 py-2 text-left; }
+.prose table td { @apply border border-slate-200 px-3 py-2 text-slate-700; }
+.prose table tr:hover td { @apply bg-slate-50; }
+/* Selected cell highlight (Tiptap table) */
+.selectedCell:after { background: rgba(124,58,237,.08); content: ""; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; position: absolute; z-index: 2; }
+.prose table td, .prose table th { position: relative; }
+/* Column resize handle */
+.columnResizer { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; cursor: col-resize; z-index: 20; }
+.columnResizer:hover, .resize-cursor .columnResizer { @apply bg-violet-400; }
+
+/* Inline images */
+.prose img { @apply rounded-lg max-w-full my-2; }
+
 /* Placeholder */
 .tiptap p.is-editor-empty:first-child::before {
   @apply text-slate-400 text-sm;
