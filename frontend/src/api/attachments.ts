@@ -26,7 +26,10 @@ export const attachmentsApi = {
     form.append('file', file)
     const params = commentId ? { comment_id: commentId } : {}
     return apiClient
-      .post<Attachment>(`/tasks/${taskId}/attachments`, form, { params })
+      .post<Attachment>(`/tasks/${taskId}/attachments`, form, {
+        params,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       .then((r) => r.data)
   },
 
