@@ -1,4 +1,5 @@
-import { useEditor, EditorContent, Extension } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import { Extension } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
