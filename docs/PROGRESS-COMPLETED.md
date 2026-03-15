@@ -386,7 +386,8 @@ _Completed: 2026-03-14_
 
 ### Email Service (SMTP)
 - [x] `app/core/email.py` — async `send_email(to, subject, html)` using `smtplib` + `asyncio.to_thread`; no-op when `MAIL_ENABLED=false` or credentials missing
-- [x] `app/core/email_templates.py` — templates for mention, assignment, watcher, overdue, digest
+- [x] `app/core/email_templates.py` — professional HTML templates (dark header, task chip, CTA button) for mention, assignment, watcher, overdue, digest
 - [x] `app/core/config.py` — `mail_server`, `mail_port`, `mail_sender_name`, `mail_sender_email`, `mail_username`, `mail_password`, `mail_enabled` settings
 - [x] `POST /api/v1/dev/mail/test` — test endpoint to verify SMTP delivery (Mailtrap tested and confirmed working)
 - [x] No extra packages — uses Python built-in `smtplib`
+- [x] Wired to events via `BackgroundTasks`: @mention in comment, task assignment, watcher on comment, watcher on task update
