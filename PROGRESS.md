@@ -35,7 +35,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- UI/UX improvements to TaskDetailPage (sticky header, sticky sidebar, status/priority popovers, cards, loading skeleton)
+- Phase 14: Timeline / Gantt view (TM-02) — not started
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

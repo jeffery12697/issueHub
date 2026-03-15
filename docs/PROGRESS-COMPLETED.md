@@ -423,3 +423,31 @@ _Completed: 2026-03-15_
 - [x] `TaskRepository.update()` — resets `overdue_notified = False` whenever `due_date` is changed
 - [x] `app/jobs/overdue.py` — daily cron at 08:00 Asia/Taipei: emails all assignees of newly-overdue tasks using `overdue_email()` template
 - [x] 6 tests: past-due found, future excluded, already-notified excluded, mark-notified works, update resets flag, no-due-date excluded
+
+---
+
+## UI/UX Improvements + Filter Operators + List Visibility Enforcement
+_Completed: 2026-03-15_
+
+### Task Detail Page Redesign
+- [x] Sticky header with breadcrumb (list name → task key), `sticky top-0 z-20 shadow-sm`
+- [x] Title and description in white card section
+- [x] Sticky sidebar (`sticky top-20 self-start`) with status/priority popovers (Linear-style)
+- [x] Per-priority `PRIORITY_CHIP` badge styling; status button uses inline color from status config
+- [x] Comments in card with bubble layout; history with color-coded dots per action type (`ACTION_DOT`)
+- [x] `LoadingSkeleton` component with `animate-pulse` divs replacing plain "Loading…"
+- [x] 403 Access Denied screen with go-back button for team-restricted tasks
+
+### FilterBar Component
+- [x] `frontend/src/components/FilterBar.tsx` — reusable inline filter chip builder
+- [x] `FilterRule` type: `{ id, field, op: 'eq'|'neq', value }`; `FilterField` type with optional `ops` restriction
+- [x] `ops.length === 1` renders static label instead of operator select
+- [x] Wired into `ListPage` (status + priority, both eq/neq) and `ProjectTasksPage` (list eq-only, priority eq/neq)
+- [x] Backend: `list_for_list` and `list_for_project` accept `status_ids_not` / `priorities_not` (SQLAlchemy `notin_`)
+- [x] Router query params `status_id_not` and `priority_not` parsed as comma-separated values
+
+### List Visibility Enforcement on Project & Task Endpoints
+- [x] `TaskService.list_for_project` computes `list_ids_allowed` for non-owner/admin users via `TeamRepository.get_user_team_ids`
+- [x] `TaskRepository.list_for_project` applies `.in_(list_ids_allowed)` constraint
+- [x] `GET /tasks/{task_id}` calls new `get_or_404_for_user` — checks workspace membership + list team restriction (403 if not in required team)
+- [x] Frontend `TaskDetailPage` handles 403 with locked-screen error state; retries disabled for 403/404
