@@ -969,7 +969,13 @@ function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Reco
             <div>
               <span className="font-medium text-slate-700">{log.actor_name}</span>{' '}
               <span className="text-slate-500 capitalize">{log.action.replace(/_/g, ' ')}</span>
-              {log.changes && !['link_added', 'link_removed'].includes(log.action) &&
+              {log.action === 'time_logged' && log.changes && (
+                <div className="text-slate-400 mt-0.5">
+                  {log.changes.duration_minutes} min
+                  {log.changes.note ? ` — ${log.changes.note}` : ''}
+                </div>
+              )}
+              {log.changes && !['link_added', 'link_removed', 'attachment_added', 'attachment_removed', 'time_logged'].includes(log.action) &&
                 Object.entries(log.changes).map(([field, val]) => (
                   <div key={field} className="text-slate-400 mt-0.5">
                     {renderChange(field, val)}

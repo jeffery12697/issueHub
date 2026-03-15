@@ -28,7 +28,10 @@ export function useLogTime(taskId: string) {
   return useMutation({
     mutationFn: (data: { duration_minutes: number; note?: string }) =>
       apiClient.post<TimeEntry>(`/tasks/${taskId}/time-entries`, data).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['time-entries', taskId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['time-entries', taskId] })
+      qc.invalidateQueries({ queryKey: ['audit', taskId] })
+    },
   })
 }
 

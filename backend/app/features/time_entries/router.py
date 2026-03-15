@@ -5,6 +5,7 @@ from app.core.database import get_session
 from app.core.security import get_current_user
 from app.features.time_entries.repository import TimeEntryRepository
 from app.features.time_entries.schemas import LogTimeRequest, TimeEntryResponse, TimeEntrySummaryResponse
+from app.features.audit.repository import AuditRepository
 from app.models.user import User
 
 router = APIRouter(tags=["time_entries"])
@@ -18,6 +19,13 @@ async def log_time(
 ):
     repo = TimeEntryRepository(session)
     entry = await repo.create(task_id, current_user.id, body.duration_minutes, body.note)
+    audit = AuditRepository(session)
+    await audit.log(
+        task_id=task_id,
+        actor_id=current_user.id,
+        action="time_logged",
+        changes={"duration_minutes": body.duration_minutes, "note": body.note},
+    )
     await session.commit()
     return TimeEntryResponse.model_validate(entry)
 
