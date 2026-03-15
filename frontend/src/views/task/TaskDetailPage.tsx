@@ -53,9 +53,14 @@ export default function TaskDetailPage() {
 
   useTaskSocket(taskId)
 
-  const { data: task, isLoading } = useQuery({
+  const { data: task, isLoading, error } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => tasksApi.get(taskId!),
+    retry: (failureCount, err: any) => {
+      const status = err?.response?.status
+      if (status === 403 || status === 404) return false
+      return failureCount < 2
+    },
   })
 
   const { data: list } = useQuery({
@@ -193,6 +198,16 @@ export default function TaskDetailPage() {
   })
 
   if (isLoading) return <LoadingSkeleton />
+
+  const errorStatus = (error as any)?.response?.status
+  if (errorStatus === 403) return (
+    <div className="flex flex-col items-center justify-center h-screen gap-3">
+      <span className="text-4xl">🔒</span>
+      <p className="text-slate-700 font-semibold">Access denied</p>
+      <p className="text-slate-400 text-sm">You don't have permission to view this task.</p>
+      <button onClick={() => navigate(-1)} className="mt-2 text-sm text-violet-600 hover:underline">Go back</button>
+    </div>
+  )
   if (!task) return (
     <div className="flex items-center justify-center h-screen text-slate-400 text-sm">Task not found</div>
   )

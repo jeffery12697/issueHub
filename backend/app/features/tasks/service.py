@@ -78,6 +78,26 @@ class TaskService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
         return task
 
+    async def get_or_404_for_user(self, task_id: UUID, user_id: UUID) -> Task:
+        """Fetch task and enforce workspace membership + list visibility."""
+        task = await self.get_or_404(task_id)
+        ws_member = await self.workspace_repo.get_member(task.workspace_id, user_id)
+        if not ws_member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a workspace member")
+        # Owners and admins can see all lists
+        if ws_member.role in {WorkspaceRole.owner, WorkspaceRole.admin}:
+            return task
+        # Check list visibility (team restriction)
+        if task.list_id and self.team_repo is not None:
+            list_ = await self.list_repo.get_by_id(task.list_id)
+            if list_ and list_.team_ids:
+                user_team_ids = set(
+                    await self.team_repo.get_user_team_ids(task.workspace_id, user_id)
+                )
+                if not (user_team_ids & set(list_.team_ids)):
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed to view this task")
+        return task
+
     async def list_for_list(
         self,
         list_id: UUID,

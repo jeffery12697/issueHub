@@ -275,7 +275,7 @@ async def get_task(
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
-    task = await service.get_or_404(task_id)
+    task = await service.get_or_404_for_user(task_id, current_user.id)
     return TaskResponse.model_validate(task)
 
 
