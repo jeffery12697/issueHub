@@ -8,10 +8,10 @@ from app.core.config import settings
 _PRESIGN_EXPIRY = 3600  # 1 hour
 
 
-def _client():
+def _client(endpoint_url: str | None = None):
     return boto3.client(
         "s3",
-        endpoint_url=settings.s3_endpoint_url,
+        endpoint_url=endpoint_url or settings.s3_endpoint_url,
         aws_access_key_id=settings.s3_access_key,
         aws_secret_access_key=settings.s3_secret_key,
         config=Config(signature_version="s3v4"),
@@ -42,13 +42,14 @@ def delete_file(key: str) -> None:
 
 
 def presigned_url(key: str) -> str:
-    """Return a time-limited download URL for the given key."""
-    # Build presigned URL then swap internal endpoint for public URL
-    s3 = _client()
-    url = s3.generate_presigned_url(
+    """Return a time-limited download URL signed against the public endpoint.
+
+    The presigned URL must be signed with the same host the browser will use,
+    otherwise MinIO rejects it with SignatureDoesNotMatch.
+    """
+    s3 = _client(endpoint_url=settings.s3_public_url)
+    return s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.s3_bucket, "Key": key},
         ExpiresIn=_PRESIGN_EXPIRY,
     )
-    # Replace internal MinIO host with the browser-accessible one
-    return url.replace(settings.s3_endpoint_url, settings.s3_public_url)
