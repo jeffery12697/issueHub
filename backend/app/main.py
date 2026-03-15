@@ -1,10 +1,12 @@
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
 
 from app.core.config import settings
+from app.core.email import send_email
 from app.features.auth.router import router as auth_router
 from app.features.auth.dev import router as dev_router
 from app.features.workspaces.router import router as workspaces_router
@@ -71,3 +73,22 @@ app.include_router(websocket_router)
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+class MailTestRequest(BaseModel):
+    to: EmailStr
+    subject: str = "IssueHub — test email"
+    body: str = "If you can read this, email delivery is working."
+
+
+@app.post("/api/v1/dev/mail/test")
+async def test_mail(payload: MailTestRequest, background_tasks: BackgroundTasks):
+    html = f"<p>{payload.body}</p>"
+    background_tasks.add_task(send_email, to=payload.to, subject=payload.subject, html=html)
+    return {
+        "queued": True,
+        "to": payload.to,
+        "mail_enabled": settings.mail_enabled,
+        "mail_server": settings.mail_server,
+        "mail_port": settings.mail_port,
+    }
