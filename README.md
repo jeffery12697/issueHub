@@ -13,12 +13,13 @@ A full-featured project management and issue tracking system inspired by ClickUp
 - Promote subtask to top-level task
 - Move tasks between lists
 - Bulk update (status, priority) and bulk delete
+- File attachments on tasks and comments (stored in MinIO / S3)
 
 ### Views
-- **List view** — sortable table with filters, pagination, bulk selection, CSV export
+- **List view** — sortable table with filters (is / is-not operators), pagination, bulk selection, CSV export
 - **Board view** — kanban drag-and-drop columns by status
 - **My Tasks** — cross-list view of tasks assigned to the current user
-- **Project Tasks** — cross-list view of all tasks in a project with filters
+- **Project Tasks** — cross-list view of all tasks in a project with advanced filters
 - **Workload** — per-member open task count and story points
 - **Analytics** — task breakdown by status with story point totals (workspace and project level)
 
@@ -36,11 +37,18 @@ A full-featured project management and issue tracking system inspired by ClickUp
 ### Collaboration
 - Multi-assignee and reviewer per task
 - Real-time updates via WebSocket (Redis Pub/Sub)
-- In-app notifications: @mentions, assignee changes, task updates
+- In-app notifications: @mentions, assignee changes, task updates, watchers
 - Task watchers
-- Rich text comments with @mention autocomplete
+- Rich text comments and descriptions — bold/italic/lists/headings/tables/images/text color/font size/highlight with @mention autocomplete
 - Task links (external URLs)
 - Full audit trail of all field changes
+
+### Notifications & Email
+- In-app notification feed with unread badge
+- Notification preferences: immediate or daily digest
+- Daily digest email summarizing unread notifications
+- Overdue task email notifications (daily background job)
+- Email invites to workspaces
 
 ### Automation
 - Trigger-action rules scoped to a list
@@ -50,13 +58,15 @@ A full-featured project management and issue tracking system inspired by ClickUp
 ### Organization
 - Workspaces → Projects → Lists → Tasks hierarchy
 - Teams with roles (team admin / team member)
-- List visibility restricted by team
+- List visibility restricted by team — enforced on all task fetch endpoints
 - Workspace roles: owner, admin, member
+- Email-based workspace invites
 
 ### Access Control
 - Workspace settings (members, teams, templates) — owner/admin only
 - List settings (statuses, custom fields, automations, visibility) — owner/admin only
 - Task CRUD — all workspace members
+- Team-restricted lists: only members of the assigned team (plus owner/admin) can view tasks
 
 ---
 
@@ -72,6 +82,9 @@ A full-featured project management and issue tracking system inspired by ClickUp
 | Real-time | WebSocket + Redis Pub/Sub |
 | Auth | Google OAuth 2.0 + JWT (access + refresh tokens) |
 | Rich Text | Tiptap |
+| File Storage | MinIO (S3-compatible) |
+| Email | SMTP (Mailtrap for dev, any SMTP provider for prod) |
+| Background Jobs | APScheduler (overdue notifications, digest emails) |
 
 ---
 
@@ -127,6 +140,15 @@ GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
 
 FRONTEND_URL=http://localhost:5173
 ALLOW_DEV_LOGIN=true
+
+# Email (optional — set MAIL_ENABLED=true to send real emails)
+MAIL_SERVER=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_SENDER_NAME=IssueHub
+MAIL_SENDER_EMAIL=noreply@issuehub.app
+MAIL_USERNAME=your-mailtrap-username
+MAIL_PASSWORD=your-mailtrap-password
+MAIL_ENABLED=false
 ```
 
 ### 2. Start all services
@@ -140,6 +162,7 @@ docker compose up --build
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:8000 |
 | API docs (Swagger) | http://localhost:8000/docs |
+| MinIO console | http://localhost:9001 |
 
 ### 3. Run database migrations
 
@@ -161,7 +184,7 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend pytest
 ```
 
-The test suite uses a separate in-memory SQLite-compatible setup with automatic table truncation between tests. All ~150 tests should pass.
+The test suite uses a separate in-memory SQLite-compatible setup with automatic table truncation between tests.
 
 ---
 
@@ -179,6 +202,17 @@ The test suite uses a separate in-memory SQLite-compatible setup with automatic 
 | `GOOGLE_REDIRECT_URI` | OAuth callback URL | — |
 | `FRONTEND_URL` | Allowed CORS origin | `http://localhost:5173` |
 | `ALLOW_DEV_LOGIN` | Enable dev login endpoint | `true` |
+| `MAIL_SERVER` | SMTP host | — |
+| `MAIL_PORT` | SMTP port | `587` |
+| `MAIL_USERNAME` | SMTP username | — |
+| `MAIL_PASSWORD` | SMTP password | — |
+| `MAIL_SENDER_EMAIL` | From address | — |
+| `MAIL_ENABLED` | Actually send emails | `false` |
+| `S3_ENDPOINT_URL` | MinIO / S3 endpoint (internal) | `http://minio:9000` |
+| `S3_ACCESS_KEY` | S3 access key | `issuehub` |
+| `S3_SECRET_KEY` | S3 secret key | — |
+| `S3_BUCKET` | Attachments bucket name | `issuehub-attachments` |
+| `S3_PUBLIC_URL` | Public presigned URL base | `http://localhost:9000` |
 
 ---
 
@@ -194,8 +228,9 @@ All endpoints are prefixed with `/api/v1`. Interactive docs available at `/docs`
 | Projects | `GET/POST /workspaces/{id}/projects`, `PATCH/DELETE /projects/{id}`, analytics |
 | Lists | `GET/POST /projects/{id}/lists`, statuses, custom fields, automations, visibility |
 | Tasks | `GET/POST /lists/{id}/tasks`, `GET/PATCH/DELETE /tasks/{id}`, subtasks, move, promote, bulk ops, export |
-| Task detail | Dependencies, links, comments, time entries, watchers, audit log |
+| Task detail | Dependencies, links, comments, attachments, time entries, watchers, audit log |
 | Teams | `GET/POST/DELETE /workspaces/{id}/teams`, team members |
 | Templates | `GET/POST/PATCH/DELETE /workspaces/{id}/list-templates` |
-| Notifications | `GET /notifications`, mark read, unread count |
+| Invites | `POST /workspaces/{id}/invites`, `POST /invites/{token}/accept` |
+| Notifications | `GET /notifications`, mark read, unread count, preferences |
 | WebSocket | `ws://localhost:8000/ws/tasks/{id}`, `/ws/lists/{id}` |
