@@ -26,16 +26,17 @@
 | **Phase 12** | ✅ Done | AU-01 | Advanced automation — trigger-action rules (AU-04 deferred: needs Git webhook infra) |
 | **Phase 13** | ✅ Done | M-02, N-02, AU-02 | Email invites, notification digest, overdue task notifications |
 | **Phase 14** | 🔲 Not started | TM-02 | Timeline / Gantt view |
+| **Phase 15** | ✅ Done | AU-04 | Git webhook: GitHub PR / GitLab MR open → link task, merge → close task |
 
 ### Deferred
 
 | Story | Blocked by | Description |
 |-------|-----------|-------------|
-| AU-04 | Git webhook infra | Close task via Git commit keyword (`closes #id`) — needs a webhook endpoint + shared secret + GitHub/GitLab integration |
+| TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 14: Timeline / Gantt view (TM-02) — not started
+- Phase 15: AU-04 Git webhook — completed
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

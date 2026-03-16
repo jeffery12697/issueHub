@@ -41,6 +41,7 @@ issueHub/
 | `docs/PROJECT_STRUCTURE.md` | Canonical folder tree for backend + frontend |
 | `docs/EMAIL.md` | Email provider (Resend), transactional email helpers, templates, BackgroundTasks integration |
 | `docs/BACKGROUND_JOBS.md` | APScheduler setup, overdue task job (AU-02), notification digest job (N-02) |
+| `docs/WEBHOOK.md` | Git webhook integration (AU-04): GitHub/GitLab push events, commit keyword task-close |
 
 ## User Story Reference (read on demand)
 

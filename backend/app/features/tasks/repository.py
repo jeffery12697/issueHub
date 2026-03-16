@@ -65,6 +65,14 @@ class TaskRepository:
         await self.session.flush()
         return task
 
+    async def get_by_task_key(self, task_key: str) -> Task | None:
+        result = await self.session.execute(
+            select(Task)
+            .where(Task.task_key == task_key)
+            .where(Task.deleted_at.is_(None))
+        )
+        return result.scalar_one_or_none()
+
     async def get_by_id(self, task_id: UUID) -> Task | None:
         result = await self.session.execute(
             select(Task)

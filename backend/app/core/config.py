@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     s3_bucket: str = "issuehub-attachments"
     s3_public_url: str = "http://localhost:9000"  # used to build presigned URLs visible to browser
 
+    # Git webhook
+    webhook_secret: str = ""  # Set WEBHOOK_SECRET in production
+
     # Dev
     allow_dev_login: bool = True  # Set ALLOW_DEV_LOGIN=false in production
 

@@ -27,6 +27,7 @@ from app.features.watchers.router import router as watchers_router
 from app.features.time_entries.router import router as time_entries_router
 from app.features.automations.router import router as automations_router
 from app.features.attachments.router import router as attachments_router
+from app.features.webhooks.router import router as webhooks_router
 from app.core.scheduler import scheduler
 from app.core import storage
 from app.jobs.overdue import check_overdue_tasks
@@ -80,6 +81,7 @@ app.include_router(watchers_router, prefix="/api/v1")
 app.include_router(time_entries_router, prefix="/api/v1")
 app.include_router(automations_router, prefix="/api/v1")
 app.include_router(attachments_router, prefix="/api/v1")
+app.include_router(webhooks_router)
 app.include_router(websocket_router)
 
 
