@@ -1,6 +1,20 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { listsApi, type ListStatus } from '@/api/lists'
 import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType, type FieldDefinition } from '@/api/customFields'
 import { useTeams } from '@/api/teams'
@@ -119,6 +133,35 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
     onSuccess: invalidate,
   })
 
+  const reorderStatus = useMutation({
+    mutationFn: ({ statusId, beforeId, afterId }: { statusId: string; beforeId?: string; afterId?: string }) =>
+      listsApi.reorderStatus(listId, statusId, { before_id: beforeId, after_id: afterId }),
+    onSuccess: invalidate,
+  })
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const ids = statuses.map((s) => s.id)
+    const oldIdx = ids.indexOf(active.id as string)
+    const newIdx = ids.indexOf(over.id as string)
+    if (oldIdx === -1 || newIdx === -1) return
+
+    // Determine before_id / after_id relative to the drop position
+    const reordered = [...ids]
+    reordered.splice(oldIdx, 1)
+    reordered.splice(newIdx, 0, active.id as string)
+
+    const pos = reordered.indexOf(active.id as string)
+    const beforeId = pos > 0 ? reordered[pos - 1] : undefined
+    const afterId = pos < reordered.length - 1 ? reordered[pos + 1] : undefined
+
+    reorderStatus.mutate({ statusId: active.id as string, beforeId, afterId })
+  }
+
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
       <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
@@ -128,16 +171,20 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
       {statuses.length === 0 ? (
         <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No statuses yet.</p>
       ) : (
-        <div className="space-y-2 mb-6">
-          {statuses.map((status) => (
-            <StatusRow
-              key={status.id}
-              status={status}
-              onUpdate={(data) => updateStatus.mutate({ statusId: status.id, data })}
-              onDelete={() => deleteStatus.mutate(status.id)}
-            />
-          ))}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={statuses.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2 mb-6">
+              {statuses.map((status) => (
+                <StatusRow
+                  key={status.id}
+                  status={status}
+                  onUpdate={(data) => updateStatus.mutate({ statusId: status.id, data })}
+                  onDelete={() => deleteStatus.mutate(status.id)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
@@ -188,8 +235,35 @@ function StatusRow({
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(status.name)
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: status.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
   return (
-    <div className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors bg-white dark:bg-slate-900"
+    >
+      {/* drag handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 cursor-grab active:cursor-grabbing touch-none"
+        tabIndex={-1}
+        aria-label="Drag to reorder"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/>
+          <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+          <circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/>
+        </svg>
+      </button>
+
       <input
         type="color"
         value={status.color}
