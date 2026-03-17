@@ -38,6 +38,9 @@
 ## Currently Working On
 - Phase 14: Timeline / Gantt view (TM-02) — not started
 
+## Recently Completed (outside phases)
+- Group by status toggle for List view and Project view (frontend-only, no backend changes)
+
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
 - Completed tasks are logged in `docs/PROGRESS-COMPLETED.md`

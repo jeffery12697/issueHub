@@ -482,3 +482,19 @@ _Completed: 2026-03-15_
 - [x] `TaskRepository.list_for_project` applies `.in_(list_ids_allowed)` constraint
 - [x] `GET /tasks/{task_id}` calls new `get_or_404_for_user` — checks workspace membership + list team restriction (403 if not in required team)
 - [x] Frontend `TaskDetailPage` handles 403 with locked-screen error state; retries disabled for 403/404
+
+---
+
+## UI: Group by Status — List & Project Views
+_Completed: 2026-03-17_
+
+### Features
+- [x] "⊞ Group by status" toggle button in `ListPage` toolbar (between Export CSV and + New task)
+- [x] "⊞ Group by status" toggle button in `ProjectTasksPage` header (top-right)
+- [x] Active state: violet tinted button; inactive: bordered/default
+- [x] `displayGroups` computed from fetched tasks — frontend-only, no backend changes
+- [x] Group header row: colored dot + status name (uppercase) + task count badge
+- [x] `ListPage`: groups ordered by list's status `order_index`; parents come first within each group, subtasks follow
+- [x] `ProjectTasksPage`: groups ordered by status definition order across all lists; no subtask reordering
+- [x] "No Status" group appended at end for tasks with `status_id = null`
+- [x] Table rendered via `displayGroups.flatMap(...)` — single task row template used in both flat and grouped modes
