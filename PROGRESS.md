@@ -27,6 +27,7 @@
 | **Phase 13** | ✅ Done | M-02, N-02, AU-02 | Email invites, notification digest, overdue task notifications |
 | **Phase 14** | 🔲 Not started | TM-02 | Timeline / Gantt view |
 | **Phase 15** | ✅ Done | AU-04 | Git webhook: GitHub PR / GitLab MR open → link task, merge → close task |
+| **Phase 16** | 🔲 Not started | F-01, F-02, F-03 | Global search, saved views, group-by (assignee / priority / status) |
 
 ### Deferred
 
@@ -44,4 +45,4 @@
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
 - Completed tasks are logged in `docs/PROGRESS-COMPLETED.md`
-- Story reference: `docs/stories/` — TM, AU, N stories added 2026-03-13
+- Story reference: `docs/stories/` — TM, AU, N stories added 2026-03-13; F stories added 2026-03-17
