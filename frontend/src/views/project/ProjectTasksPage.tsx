@@ -204,32 +204,32 @@ export default function ProjectTasksPage() {
   function resetPage() { setPage(1) }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-4">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-4">
+        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
         {workspace && (
           <>
-            <span className="text-slate-200 shrink-0">/</span>
+            <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
             <Link
               to={`/workspaces/${workspace.id}`}
-              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
             >
               {workspace.name}
             </Link>
           </>
         )}
-        <span className="text-slate-200 shrink-0">/</span>
-        <span className="text-sm font-semibold text-slate-800 truncate max-w-[160px]">{project?.name}</span>
+        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">{project?.name}</span>
         <nav className="flex items-center gap-1 ml-2">
           <Link
             to={`/projects/${projectId}`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 text-violet-700"
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
           >
             All Tasks
           </Link>
           <Link
             to={`/projects/${projectId}/analytics`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             Analytics
           </Link>
@@ -242,8 +242,8 @@ export default function ProjectTasksPage() {
       <main className="max-w-5xl mx-auto py-8 px-6">
         <div className="mb-5 flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">{project?.name}</h2>
-            <p className="text-sm text-slate-400 mt-0.5">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{project?.name}</h2>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">
               {total} task{total !== 1 ? 's' : ''}
               {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
             </p>
@@ -256,8 +256,8 @@ export default function ProjectTasksPage() {
                 onChange={(e) => setGroupBy(e.target.value as GroupBy)}
                 className={`h-9 appearance-none pl-3 pr-7 rounded-lg text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
                   groupBy !== 'none'
-                    ? 'border-violet-300 bg-violet-50 text-violet-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    ? 'border-violet-300 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <option value="none">⊞ Group by…</option>
@@ -273,8 +273,8 @@ export default function ProjectTasksPage() {
                 onClick={() => setShowViewsPanel((v) => !v)}
                 className={`border text-sm px-3 py-2 rounded-lg transition-colors font-medium flex items-center gap-1.5 ${
                   showViewsPanel
-                    ? 'bg-violet-100 text-violet-700 border-violet-300'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 📋 Views
@@ -285,33 +285,33 @@ export default function ProjectTasksPage() {
                 )}
               </button>
               {showViewsPanel && (
-                <div className="absolute right-0 mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
+                <div className="absolute right-0 mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
                   {savedViews.length === 0 && (
-                    <p className="text-xs text-slate-400 px-1 pb-1">No saved views yet.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 px-1 pb-1">No saved views yet.</p>
                   )}
                   {savedViews.map((v) => (
                     <div key={v.id} className="flex items-center gap-2 group">
                       <button
                         onClick={() => applyView(v)}
-                        className="flex-1 text-left text-sm text-slate-700 hover:text-violet-600 font-medium truncate py-1"
+                        className="flex-1 text-left text-sm text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 font-medium truncate py-1"
                       >
                         {v.name}
                       </button>
                       <button
                         onClick={() => deleteView.mutate(v.id)}
-                        className="text-slate-300 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-300 dark:text-slate-600 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-all"
                       >
                         ✕
                       </button>
                     </div>
                   ))}
-                  <div className="border-t border-slate-100 pt-2 flex gap-2">
+                  <div className="border-t border-slate-100 dark:border-slate-800 pt-2 flex gap-2">
                     <input
                       value={newViewName}
                       onChange={(e) => setNewViewName(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter' && newViewName.trim()) createView.mutate(newViewName.trim()) }}
                       placeholder="View name…"
-                      className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="flex-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                     />
                     <button
                       onClick={() => { if (newViewName.trim()) createView.mutate(newViewName.trim()) }}
@@ -364,39 +364,39 @@ export default function ProjectTasksPage() {
 
         {/* Table */}
         {isLoading ? (
-          <p className="text-slate-400 text-sm">Loading...</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm">Loading...</p>
         ) : tasks.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
-            <p className="text-slate-700 font-medium mb-1">No tasks found</p>
-            <p className="text-slate-400 text-sm">
+          <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+            <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No tasks found</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">
               {hasFilters ? 'Try adjusting your filters.' : 'Tasks in this project will appear here.'}
             </p>
           </div>
         ) : (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">List</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Assignees</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviewer</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Date</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">List</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Assignees</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reviewer</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Due Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {displayGroups.flatMap(({ groupKey, groupLabel, groupColor, tasks: groupTasks, showHeader }) => {
                   const rows = []
                   if (showHeader) {
                     rows.push(
-                      <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80">
-                        <td colSpan={7} className="px-4 py-2.5 border-b border-slate-100">
+                      <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80 dark:bg-slate-800/80">
+                        <td colSpan={7} className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
-                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{groupLabel}</span>
-                            <span className="text-[11px] font-medium text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{groupLabel}</span>
+                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
                           </div>
                         </td>
                       </tr>
@@ -406,20 +406,20 @@ export default function ProjectTasksPage() {
                     const list = task.list_id ? listMap[task.list_id] : null
                     const status = task.status_id ? statusMap[task.status_id] : null
                     rows.push(
-                      <tr key={task.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={task.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         {/* Title */}
                         <td className={`px-4 py-3 ${task.parent_task_id ? 'pl-10' : ''}`}>
                           {task.parent_task_id && (
-                            <div className="text-xs text-slate-300 mb-0.5">↳</div>
+                            <div className="text-xs text-slate-300 dark:text-slate-600 mb-0.5">↳</div>
                           )}
                           {task.task_key && (
-                            <span className="text-[11px] font-mono font-semibold text-slate-400 block mb-0.5">
+                            <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 block mb-0.5">
                               {task.task_key}
                             </span>
                           )}
                           <button
                             onClick={() => navigate(`/tasks/${task.id}`)}
-                            className="text-left font-semibold text-slate-800 hover:text-violet-600 transition-colors"
+                            className="text-left font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
                           >
                             {task.title}
                           </button>
@@ -435,7 +435,7 @@ export default function ProjectTasksPage() {
                               {list.name}
                             </Link>
                           ) : (
-                            <span className="text-slate-300 text-sm">—</span>
+                            <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
                           )}
                         </td>
 
@@ -449,13 +449,13 @@ export default function ProjectTasksPage() {
                               {status.name}
                             </span>
                           ) : (
-                            <span className="text-slate-300 text-sm">—</span>
+                            <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
                           )}
                         </td>
 
                         {/* Priority */}
                         <td className="px-4 py-3">
-                          <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
+                          <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600 dark:text-slate-400">
                             <span
                               className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                               style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
@@ -498,14 +498,14 @@ export default function ProjectTasksPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-400 dark:text-slate-500">
               Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 ← Prev
               </button>
@@ -518,7 +518,7 @@ export default function ProjectTasksPage() {
                     className={`w-8 h-8 text-sm rounded-lg border transition-colors ${
                       p === page
                         ? 'bg-violet-600 text-white border-violet-600'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     {p}
@@ -528,7 +528,7 @@ export default function ProjectTasksPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Next →
               </button>
@@ -546,7 +546,7 @@ function Avatar({ member, title }: { member: Member; title?: string }) {
   return (
     <span
       title={`${title ? title + ': ' : ''}${member.display_name}`}
-      className="inline-flex w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold items-center justify-center border-2 border-white shadow-sm select-none"
+      className="inline-flex w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm select-none"
     >
       {member.display_name[0].toUpperCase()}
     </span>

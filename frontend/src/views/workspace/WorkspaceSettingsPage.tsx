@@ -59,40 +59,40 @@ export default function WorkspaceSettingsPage() {
 
   if (members.length > 0 && !canManageSettings) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3">
           <Link
             to={`/workspaces/${workspaceId}`}
-            className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
           >
             ← Back
           </Link>
-          <span className="text-slate-300">/</span>
-          <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
-          <span className="text-slate-300">/</span>
-          <span className="text-sm font-medium text-slate-500">Settings</span>
+          <span className="text-slate-300 dark:text-slate-600">/</span>
+          <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{workspace?.name}</span>
+          <span className="text-slate-300 dark:text-slate-600">/</span>
+          <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Settings</span>
         </header>
         <main className="max-w-3xl mx-auto py-20 px-6 text-center">
-          <p className="text-slate-700 font-semibold text-lg mb-2">Access denied</p>
-          <p className="text-slate-400 text-sm">Only workspace owners and admins can manage settings.</p>
+          <p className="text-slate-700 dark:text-slate-300 font-semibold text-lg mb-2">Access denied</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm">Only workspace owners and admins can manage settings.</p>
         </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3">
         <Link
           to={`/workspaces/${workspaceId}`}
-          className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
         >
           ← Back
         </Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-800">{workspace?.name}</span>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-500">Settings</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{workspace?.name}</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Settings</span>
         <div className="ml-auto"><HeaderActions /></div>
       </header>
 
@@ -106,7 +106,7 @@ export default function WorkspaceSettingsPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize ${
                 activeTab === tab
                   ? 'bg-violet-600 text-white'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               {tab}
@@ -123,7 +123,7 @@ export default function WorkspaceSettingsPage() {
         {activeTab === 'templates' && (
           <>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">List Templates</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">List Templates</h2>
               <button
                 onClick={() => setShowNewTemplate(true)}
                 className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
@@ -134,7 +134,7 @@ export default function WorkspaceSettingsPage() {
 
             {showNewTemplate && (
               <form
-                className="mb-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3"
+                className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault()
                   if (!templateName.trim()) return
@@ -156,12 +156,12 @@ export default function WorkspaceSettingsPage() {
                     value={templateName}
                     onChange={(e) => setTemplateName(e.target.value)}
                     placeholder="Template name"
-                    className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                   />
                   <select
                     value={templatePreset}
                     onChange={(e) => setTemplatePreset(e.target.value)}
-                    className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   >
                     {Object.keys(PRESET_STATUSES).map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -187,7 +187,7 @@ export default function WorkspaceSettingsPage() {
             )}
 
             {templates.length === 0 ? (
-              <p className="text-slate-400 text-sm">No templates yet.</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm">No templates yet.</p>
             ) : (
               <div className="space-y-3">
                 {templates.map((t: ListTemplate) => (
@@ -270,20 +270,20 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="space-y-6">
       {/* Add member by email */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Add Member</p>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Member</p>
         <form onSubmit={handleSearch} className="flex gap-2 mb-3">
           <input
             type="email"
             value={searchEmail}
             onChange={(e) => { setSearchEmail(e.target.value); setSearchResult(undefined); setInviteSent(false) }}
             placeholder="Search by email"
-            className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
           />
           <button
             type="submit"
             disabled={searching}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+            className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
           >
             {searching ? 'Searching…' : 'Search'}
           </button>
@@ -297,15 +297,15 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
 
         {/* User not found — offer email invite */}
         {searchResult === null && !inviteSent && (
-          <div className="p-3 bg-slate-50 rounded-lg space-y-2">
-            <p className="text-sm text-slate-600">
+          <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-2">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               No account found for <strong>{searchEmail}</strong>. Send them an invite email?
             </p>
             <div className="flex items-center gap-2">
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
-                className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 {WORKSPACE_ROLES.map((r) => (
                   <option key={r} value={r} className="capitalize">{r}</option>
@@ -324,10 +324,10 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
 
         {/* User found */}
         {searchResult && (
-          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-800">{searchResult.display_name}</p>
-              <p className="text-xs text-slate-400">{searchResult.email}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{searchResult.display_name}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{searchResult.email}</p>
             </div>
             {alreadyMember ? (
               <span className="text-xs text-slate-400">Already a member</span>
@@ -336,7 +336,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 >
                   {WORKSPACE_ROLES.map((r) => (
                     <option key={r} value={r} className="capitalize">{r}</option>
@@ -355,22 +355,22 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
       </div>
 
       {/* Current members list */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">
           Members ({members.length})
         </p>
         <div className="space-y-2">
           {members.map((m) => (
-            <div key={m.user_id} className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100">
+            <div key={m.user_id} className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800">
               <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold flex items-center justify-center shrink-0">
                 {m.display_name[0]?.toUpperCase()}
               </div>
-              <span className="flex-1 text-sm font-medium text-slate-700">{m.display_name}</span>
+              <span className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-300">{m.display_name}</span>
               <select
                 value={m.role}
                 onChange={(e) => updateRole.mutate({ userId: m.user_id, role: e.target.value })}
                 disabled={m.role === 'owner'}
-                className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300"
               >
                 {WORKSPACE_ROLES.map((r) => (
                   <option key={r} value={r} className="capitalize">{r}</option>
@@ -379,7 +379,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
               {m.role !== 'owner' && (
                 <button
                   onClick={() => removeMember.mutate(m.user_id)}
-                  className="text-xs text-slate-300 hover:text-red-400 transition-colors"
+                  className="text-xs text-slate-300 dark:text-slate-600 hover:text-red-400 transition-colors"
                 >
                   Remove
                 </button>
@@ -406,7 +406,7 @@ function TeamsTab({ workspaceId }: { workspaceId: string }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-slate-900">Teams</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Teams</h2>
       </div>
 
       {/* Create team form */}
@@ -425,7 +425,7 @@ function TeamsTab({ workspaceId }: { workspaceId: string }) {
           value={newTeamName}
           onChange={(e) => setNewTeamName(e.target.value)}
           placeholder="New team name"
-          className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
         />
         <button
           type="submit"
@@ -484,10 +484,10 @@ function TeamCard({
   const availableMembers = wsMembers.filter((m) => !memberUserIds.has(m.user_id))
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="flex-1 text-sm font-semibold text-slate-800">{team.name}</span>
-        <span className="text-xs text-slate-400">{members.length} member{members.length !== 1 ? 's' : ''}</span>
+        <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-200">{team.name}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{members.length} member{members.length !== 1 ? 's' : ''}</span>
         <button
           onClick={onToggle}
           className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
@@ -502,21 +502,21 @@ function TeamCard({
       </div>
 
       {expanded && (
-        <div className="border-t border-slate-100 px-4 py-3 space-y-3">
+        <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 space-y-3">
           {/* Member list */}
           {members.length === 0 ? (
-            <p className="text-xs text-slate-400">No members yet.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">No members yet.</p>
           ) : (
             <div className="space-y-1.5">
               {members.map((m) => (
-                <div key={m.user_id} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-slate-50">
-                  <span className="flex-1 text-sm text-slate-700">{m.display_name}</span>
-                  <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                <div key={m.user_id} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-slate-50 dark:bg-slate-800">
+                  <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{m.display_name}</span>
+                  <span className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">
                     {m.role === 'team_admin' ? 'Admin' : 'Member'}
                   </span>
                   <button
                     onClick={() => removeMember.mutate(m.user_id)}
-                    className="text-xs text-slate-300 hover:text-red-400 transition-colors"
+                    className="text-xs text-slate-300 dark:text-slate-600 hover:text-red-400 transition-colors"
                   >
                     Remove
                   </button>
@@ -541,7 +541,7 @@ function TeamCard({
               <select
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
-                className="flex-1 border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 <option value="">Add member…</option>
                 {availableMembers.map((m) => (
@@ -553,7 +553,7 @@ function TeamCard({
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
-                className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 <option value="team_member">Member</option>
                 <option value="team_admin">Admin</option>
@@ -691,7 +691,7 @@ function TemplateCard({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3 mb-2">
         {editingName ? (
           <input
@@ -700,11 +700,11 @@ function TemplateCard({
             onChange={(e) => setNameValue(e.target.value)}
             onBlur={handleNameBlur}
             onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-            className="flex-1 border border-violet-400 rounded-lg px-2 py-1 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 border border-violet-400 rounded-lg px-2 py-1 text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800"
           />
         ) : (
           <button
-            className="text-sm font-medium text-slate-800 hover:text-violet-700 transition-colors text-left"
+            className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-violet-700 dark:hover:text-violet-400 transition-colors text-left"
             onClick={() => { setEditingName(true); setNameValue(template.name) }}
           >
             {template.name}
@@ -713,13 +713,13 @@ function TemplateCard({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setShowStatusEditor((v) => !v)}
-            className="text-xs text-slate-500 hover:text-violet-600 transition-colors font-medium"
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors font-medium"
           >
             {showStatusEditor ? 'Hide statuses' : 'Edit statuses'}
           </button>
           <button
             onClick={() => setShowFieldEditor((v) => !v)}
-            className="text-xs text-slate-500 hover:text-violet-600 transition-colors font-medium"
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors font-medium"
           >
             {showFieldEditor ? 'Hide fields' : 'Edit fields'}
           </button>
@@ -756,10 +756,10 @@ function TemplateCard({
           (template.default_custom_fields ?? []).map((f, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
             >
               {f.name}
-              <span className="text-slate-400">{f.field_type}</span>
+              <span className="text-slate-400 dark:text-slate-500">{f.field_type}</span>
             </span>
           ))
         )}
@@ -767,23 +767,23 @@ function TemplateCard({
 
       {/* Inline status editor */}
       {showStatusEditor && (
-        <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">
+        <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2">
           {statuses.map((s) => (
             <div key={s._key} className="flex items-center gap-2">
               <input
                 type="color"
                 value={s.color}
                 onChange={(e) => handleStatusChange(s._key, 'color', e.target.value)}
-                className="w-7 h-7 rounded cursor-pointer border border-slate-200 p-0.5"
+                className="w-7 h-7 rounded cursor-pointer border border-slate-200 dark:border-slate-700 p-0.5"
                 title="Status color"
               />
               <input
                 value={s.name}
                 onChange={(e) => handleStatusChange(s._key, 'name', e.target.value)}
-                className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 placeholder="Status name"
               />
-              <label className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+              <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 shrink-0">
                 <input
                   type="checkbox"
                   checked={s.is_complete}
@@ -794,7 +794,7 @@ function TemplateCard({
               </label>
               <button
                 onClick={() => handleDeleteStatus(s._key)}
-                className="text-slate-300 hover:text-red-400 text-xs transition-colors shrink-0"
+                className="text-slate-300 dark:text-slate-600 hover:text-red-400 text-xs transition-colors shrink-0"
                 title="Remove status"
               >
                 ✕
@@ -808,7 +808,7 @@ function TemplateCard({
               type="color"
               value={newStatusColor}
               onChange={(e) => setNewStatusColor(e.target.value)}
-              className="w-7 h-7 rounded cursor-pointer border border-slate-200 p-0.5"
+              className="w-7 h-7 rounded cursor-pointer border border-slate-200 dark:border-slate-700 p-0.5"
               title="New status color"
             />
             <input
@@ -816,11 +816,11 @@ function TemplateCard({
               onChange={(e) => setNewStatusName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddStatus() }}
               placeholder="New status name"
-              className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
             />
             <button
               onClick={handleAddStatus}
-              className="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors font-medium"
+              className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg transition-colors font-medium"
             >
               Add
             </button>
@@ -839,26 +839,26 @@ function TemplateCard({
 
       {/* Inline field editor */}
       {showFieldEditor && (
-        <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">
+        <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2">
           {fields.map((f) => (
             <div key={f._key} className="space-y-1">
               <div className="flex items-center gap-2">
                 <input
                   value={f.name}
                   onChange={(e) => handleFieldChange(f._key, 'name', e.target.value)}
-                  className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   placeholder="Field name"
                 />
                 <select
                   value={f.field_type}
                   onChange={(e) => handleFieldChange(f._key, 'field_type', e.target.value as TemplateField['field_type'])}
-                  className="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 >
                   {FIELD_TYPES.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-                <label className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+                <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 shrink-0">
                   <input
                     type="checkbox"
                     checked={f.is_required}
@@ -869,7 +869,7 @@ function TemplateCard({
                 </label>
                 <button
                   onClick={() => handleDeleteField(f._key)}
-                  className="text-slate-300 hover:text-red-400 text-xs transition-colors shrink-0"
+                  className="text-slate-300 dark:text-slate-600 hover:text-red-400 text-xs transition-colors shrink-0"
                   title="Remove field"
                 >
                   ✕
@@ -881,7 +881,7 @@ function TemplateCard({
                   onChange={(e) => handleFieldOptionsChange(f._key, e.target.value)}
                   placeholder="One option per line"
                   rows={3}
-                  className="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                 />
               )}
             </div>
@@ -895,18 +895,18 @@ function TemplateCard({
                 onChange={(e) => setNewFieldName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddField() }}
                 placeholder="New field name"
-                className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
               />
               <select
                 value={newFieldType}
                 onChange={(e) => setNewFieldType(e.target.value as TemplateField['field_type'])}
-                className="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 {FIELD_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
-              <label className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
+              <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 shrink-0">
                 <input
                   type="checkbox"
                   checked={newFieldRequired}
@@ -917,7 +917,7 @@ function TemplateCard({
               </label>
               <button
                 onClick={handleAddField}
-                className="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors font-medium"
+                className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg transition-colors font-medium"
               >
                 Add
               </button>
@@ -928,7 +928,7 @@ function TemplateCard({
                 onChange={(e) => setNewFieldOptions(e.target.value)}
                 placeholder="One option per line"
                 rows={3}
-                className="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
               />
             )}
           </div>

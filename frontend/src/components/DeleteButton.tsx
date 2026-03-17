@@ -64,9 +64,9 @@ export default function DeleteButton({
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-start gap-4 mb-6">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-950 flex items-center justify-center shrink-0 mt-0.5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -74,14 +74,14 @@ export default function DeleteButton({
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 mb-1">Confirm Delete</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{message}</p>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Confirm Delete</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{message}</p>
               </div>
             </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setOpen(false)}
-                className="px-4 py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors font-medium"
+                className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors font-medium"
               >
                 Cancel
               </button>

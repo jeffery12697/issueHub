@@ -45,8 +45,8 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
         to={href}
         className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
           active
-            ? 'bg-violet-50 text-violet-700'
-            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            ? 'bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
         }`}
       >
         {label}
@@ -55,12 +55,12 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
   })
 
   return (
-    <header className="bg-white border-b border-slate-200">
+    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
       {/* Primary row: breadcrumb + (nav on sm+) + actions */}
       <div className="px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-2 sm:gap-4">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
-        <span className="text-slate-200 shrink-0">/</span>
-        <span className="text-sm sm:text-base font-semibold text-slate-800 truncate max-w-[100px] sm:max-w-[200px]">
+        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
+        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
+        <span className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[100px] sm:max-w-[200px]">
           {workspace?.name}
         </span>
 
@@ -73,7 +73,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
           {canManageSettings && (
             <Link
               to={`${basePath}/settings`}
-              className="p-2 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              className="p-2 rounded-md text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Workspace settings"
               aria-label="Workspace settings"
             >
@@ -89,7 +89,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
 
       {/* Nav second row — mobile only, scrollable */}
       <nav
-        className="sm:hidden flex items-center gap-1 px-3 pb-2 overflow-x-auto border-t border-slate-100"
+        className="sm:hidden flex items-center gap-1 px-3 pb-2 overflow-x-auto border-t border-slate-100 dark:border-slate-800"
         aria-label="Workspace navigation"
       >
         {navItems}

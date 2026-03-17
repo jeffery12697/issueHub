@@ -111,7 +111,7 @@ export default function RichTextEditor({
   if (!editor) return null
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden hover:border-slate-300 focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-transparent transition-colors bg-white">
+    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-600 focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-transparent transition-colors bg-white dark:bg-slate-900">
       {editable && <Toolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
@@ -124,7 +124,7 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
   if (!editor) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-slate-100 bg-slate-50">
+    <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
 
       {/* Font size */}
       <FontSizePicker editor={editor} />
@@ -261,7 +261,7 @@ function FontSizePicker({ editor }: { editor: ReturnType<typeof useEditor> }) {
         if (v) (editor?.chain().focus() as any).setFontSize(v).run()
         else (editor?.chain().focus() as any).unsetFontSize().run()
       }}
-      className="h-7 text-xs rounded border border-slate-200 bg-white text-slate-600 px-1 focus:outline-none focus:ring-1 focus:ring-violet-400 cursor-pointer"
+      className="h-7 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 px-1 focus:outline-none focus:ring-1 focus:ring-violet-400 cursor-pointer"
       title="Font size"
     >
       <option value="">Size</option>
@@ -294,14 +294,14 @@ function ColorPicker({
         type="button"
         onMouseDown={(e) => { e.preventDefault(); setOpen((v) => !v) }}
         title={title}
-        className="w-7 h-7 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 transition-colors"
+        className="w-7 h-7 flex items-center justify-center rounded text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
       >
         {indicator(activeColor)}
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg p-2 flex flex-col gap-1.5">
+          <div className="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2 flex flex-col gap-1.5">
             <div className="flex flex-wrap gap-1 w-[120px]">
               {colors.map((c) => (
                 <button
@@ -317,7 +317,7 @@ function ColorPicker({
             <button
               type="button"
               onMouseDown={(e) => { e.preventDefault(); onClear(); setOpen(false) }}
-              className="text-[11px] text-slate-400 hover:text-slate-600 text-left"
+              className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-left"
             >
               Clear
             </button>
@@ -361,13 +361,13 @@ function TableMenu({ editor }: { editor: ReturnType<typeof useEditor> }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[180px]">
+          <div className="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1 min-w-[180px]">
             {items.map((item) => (
               <button
                 key={item.label}
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); item.fn(); setOpen(false) }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 transition-colors ${(item as any).danger ? 'text-red-500' : 'text-slate-700'}`}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${(item as any).danger ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}
               >
                 {item.label}
               </button>
@@ -412,7 +412,7 @@ function ToolGroup({ children }: { children: React.ReactNode }) {
 }
 
 function Divider() {
-  return <div className="w-px h-4 bg-slate-200 mx-1" />
+  return <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
 }
 
 function ToolBtn({ onClick, active, title, children }: {
@@ -424,7 +424,7 @@ function ToolBtn({ onClick, active, title, children }: {
       onMouseDown={(e) => { e.preventDefault(); onClick() }}
       title={title}
       className={`w-7 h-7 flex items-center justify-center rounded text-xs font-semibold transition-colors ${
-        active ? 'bg-violet-100 text-violet-700' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+        active ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200'
       }`}
     >
       {children}

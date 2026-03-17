@@ -74,7 +74,7 @@ export default function GlobalSearch() {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex items-center gap-1.5 h-8 border border-slate-200 rounded-lg px-2.5 bg-white focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-400 transition-all w-32 sm:w-48">
+      <div className="flex items-center gap-1.5 h-8 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 bg-white dark:bg-slate-800 focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-400 transition-all w-32 sm:w-48">
         <span className="text-slate-400 text-xs select-none" aria-hidden="true">🔍</span>
         <input
           type="text"
@@ -87,7 +87,7 @@ export default function GlobalSearch() {
           aria-expanded={open && q.length >= 2}
           aria-controls="global-search-results"
           role="combobox"
-          className="flex-1 text-xs bg-transparent outline-none text-slate-700 placeholder-slate-400 min-w-0"
+          className="flex-1 text-xs bg-transparent outline-none text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 min-w-0"
         />
       </div>
 
@@ -96,17 +96,17 @@ export default function GlobalSearch() {
           id="global-search-results"
           role="listbox"
           aria-label="Search results"
-          className="absolute z-50 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 right-0 overflow-hidden w-[min(24rem,calc(100vw-1rem))]"
+          className="absolute z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg mt-1 right-0 overflow-hidden w-[min(24rem,calc(100vw-1rem))]"
         >
-          <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
-            <p className="text-[11px] text-slate-400">
+          <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">
               Searches titles, descriptions &amp; comments
             </p>
           </div>
 
           <div className="max-h-72 overflow-y-auto">
             {results.length === 0 ? (
-              <p className="text-xs text-slate-400 px-4 py-3">No results for "{q}"</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 px-4 py-3">No results for "{q}"</p>
             ) : (
               results.map((task, idx) => (
                 <button
@@ -119,8 +119,8 @@ export default function GlobalSearch() {
                     setInputValue('')
                     setQ('')
                   }}
-                  className={`w-full text-left px-4 py-2.5 flex items-start gap-2.5 transition-colors border-b border-slate-100 last:border-b-0 ${
-                    idx === activeIdx ? 'bg-violet-50' : 'hover:bg-violet-50'
+                  className={`w-full text-left px-4 py-2.5 flex items-start gap-2.5 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-b-0 ${
+                    idx === activeIdx ? 'bg-violet-50 dark:bg-violet-950' : 'hover:bg-violet-50 dark:hover:bg-violet-950'
                   }`}
                 >
                   <span
@@ -128,8 +128,8 @@ export default function GlobalSearch() {
                     style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{task.title}</p>
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{task.title}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
                       {[task.project_name, task.list_name].filter(Boolean).join(' › ')}
                     </p>
                   </div>

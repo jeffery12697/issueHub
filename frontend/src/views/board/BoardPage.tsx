@@ -49,19 +49,19 @@ export default function BoardPage() {
   const noStatusTasks = tasks.filter((t) => !t.status_id)
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3 shrink-0">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors flex items-center gap-1">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-3 shrink-0">
+        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1">
           ← Home
         </Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-base font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <span className="text-base font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           {canManageSettings && (
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="text-slate-400 hover:text-slate-600 text-sm transition-colors flex items-center gap-1.5"
+              className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -69,10 +69,10 @@ export default function BoardPage() {
               Settings
             </Link>
           )}
-          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+          <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
             <Link
               to={`/projects/${projectId}/lists/${listId}`}
-              className="bg-white text-slate-500 px-3.5 py-2 text-sm font-medium hover:bg-slate-50 transition-colors"
+              className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 px-3.5 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               List
             </Link>
@@ -89,10 +89,10 @@ export default function BoardPage() {
         <div className="p-6 min-w-max">
         {statuses.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-slate-400 text-sm">No statuses configured.</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">No statuses configured.</p>
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="mt-3 inline-block text-xs text-violet-500 hover:text-violet-700 transition-colors"
+              className="mt-3 inline-block text-xs text-violet-500 hover:text-violet-700 dark:hover:text-violet-300 transition-colors"
             >
               → Configure statuses in List Settings
             </Link>
@@ -167,9 +167,9 @@ function KanbanColumn({
           className="h-1 rounded-t-lg w-full mb-0"
           style={{ backgroundColor: status.color }}
         />
-        <div className="bg-white rounded-b-lg border border-t-0 border-slate-200 px-3 py-2.5 flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 rounded-b-lg border border-t-0 border-slate-200 dark:border-slate-700 px-3 py-2.5 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: status.color }} />
-          <span className="text-sm font-semibold text-slate-700 flex-1 truncate">{status.name}</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex-1 truncate">{status.name}</span>
           <div className="flex items-center gap-1.5 shrink-0">
             {totalSP > 0 && (
               <span className="text-xs text-violet-500 font-medium">{totalSP} SP</span>
@@ -188,8 +188,8 @@ function KanbanColumn({
       <div
         className={`flex flex-col gap-2.5 min-h-20 rounded-xl p-2 transition-all ${
           isDragOver
-            ? 'bg-violet-50 ring-2 ring-violet-300 ring-offset-1'
-            : 'bg-slate-100/50'
+            ? 'bg-violet-50 dark:bg-violet-950 ring-2 ring-violet-300 dark:ring-violet-700 ring-offset-1'
+            : 'bg-slate-100/50 dark:bg-slate-800/50'
         }`}
         onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
         onDragLeave={(e) => {
@@ -203,8 +203,8 @@ function KanbanColumn({
         }}
       >
         {tasks.length === 0 && !addingTask && (
-          <div className="flex items-center justify-center h-16 border-2 border-dashed border-slate-200 rounded-lg">
-            <p className="text-xs text-slate-300">Drop tasks here</p>
+          <div className="flex items-center justify-center h-16 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+            <p className="text-xs text-slate-300 dark:text-slate-600">Drop tasks here</p>
           </div>
         )}
 
@@ -217,14 +217,14 @@ function KanbanColumn({
       {onAddTask && (
         <div className="mt-2">
           {addingTask ? (
-            <form onSubmit={submitAdd} className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm space-y-2">
+            <form onSubmit={submitAdd} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 shadow-sm space-y-2">
               <input
                 autoFocus
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Escape' && setAddingTask(false)}
                 placeholder="Task title…"
-                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full text-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
               <div className="flex gap-1.5">
                 <button
@@ -236,7 +236,7 @@ function KanbanColumn({
                 <button
                   type="button"
                   onClick={() => { setAddingTask(false); setNewTitle('') }}
-                  className="px-3 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                  className="px-3 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                 >
                   Cancel
                 </button>
@@ -245,7 +245,7 @@ function KanbanColumn({
           ) : (
             <button
               onClick={() => setAddingTask(true)}
-              className="w-full flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 hover:text-violet-600 hover:bg-white hover:border hover:border-slate-200 rounded-xl transition-all group"
+              className="w-full flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 hover:bg-white dark:hover:bg-slate-900 hover:border hover:border-slate-200 dark:hover:border-slate-700 rounded-xl transition-all group"
             >
               <span className="text-base leading-none group-hover:text-violet-500">+</span>
               Add task
@@ -281,7 +281,7 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
         e.dataTransfer.effectAllowed = 'move'
       }}
       onClick={() => navigate(`/tasks/${task.id}`)}
-      className="bg-white border border-slate-200 rounded-xl px-3.5 py-3 cursor-pointer shadow-sm hover:shadow-md hover:border-violet-200 hover:-translate-y-0.5 transition-all group select-none"
+      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-3 cursor-pointer shadow-sm hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800 hover:-translate-y-0.5 transition-all group select-none"
     >
       {/* Priority accent bar */}
       {task.priority !== 'none' && (
@@ -293,17 +293,17 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
 
       {/* Key + Title */}
       {task.task_key && (
-        <span className="text-[10px] font-mono font-semibold text-slate-400 block mb-0.5">
+        <span className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 block mb-0.5">
           {task.task_key}
         </span>
       )}
-      <p className="text-sm font-medium text-slate-800 leading-snug group-hover:text-violet-700 transition-colors mb-2.5">
+      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors mb-2.5">
         {task.title}
       </p>
 
       {/* Subtask count */}
       {task.subtask_count > 0 && (
-        <div className="flex items-center gap-1 mb-2 text-xs text-slate-400">
+        <div className="flex items-center gap-1 mb-2 text-xs text-slate-400 dark:text-slate-500">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -322,7 +322,7 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
 
         {/* Story points */}
         {task.story_points != null && (
-          <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-500">
+          <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-50 dark:bg-violet-950 text-violet-500">
             {task.story_points} SP
           </span>
         )}
@@ -332,7 +332,7 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
         {/* Due date */}
         {dueDate && (
           <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
-            isOverdue ? 'text-red-500' : isDueToday ? 'text-amber-500' : 'text-slate-400'
+            isOverdue ? 'text-red-500' : isDueToday ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500'
           }`}>
             {isOverdue && (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -350,13 +350,13 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
               <span
                 key={m.user_id}
                 title={m.display_name}
-                className="inline-flex w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold items-center justify-center border border-white shrink-0"
+                className="inline-flex w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 text-[10px] font-bold items-center justify-center border border-white dark:border-slate-900 shrink-0"
               >
                 {m.display_name[0].toUpperCase()}
               </span>
             ))}
             {assignees.length > 3 && (
-              <span className="inline-flex w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold items-center justify-center border border-white shrink-0">
+              <span className="inline-flex w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold items-center justify-center border border-white dark:border-slate-900 shrink-0">
                 +{assignees.length - 3}
               </span>
             )}

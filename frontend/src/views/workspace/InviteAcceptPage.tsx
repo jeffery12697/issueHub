@@ -52,8 +52,8 @@ export default function InviteAcceptPage() {
     return (
       <PageShell>
         <div className="text-green-600 text-4xl mb-3">✓</div>
-        <p className="text-slate-800 font-semibold text-lg mb-1">You're in!</p>
-        <p className="text-slate-400 text-sm">Redirecting you to the workspace…</p>
+        <p className="text-slate-800 dark:text-slate-200 font-semibold text-lg mb-1">You're in!</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm">Redirecting you to the workspace…</p>
       </PageShell>
     )
   }
@@ -61,29 +61,29 @@ export default function InviteAcceptPage() {
   return (
     <PageShell>
       <div className="text-3xl mb-4">✉️</div>
-      <h1 className="text-xl font-bold text-slate-900 mb-1">Workspace invitation</h1>
-      <p className="text-slate-500 text-sm mb-6">
-        You've been invited to join a workspace as <strong className="text-slate-700 capitalize">{invite.role}</strong>.
+      <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Workspace invitation</h1>
+      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+        You've been invited to join a workspace as <strong className="text-slate-700 dark:text-slate-300 capitalize">{invite.role}</strong>.
       </p>
 
       {invite.accepted_at && (
-        <p className="text-sm text-slate-400 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 mb-4">
+        <p className="text-sm text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 mb-4">
           This invite has already been accepted.
         </p>
       )}
 
       {isExpired && !invite.accepted_at && (
-        <p className="text-sm text-red-400 bg-red-50 border border-red-100 rounded-lg px-4 py-2 mb-4">
+        <p className="text-sm text-red-400 bg-red-50 dark:bg-red-950 border border-red-100 dark:border-red-900 rounded-lg px-4 py-2 mb-4">
           This invite has expired.
         </p>
       )}
 
       {error && (
-        <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-2 mb-4">{error}</p>
+        <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950 border border-red-100 dark:border-red-900 rounded-lg px-4 py-2 mb-4">{error}</p>
       )}
 
       {!invite.accepted_at && !isExpired && currentUser && currentUser.email !== invite.email && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
           This invite was sent to <strong>{invite.email}</strong>, but you're signed in as <strong>{currentUser.email}</strong>.
           Please sign in with the correct account to accept.
         </div>
@@ -102,7 +102,7 @@ export default function InviteAcceptPage() {
       {(invite.accepted_at || isExpired) && (
         <button
           onClick={() => navigate('/')}
-          className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
         >
           Go to workspace →
         </button>
@@ -113,9 +113,9 @@ export default function InviteAcceptPage() {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-10 py-12 max-w-md w-full text-center">
-        <div className="text-xl font-bold text-slate-900 mb-6 flex items-center justify-center gap-2">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm px-10 py-12 max-w-md w-full text-center">
+        <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center justify-center gap-2">
           <span>&#9680;</span> IssueHub
         </div>
         {children}

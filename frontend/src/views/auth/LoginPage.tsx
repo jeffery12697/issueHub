@@ -38,8 +38,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-10 w-full max-w-sm">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-10 w-full max-w-sm">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center shrink-0">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -48,33 +48,33 @@ export default function LoginPage() {
               <rect x="2" y="10.5" width="6" height="1.5" rx="0.75" fill="white" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-slate-900">IssueHub</span>
+          <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">IssueHub</span>
         </div>
 
-        <p className="text-slate-500 text-sm mb-8">Track work. Ship faster.</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Track work. Ship faster.</p>
 
         <a
           href="/api/v1/auth/google/redirect"
-          className="flex items-center justify-center gap-3 w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          className="flex items-center justify-center gap-3 w-full border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
           <GoogleIcon />
           Continue with Google
         </a>
 
         {DEV_LOGIN && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
             {!showDevForm ? (
               <div className="text-center">
                 <button
                   onClick={() => setShowDevForm(true)}
-                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors py-1"
+                  className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1"
                 >
                   Dev login (skip Google)
                 </button>
               </div>
             ) : (
               <form onSubmit={devLogin} className="space-y-3">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dev Login</p>
+                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Dev Login</p>
                 <input
                   autoFocus
                   type="email"
@@ -82,14 +82,14 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email"
                   required
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                 />
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Display name (optional)"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                 />
                 {error && <p className="text-xs text-red-500">{error}</p>}
                 <div className="flex gap-2">
@@ -103,12 +103,12 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowDevForm(false)}
-                    className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors"
+                    className="text-sm px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
                     Cancel
                   </button>
                 </div>
-                <p className="text-xs text-slate-400">New email = new account with its own workspace.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">New email = new account with its own workspace.</p>
               </form>
             )}
           </div>

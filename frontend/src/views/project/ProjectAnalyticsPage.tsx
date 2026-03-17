@@ -27,32 +27,32 @@ export default function ProjectAnalyticsPage() {
   const statusCount = (analytics?.tasks_by_status ?? []).length
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-4">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-4">
+        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
         {workspace && (
           <>
-            <span className="text-slate-200 shrink-0">/</span>
+            <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
             <Link
               to={`/workspaces/${workspace.id}`}
-              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
             >
               {workspace.name}
             </Link>
           </>
         )}
-        <span className="text-slate-200 shrink-0">/</span>
-        <span className="text-sm font-semibold text-slate-800 truncate max-w-[160px]">{project?.name}</span>
+        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">{project?.name}</span>
         <nav className="flex items-center gap-1 ml-2">
           <Link
             to={`/projects/${projectId}`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             All Tasks
           </Link>
           <Link
             to={`/projects/${projectId}/analytics`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 text-violet-700"
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
           >
             Analytics
           </Link>
@@ -62,8 +62,8 @@ export default function ProjectAnalyticsPage() {
 
       <main className="max-w-3xl mx-auto py-10 px-6">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
             {isLoading ? 'Loading…' : `Overview of all tasks in ${project?.name ?? 'this project'}`}
           </p>
         </div>
@@ -72,10 +72,10 @@ export default function ProjectAnalyticsPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white border border-slate-200 rounded-xl h-24 animate-pulse" />
+                <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl h-24 animate-pulse" />
               ))}
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl h-48 animate-pulse" />
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl h-48 animate-pulse" />
           </div>
         ) : (
           <>
@@ -122,11 +122,11 @@ export default function ProjectAnalyticsPage() {
               />
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-slate-700 mb-4">Tasks by Status</h3>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">Tasks by Status</h3>
               {(analytics?.tasks_by_status ?? []).length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-slate-400 text-sm">No tasks with statuses yet.</p>
+                  <p className="text-slate-400 dark:text-slate-500 text-sm">No tasks with statuses yet.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -137,10 +137,10 @@ export default function ProjectAnalyticsPage() {
                       return (
                         <div key={i} className="space-y-1.5">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-600 font-medium truncate max-w-[60%]">
+                            <span className="text-slate-600 dark:text-slate-400 font-medium truncate max-w-[60%]">
                               {row.status_name ?? '(No status)'}
                             </span>
-                            <span className="text-slate-400 tabular-nums flex items-center gap-2">
+                            <span className="text-slate-400 dark:text-slate-500 tabular-nums flex items-center gap-2">
                               {row.count} task{row.count !== 1 ? 's' : ''}
                               {row.story_points > 0 && (
                                 <span className="text-violet-500">{row.story_points} SP</span>
@@ -148,7 +148,7 @@ export default function ProjectAnalyticsPage() {
                               <span>{pct}%</span>
                             </span>
                           </div>
-                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div
                               className="h-2 rounded-full bg-violet-500 transition-all duration-500"
                               style={{ width: `${pct}%` }}
@@ -177,12 +177,12 @@ function StatCard({
   icon: React.ReactNode
 }) {
   return (
-    <div className={`border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 ${bgAccent ?? 'bg-white'}`}>
+    <div className={`border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5 flex flex-col gap-3 ${bgAccent ?? 'bg-white dark:bg-slate-900'}`}>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500 font-medium">{label}</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</span>
         {icon}
       </div>
-      <span className={`text-3xl font-bold ${accent ?? 'text-slate-900'}`}>{value}</span>
+      <span className={`text-3xl font-bold ${accent ?? 'text-slate-900 dark:text-slate-100'}`}>{value}</span>
     </div>
   )
 }

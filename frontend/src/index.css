@@ -62,3 +62,19 @@
   height: 0;
   pointer-events: none;
 }
+
+/* Dark mode prose overrides */
+.dark .prose h1 { @apply text-slate-100; }
+.dark .prose h2 { @apply text-slate-200; }
+.dark .prose h3 { @apply text-slate-200; }
+.dark .prose p  { @apply text-slate-300; }
+.dark .prose li { @apply text-slate-300; }
+.dark .prose code { @apply bg-slate-800 text-violet-400; }
+.dark .prose blockquote { @apply border-violet-700 text-slate-400; }
+.dark .prose hr { @apply border-slate-700; }
+.dark .prose a { @apply text-violet-400; }
+.dark .prose strong { @apply text-slate-200; }
+.dark .prose table th { @apply bg-slate-800 text-slate-300 border-slate-700; }
+.dark .prose table td { @apply border-slate-700 text-slate-300; }
+.dark .prose table tr:hover td { @apply bg-slate-800; }
+.dark .tiptap p.is-editor-empty:first-child::before { @apply text-slate-500; }

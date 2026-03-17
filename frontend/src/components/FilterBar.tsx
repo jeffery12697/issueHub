@@ -60,8 +60,8 @@ export default function FilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-slate-400 shrink-0">Filter</span>
-      <div className="w-px h-4 bg-slate-200 shrink-0" />
+      <span className="text-sm font-medium text-slate-400 dark:text-slate-500 shrink-0">Filter</span>
+      <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
       {rules.map((rule) => {
         const fieldConfig = fields.find((f) => f.id === rule.field)
@@ -122,7 +122,7 @@ export default function FilterBar({
 
       <button
         onClick={addRule}
-        className="h-8 flex items-center gap-1.5 text-xs font-medium text-slate-500 border border-dashed border-slate-300 bg-white hover:border-violet-400 hover:text-violet-600 hover:bg-violet-50 transition-colors px-3 rounded-full"
+        className="h-8 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-violet-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors px-3 rounded-full"
       >
         <span className="text-sm leading-none font-bold">+</span> Add filter
       </button>

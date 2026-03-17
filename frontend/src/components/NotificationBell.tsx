@@ -65,7 +65,7 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="relative p-1.5 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+        className="relative p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         aria-label="Notifications"
       >
         {/* Bell icon */}
@@ -84,10 +84,10 @@ export default function NotificationBell() {
         <div
           role="dialog"
           aria-label="Notifications"
-          className="absolute right-0 top-9 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden"
+          className="absolute right-0 top-9 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 overflow-hidden"
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <span className="text-sm font-semibold text-slate-800">Notifications</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Notifications</span>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
@@ -100,7 +100,7 @@ export default function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {recent.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-slate-400">
+              <div className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
                 No notifications yet
               </div>
             ) : (
@@ -108,18 +108,18 @@ export default function NotificationBell() {
                 <button
                   key={notif.id}
                   onClick={() => handleNotificationClick(notif)}
-                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 ${
+                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0 ${
                     notif.is_read ? 'opacity-60' : ''
                   }`}
                 >
                   <span
                     className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
-                      notif.is_read ? 'bg-slate-200' : 'bg-violet-500'
+                      notif.is_read ? 'bg-slate-200 dark:bg-slate-700' : 'bg-violet-500'
                     }`}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 leading-snug line-clamp-3">{notif.body}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{relativeTime(notif.created_at)}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug line-clamp-3">{notif.body}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{relativeTime(notif.created_at)}</p>
                   </div>
                 </button>
               ))

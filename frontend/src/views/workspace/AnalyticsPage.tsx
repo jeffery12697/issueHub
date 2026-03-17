@@ -12,14 +12,14 @@ export default function AnalyticsPage() {
   const statusCount = (analytics?.tasks_by_status ?? []).length
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkspaceHeader workspaceId={workspaceId!} />
 
       <main className="max-w-3xl mx-auto py-10 px-6">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
             {isLoading ? 'Loading…' : `Overview of all tasks in this workspace`}
           </p>
         </div>
@@ -28,10 +28,10 @@ export default function AnalyticsPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white border border-slate-200 rounded-xl h-24 animate-pulse" />
+                <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl h-24 animate-pulse" />
               ))}
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl h-48 animate-pulse" />
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl h-48 animate-pulse" />
           </div>
         ) : (
           <>
@@ -80,11 +80,11 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Tasks by status */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-slate-700 mb-4">Tasks by Status</h3>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">Tasks by Status</h3>
               {(analytics?.tasks_by_status ?? []).length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-slate-400 text-sm">No tasks with statuses yet.</p>
+                  <p className="text-slate-400 dark:text-slate-500 text-sm">No tasks with statuses yet.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -95,10 +95,10 @@ export default function AnalyticsPage() {
                       return (
                         <div key={i} className="space-y-1.5">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-600 font-medium truncate max-w-[60%]">
+                            <span className="text-slate-600 dark:text-slate-400 font-medium truncate max-w-[60%]">
                               {row.status_name ?? '(No status)'}
                             </span>
-                            <span className="text-slate-400 tabular-nums flex items-center gap-2">
+                            <span className="text-slate-400 dark:text-slate-500 tabular-nums flex items-center gap-2">
                               {row.count} task{row.count !== 1 ? 's' : ''}
                               {row.story_points > 0 && (
                                 <span className="text-violet-500">{row.story_points} SP</span>
@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
                               <span>{pct}%</span>
                             </span>
                           </div>
-                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div
                               className="h-2 rounded-full bg-violet-500 transition-all duration-500"
                               style={{ width: `${pct}%` }}
@@ -135,12 +135,12 @@ function StatCard({
   icon: React.ReactNode
 }) {
   return (
-    <div className={`border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 ${bgAccent ?? 'bg-white'}`}>
+    <div className={`border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5 flex flex-col gap-3 ${bgAccent ?? 'bg-white dark:bg-slate-900'}`}>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500 font-medium">{label}</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</span>
         {icon}
       </div>
-      <span className={`text-3xl font-bold ${accent ?? 'text-slate-900'}`}>{value}</span>
+      <span className={`text-3xl font-bold ${accent ?? 'text-slate-900 dark:text-slate-100'}`}>{value}</span>
     </div>
   )
 }

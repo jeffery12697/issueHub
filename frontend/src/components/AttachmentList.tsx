@@ -83,7 +83,7 @@ function AttachmentChip({
   const isImage = att.mime_type.startsWith('image/')
 
   return (
-    <li className="group flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 max-w-[220px]">
+    <li className="group flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 max-w-[220px]">
       {isImage ? (
         <a href={att.url} target="_blank" rel="noopener noreferrer">
           <img
@@ -106,7 +106,7 @@ function AttachmentChip({
         >
           {att.filename}
         </a>
-        <span className="text-slate-400">{formatBytes(att.size)}</span>
+        <span className="text-slate-400 dark:text-slate-500">{formatBytes(att.size)}</span>
       </div>
 
       {canDelete && (

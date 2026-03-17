@@ -19,18 +19,18 @@ export default function ListSettingsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-14 flex items-center gap-3">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3">
         <Link
           to={`/projects/${projectId}/lists/${listId}`}
-          className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
         >
           ← Back to list
         </Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-800">{list?.name}</span>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-500">Settings</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{list?.name}</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Settings</span>
         <div className="ml-auto"><HeaderActions /></div>
       </header>
 
@@ -41,7 +41,7 @@ export default function ListSettingsPage() {
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeTab === 'statuses'
                 ? 'bg-violet-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             Statuses
@@ -51,7 +51,7 @@ export default function ListSettingsPage() {
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeTab === 'custom-fields'
                 ? 'bg-violet-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             Custom Fields
@@ -61,7 +61,7 @@ export default function ListSettingsPage() {
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeTab === 'visibility'
                 ? 'bg-violet-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             Visibility
@@ -71,7 +71,7 @@ export default function ListSettingsPage() {
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeTab === 'automations'
                 ? 'bg-violet-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             Automations
@@ -120,13 +120,13 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
   })
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
         Statuses
       </label>
 
       {statuses.length === 0 ? (
-        <p className="text-sm text-slate-400 mb-4">No statuses yet.</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No statuses yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {statuses.map((status) => (
@@ -140,8 +140,8 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
         </div>
       )}
 
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Add Status</p>
+      <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Status</p>
         <form
           className="flex gap-2 items-center"
           onSubmit={(e) => {
@@ -156,13 +156,13 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
             type="color"
             value={newColor}
             onChange={(e) => setNewColor(e.target.value)}
-            className="w-9 h-9 rounded-lg border border-slate-300 cursor-pointer p-0.5"
+            className="w-9 h-9 rounded-lg border border-slate-300 dark:border-slate-600 cursor-pointer p-0.5"
           />
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Status name"
-            className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
           />
           <button
             type="submit"
@@ -189,7 +189,7 @@ function StatusRow({
   const [name, setName] = useState(status.name)
 
   return (
-    <div className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+    <div className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
       <input
         type="color"
         value={status.color}
@@ -215,19 +215,19 @@ function StatusRow({
               onUpdate({ name })
               setEditing(false)
             }}
-            className="flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
           />
         </form>
       ) : (
         <span
-          className="flex-1 text-sm font-medium text-slate-700 cursor-pointer hover:text-violet-600 transition-colors"
+          className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
           onClick={() => setEditing(true)}
         >
           {status.name}
         </span>
       )}
 
-      <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none">
+      <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 cursor-pointer select-none">
         <input
           type="checkbox"
           checked={status.is_complete}
@@ -276,22 +276,22 @@ function VisibilityTab({ listId, currentTeamIds }: { listId: string; currentTeam
   })
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
         Team Visibility
       </label>
-      <p className="text-sm text-slate-500 mb-4">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         Restrict this list to specific teams. Leave all unchecked to make it visible to all workspace members.
       </p>
 
       {teams.length === 0 ? (
-        <p className="text-sm text-slate-400 mb-4">No teams in this workspace yet.</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No teams in this workspace yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {teams.map((team) => (
             <label
               key={team.id}
-              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 hover:border-slate-200 cursor-pointer transition-colors"
+              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 cursor-pointer transition-colors"
             >
               <input
                 type="checkbox"
@@ -299,7 +299,7 @@ function VisibilityTab({ listId, currentTeamIds }: { listId: string; currentTeam
                 onChange={() => toggleTeam(team.id)}
                 className="w-4 h-4 rounded border-slate-300 text-violet-600"
               />
-              <span className="text-sm font-medium text-slate-700">{team.name}</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{team.name}</span>
             </label>
           ))}
         </div>
@@ -335,13 +335,13 @@ function CustomFieldsTab({ listId }: { listId: string }) {
   const [newEditable, setNewEditable] = useState<string[]>([])
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
         Custom Fields
       </label>
 
       {fieldDefs.length === 0 ? (
-        <p className="text-sm text-slate-400 mb-4">No custom fields yet.</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No custom fields yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {fieldDefs.map((field) => (
@@ -355,8 +355,8 @@ function CustomFieldsTab({ listId }: { listId: string }) {
         </div>
       )}
 
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Add Field</p>
+      <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Field</p>
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -390,12 +390,12 @@ function CustomFieldsTab({ listId }: { listId: string }) {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Field name"
-              className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
             />
             <select
               value={newType}
               onChange={(e) => setNewType(e.target.value as FieldType)}
-              className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             >
               <option value="text">text</option>
               <option value="number">number</option>
@@ -412,12 +412,12 @@ function CustomFieldsTab({ listId }: { listId: string }) {
               onChange={(e) => setNewOptions(e.target.value)}
               placeholder="Options (one per line)"
               rows={3}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
             />
           )}
 
           <div className="flex items-center gap-4 flex-wrap">
-            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={newRequired}
@@ -452,10 +452,10 @@ function RolePicker({ label, value, onChange }: { label: string; value: string[]
     onChange(value.includes(role) ? value.filter((r) => r !== role) : [...value, role])
   return (
     <div className="flex items-center gap-3 flex-wrap">
-      <span className="text-xs text-slate-500 w-40 shrink-0">{label}</span>
+      <span className="text-xs text-slate-500 dark:text-slate-400 w-40 shrink-0">{label}</span>
       <div className="flex gap-3">
         {ALL_ROLES.map((role) => (
-          <label key={role} className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none capitalize">
+          <label key={role} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none capitalize">
             <input
               type="checkbox"
               checked={value.includes(role)}
@@ -543,24 +543,24 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
         Automation Rules
       </label>
-      <p className="text-sm text-slate-500 mb-4">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         Automatically apply actions when a task is updated. Rules run in order.
       </p>
 
       {automations.length === 0 ? (
-        <p className="text-sm text-slate-400 mb-4">No automation rules yet.</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No automation rules yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {automations.map((a) => (
             <div
               key={a.id}
-              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
+              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
             >
-              <span className="flex-1 text-sm text-slate-700">{describeAutomation(a)}</span>
+              <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{describeAutomation(a)}</span>
               <DeleteButton
                 variant="text"
                 message="Delete this automation rule?"
@@ -571,15 +571,15 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
         </div>
       )}
 
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Add Rule</p>
+      <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Rule</p>
         <form className="space-y-3" onSubmit={handleSubmit}>
           <div className="flex gap-2 items-center flex-wrap">
-            <span className="text-sm text-slate-500 shrink-0">When</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400 shrink-0">When</span>
             <select
               value={triggerType}
               onChange={(e) => { setTriggerType(e.target.value as TriggerType); setTriggerValue('') }}
-              className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             >
               {(Object.entries(TRIGGER_LABELS) as [TriggerType, string][]).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
@@ -589,7 +589,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
               <select
                 value={triggerValue}
                 onChange={(e) => setTriggerValue(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 <option value="">— pick status —</option>
                 {statuses.map((s) => (
@@ -600,7 +600,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
               <select
                 value={triggerValue}
                 onChange={(e) => setTriggerValue(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 <option value="">— pick priority —</option>
                 {PRIORITIES.map((p) => (
@@ -611,11 +611,11 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
           </div>
 
           <div className="flex gap-2 items-center flex-wrap">
-            <span className="text-sm text-slate-500 shrink-0">Then</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400 shrink-0">Then</span>
             <select
               value={actionType}
               onChange={(e) => { setActionType(e.target.value as ActionType); setActionValue('') }}
-              className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             >
               {(Object.entries(ACTION_LABELS) as [ActionType, string][]).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
@@ -625,7 +625,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
               <select
                 value={actionValue}
                 onChange={(e) => setActionValue(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 <option value="">— pick status —</option>
                 {statuses.map((s) => (
@@ -637,7 +637,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
               <select
                 value={actionValue}
                 onChange={(e) => setActionValue(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               >
                 <option value="">— pick priority —</option>
                 {PRIORITIES.map((p) => (
@@ -650,7 +650,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
                 value={actionValue}
                 onChange={(e) => setActionValue(e.target.value)}
                 placeholder="User ID"
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-72"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-72 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
               />
             )}
           </div>
@@ -682,14 +682,14 @@ function FieldRow({
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+    <div className="rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
       <div className="flex items-center gap-3 py-2 px-3">
-        <span className="flex-1 text-sm font-bold text-slate-700">{field.name}</span>
-        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{field.field_type}</span>
+        <span className="flex-1 text-sm font-bold text-slate-700 dark:text-slate-300">{field.name}</span>
+        <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">{field.field_type}</span>
         {field.is_required && (
           <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Required</span>
         )}
-        <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none">
+        <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={field.is_required}
@@ -700,7 +700,7 @@ function FieldRow({
         </label>
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-slate-400 hover:text-violet-600 transition-colors"
+          className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors"
         >
           Roles {expanded ? '▲' : '▼'}
         </button>
@@ -711,7 +711,7 @@ function FieldRow({
         />
       </div>
       {expanded && (
-        <div className="px-3 pb-3 space-y-2 border-t border-slate-100 pt-2">
+        <div className="px-3 pb-3 space-y-2 border-t border-slate-100 dark:border-slate-800 pt-2">
           <RolePicker
             label="Visible to (empty = all)"
             value={field.visibility_roles}

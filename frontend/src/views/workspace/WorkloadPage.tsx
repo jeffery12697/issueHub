@@ -35,14 +35,14 @@ export default function WorkloadPage() {
   const totalSP = workload.reduce((sum, m) => sum + m.total_story_points, 0)
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkspaceHeader workspaceId={workspaceId!} />
 
       <main className="max-w-3xl mx-auto py-10 px-6">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Workload</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Workload</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
             {isLoading ? 'Loading…' : workload.length === 0
               ? 'No members found'
               : `${workload.length} member${workload.length === 1 ? '' : 's'} · ${totalTasks} open task${totalTasks === 1 ? '' : 's'}${totalSP > 0 ? ` · ${totalSP} SP` : ''}`}
@@ -52,12 +52,12 @@ export default function WorkloadPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-xl h-16 animate-pulse" />
+              <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl h-16 animate-pulse" />
             ))}
           </div>
         ) : workload.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
-            <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+            <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-violet-400">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
@@ -65,8 +65,8 @@ export default function WorkloadPage() {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </div>
-            <p className="text-slate-700 font-medium mb-1">No members yet</p>
-            <p className="text-slate-400 text-sm">Invite members to your workspace to see workload.</p>
+            <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No members yet</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">Invite members to your workspace to see workload.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -99,42 +99,42 @@ function MemberCard({ member }: { member: WorkloadMember }) {
     'bg-emerald-100 text-emerald-700'
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors text-left"
+        className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left"
       >
         <span className={`inline-flex w-9 h-9 rounded-full ${avatarBg} ${avatarText} text-sm font-bold items-center justify-center shrink-0 select-none`}>
           {member.display_name[0].toUpperCase()}
         </span>
-        <span className="flex-1 font-medium text-slate-800 text-sm">{member.display_name}</span>
+        <span className="flex-1 font-medium text-slate-800 dark:text-slate-200 text-sm">{member.display_name}</span>
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${loadColor}`}>
           {taskLoad}{spLoad ? ` · ${spLoad}` : ''}
         </span>
-        <span className="text-slate-300 text-xs ml-1">{expanded ? '▲' : '▼'}</span>
+        <span className="text-slate-300 dark:text-slate-600 text-xs ml-1">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-100">
+        <div className="border-t border-slate-100 dark:border-slate-800">
           {member.tasks.length === 0 ? (
-            <p className="text-xs text-slate-400 px-5 py-3">No tasks assigned.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 px-5 py-3">No tasks assigned.</p>
           ) : (
             member.tasks.map((task, i) => (
               <button
                 key={task.id}
                 onClick={() => navigate(`/tasks/${task.id}`)}
-                className={`w-full text-left px-5 py-2.5 flex items-center gap-3 hover:bg-violet-50 transition-colors ${i > 0 ? 'border-t border-slate-50' : ''}`}
+                className={`w-full text-left px-5 py-2.5 flex items-center gap-3 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors ${i > 0 ? 'border-t border-slate-50 dark:border-slate-800' : ''}`}
               >
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
                 />
-                <span className="flex-1 text-sm text-slate-700 truncate">{task.title}</span>
+                <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{task.title}</span>
                 {task.story_points != null && (
-                  <span className="text-xs text-slate-400 shrink-0">{task.story_points} SP</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{task.story_points} SP</span>
                 )}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600 shrink-0">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>

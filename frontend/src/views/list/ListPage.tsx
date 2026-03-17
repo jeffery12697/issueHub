@@ -263,15 +263,15 @@ export default function ListPage() {
   const statusMap = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-3">
+        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
         {workspace && (
           <>
-            <span className="text-slate-300 shrink-0">/</span>
+            <span className="text-slate-300 dark:text-slate-600 shrink-0">/</span>
             <Link
               to={`/workspaces/${workspace.id}`}
-              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[120px] transition-colors"
+              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[120px] transition-colors"
             >
               {workspace.name}
             </Link>
@@ -279,22 +279,22 @@ export default function ListPage() {
         )}
         {project && (
           <>
-            <span className="text-slate-300 shrink-0">/</span>
+            <span className="text-slate-300 dark:text-slate-600 shrink-0">/</span>
             <Link
               to={`/projects/${projectId}`}
-              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[120px] transition-colors"
+              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[120px] transition-colors"
             >
               {project.name}
             </Link>
           </>
         )}
-        <span className="text-slate-300 shrink-0">/</span>
-        <span className="text-sm font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
+        <span className="text-slate-300 dark:text-slate-600 shrink-0">/</span>
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           {canManageSettings && (
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="text-slate-400 hover:text-slate-600 text-sm transition-colors flex items-center gap-1.5"
+              className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -302,13 +302,13 @@ export default function ListPage() {
               Settings
             </Link>
           )}
-          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+          <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
             <span className="bg-violet-600 text-white px-3.5 py-2 text-sm font-medium">
               List
             </span>
             <Link
               to={`/projects/${projectId}/lists/${listId}/board`}
-              className="bg-white text-slate-500 px-3.5 py-2 text-sm font-medium hover:bg-slate-50 transition-colors"
+              className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 px-3.5 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               Board
             </Link>
@@ -319,14 +319,14 @@ export default function ListPage() {
 
       <main className="max-w-5xl mx-auto py-8 px-6">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {totalCount} task{totalCount === 1 ? '' : 's'}
-            {totalPages > 1 && <span className="text-slate-400"> · page {page} of {totalPages}</span>}
+            {totalPages > 1 && <span className="text-slate-400 dark:text-slate-500"> · page {page} of {totalPages}</span>}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => tasksApi.exportCsv(listId!)}
-              className="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium flex items-center gap-1.5"
+              className="border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium flex items-center gap-1.5"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
@@ -341,7 +341,7 @@ export default function ListPage() {
                 className={`h-9 appearance-none pl-3 pr-7 rounded-lg text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
                   groupBy !== 'none'
                     ? 'border-violet-300 bg-violet-50 text-violet-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <option value="none">Group by…</option>
@@ -358,7 +358,7 @@ export default function ListPage() {
                 className={`border text-sm px-3 py-2 rounded-lg transition-colors font-medium flex items-center gap-1.5 ${
                   showViewsPanel
                     ? 'bg-violet-100 text-violet-700 border-violet-300'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -372,21 +372,21 @@ export default function ListPage() {
                 )}
               </button>
               {showViewsPanel && (
-                <div className="absolute right-0 mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
+                <div className="absolute right-0 mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
                   {savedViews.length === 0 && (
-                    <p className="text-xs text-slate-400 px-1 pb-1">No saved views yet.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 px-1 pb-1">No saved views yet.</p>
                   )}
                   {savedViews.map((v) => (
                     <div key={v.id} className="flex items-center gap-2 group">
                       <button
                         onClick={() => applyView(v)}
-                        className="flex-1 text-left text-sm text-slate-700 hover:text-violet-600 font-medium truncate py-1"
+                        className="flex-1 text-left text-sm text-slate-700 dark:text-slate-300 hover:text-violet-600 font-medium truncate py-1"
                       >
                         {v.name}
                       </button>
                       <button
                         onClick={() => deleteView.mutate(v.id)}
-                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                         aria-label={`Delete view ${v.name}`}
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -395,13 +395,13 @@ export default function ListPage() {
                       </button>
                     </div>
                   ))}
-                  <div className="border-t border-slate-100 pt-2 flex gap-2">
+                  <div className="border-t border-slate-100 dark:border-slate-800 pt-2 flex gap-2">
                     <input
                       value={newViewName}
                       onChange={(e) => setNewViewName(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter' && newViewName.trim()) createView.mutate(newViewName.trim()) }}
                       placeholder="View name…"
-                      className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="flex-1 text-xs border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
                     />
                     <button
                       onClick={() => { if (newViewName.trim()) createView.mutate(newViewName.trim()) }}
@@ -555,33 +555,33 @@ export default function ListPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Task title"
-              className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
             />
             <button type="submit" className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">Create</button>
-            <button type="button" onClick={() => setCreating(false)} className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setCreating(false)} className="text-sm px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Cancel</button>
           </form>
         )}
 
         {isLoading ? (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="bg-slate-50 border-b border-slate-200 h-12" />
-            <div className="divide-y divide-slate-100">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-12" />
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4 px-4 py-3.5">
-                  <div className="w-4 h-4 rounded bg-slate-200 animate-pulse shrink-0" />
-                  <div className="flex-1 h-4 rounded bg-slate-200 animate-pulse" />
-                  <div className="w-20 h-5 rounded-full bg-slate-200 animate-pulse" />
-                  <div className="w-16 h-4 rounded bg-slate-200 animate-pulse" />
-                  <div className="w-7 h-7 rounded-full bg-slate-200 animate-pulse" />
-                  <div className="w-16 h-4 rounded bg-slate-200 animate-pulse" />
+                  <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse shrink-0" />
+                  <div className="flex-1 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-20 h-5 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
                 </div>
               ))}
             </div>
           </div>
         ) : allTasks.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
-            <p className="text-slate-700 font-medium mb-1">No tasks yet</p>
-            <p className="text-slate-400 text-sm mb-4">Create your first task to get started.</p>
+          <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+            <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No tasks yet</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">Create your first task to get started.</p>
             <button
               onClick={() => setCreating(true)}
               className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
