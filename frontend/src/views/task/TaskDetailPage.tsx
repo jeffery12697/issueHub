@@ -1122,13 +1122,20 @@ function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Reco
                   {log.changes.note ? ` — ${log.changes.note}` : ''}
                 </div>
               )}
-              {log.changes && !['link_added', 'link_removed', 'attachment_added', 'attachment_removed', 'time_logged'].includes(log.action) &&
-                Object.entries(log.changes).map(([field, val]) => (
-                  <div key={field} className="text-slate-400 mt-0.5">
-                    {renderChange(field, val)}
-                  </div>
-                ))
+              {log.changes && !['link_added', 'link_removed', 'attachment_added', 'attachment_removed', 'time_logged', 'git_branch_linked'].includes(log.action) &&
+                Object.entries(log.changes)
+                  .filter(([, val]) => Array.isArray(val))
+                  .map(([field, val]) => (
+                    <div key={field} className="text-slate-400 mt-0.5">
+                      {renderChange(field, val)}
+                    </div>
+                  ))
               }
+              {log.action === 'git_branch_linked' && log.changes && (
+                <div className="text-slate-400 mt-0.5">
+                  branch: <span className="font-mono">{log.changes.branch as string}</span>
+                </div>
+              )}
               <div className="text-slate-300 mt-0.5">{new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</div>
             </div>
           </li>
