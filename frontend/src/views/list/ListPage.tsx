@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
+import { PRIORITY_DOT_COLORS } from '@/lib/priority'
 import { dependenciesApi } from '@/api/dependencies'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
@@ -16,14 +17,6 @@ import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
-
-const PRIORITY_DOT_COLORS: Record<Priority, string> = {
-  none: '#cbd5e1',
-  low: '#38bdf8',
-  medium: '#fbbf24',
-  high: '#f97316',
-  urgent: '#ef4444',
-}
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -267,9 +260,12 @@ export default function ListPage() {
           {canManageSettings && (
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+              className="text-slate-400 hover:text-slate-600 text-sm transition-colors flex items-center gap-1.5"
             >
-              ⚙ Settings
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Settings
             </Link>
           )}
           <div className="flex rounded-lg border border-slate-200 overflow-hidden">
@@ -299,9 +295,12 @@ export default function ListPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => tasksApi.exportCsv(listId!)}
-              className="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+              className="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium flex items-center gap-1.5"
             >
-              ⬇ Export CSV
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Export CSV
             </button>
             {/* Group by selector */}
             <div className="relative">
@@ -314,7 +313,7 @@ export default function ListPage() {
                     : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <option value="none">⊞ Group by…</option>
+                <option value="none">Group by…</option>
                 <option value="status">Status</option>
                 <option value="assignee">Assignee</option>
                 <option value="priority">Priority</option>
@@ -331,7 +330,10 @@ export default function ListPage() {
                     : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                📋 Views
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                Views
                 {savedViews.length > 0 && (
                   <span className="text-[11px] bg-violet-100 text-violet-600 px-1.5 rounded-full font-semibold">
                     {savedViews.length}

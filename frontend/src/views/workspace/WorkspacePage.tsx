@@ -5,13 +5,14 @@ import { workspacesApi, type Workspace } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
 import HeaderActions from '@/components/HeaderActions'
 
-const AVATAR_COLORS = [
-  ['bg-violet-500', 'text-white'],
-  ['bg-sky-500', 'text-white'],
-  ['bg-emerald-500', 'text-white'],
-  ['bg-amber-500', 'text-white'],
-  ['bg-rose-500', 'text-white'],
-  ['bg-indigo-500', 'text-white'],
+// Muted palette — distinguishable without saturated color noise
+const AVATAR_COLORS: [string, string][] = [
+  ['bg-violet-100', 'text-violet-700'],
+  ['bg-sky-100',    'text-sky-700'],
+  ['bg-emerald-100','text-emerald-700'],
+  ['bg-amber-100',  'text-amber-700'],
+  ['bg-rose-100',   'text-rose-700'],
+  ['bg-indigo-100', 'text-indigo-700'],
 ]
 
 function avatarColor(name: string) {

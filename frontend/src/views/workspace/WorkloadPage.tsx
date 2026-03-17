@@ -3,21 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useWorkload } from '@/api/workspaces'
 import WorkspaceHeader from '@/components/WorkspaceHeader'
 import type { Priority } from '@/api/tasks'
+import { PRIORITY_DOT_COLORS } from '@/lib/priority'
 
-const PRIORITY_DOT_COLORS: Record<Priority, string> = {
-  none: '#cbd5e1',
-  low: '#38bdf8',
-  medium: '#fbbf24',
-  high: '#f97316',
-  urgent: '#ef4444',
-}
-
-const AVATAR_COLORS = [
-  'bg-violet-500', 'bg-sky-500', 'bg-emerald-500',
-  'bg-amber-500', 'bg-rose-500', 'bg-indigo-500',
+// Muted palette keeps member avatars legible without adding color noise
+const AVATAR_COLORS: [string, string][] = [
+  ['bg-violet-100', 'text-violet-700'],
+  ['bg-sky-100',    'text-sky-700'],
+  ['bg-emerald-100','text-emerald-700'],
+  ['bg-amber-100',  'text-amber-700'],
+  ['bg-rose-100',   'text-rose-700'],
+  ['bg-indigo-100', 'text-indigo-700'],
 ]
 
-function avatarColor(name: string) {
+function avatarColor(name: string): [string, string] {
   return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
 }
 
@@ -85,7 +83,7 @@ export default function WorkloadPage() {
 function MemberCard({ member }: { member: WorkloadMember }) {
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(member.tasks.length <= 5)
-  const color = avatarColor(member.display_name)
+  const [avatarBg, avatarText] = avatarColor(member.display_name)
 
   const taskLoad =
     member.open_task_count === 0 ? 'No tasks' :
@@ -107,7 +105,7 @@ function MemberCard({ member }: { member: WorkloadMember }) {
         aria-expanded={expanded}
         className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors text-left"
       >
-        <span className={`inline-flex w-9 h-9 rounded-full ${color} text-white text-sm font-bold items-center justify-center shrink-0 select-none`}>
+        <span className={`inline-flex w-9 h-9 rounded-full ${avatarBg} ${avatarText} text-sm font-bold items-center justify-center shrink-0 select-none`}>
           {member.display_name[0].toUpperCase()}
         </span>
         <span className="flex-1 font-medium text-slate-800 text-sm">{member.display_name}</span>

@@ -6,15 +6,8 @@ import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useAuthStore } from '@/store/authStore'
+import { PRIORITY_COLORS } from '@/lib/priority'
 import HeaderActions from '@/components/HeaderActions'
-
-const PRIORITY_COLORS: Record<Priority, { bg: string; text: string; dot: string }> = {
-  none:   { bg: 'bg-slate-100',   text: 'text-slate-400',  dot: '#cbd5e1' },
-  low:    { bg: 'bg-sky-50',      text: 'text-sky-500',    dot: '#38bdf8' },
-  medium: { bg: 'bg-amber-50',    text: 'text-amber-600',  dot: '#fbbf24' },
-  high:   { bg: 'bg-orange-50',   text: 'text-orange-500', dot: '#f97316' },
-  urgent: { bg: 'bg-red-50',      text: 'text-red-500',    dot: '#ef4444' },
-}
 
 export default function BoardPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
@@ -56,7 +49,7 @@ export default function BoardPage() {
   const noStatusTasks = tasks.filter((t) => !t.status_id)
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3 shrink-0">
         <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors flex items-center gap-1">
@@ -68,9 +61,12 @@ export default function BoardPage() {
           {canManageSettings && (
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+              className="text-slate-400 hover:text-slate-600 text-sm transition-colors flex items-center gap-1.5"
             >
-              ⚙ Settings
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Settings
             </Link>
           )}
           <div className="flex rounded-lg border border-slate-200 overflow-hidden">
