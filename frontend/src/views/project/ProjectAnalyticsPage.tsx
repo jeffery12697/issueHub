@@ -51,6 +51,12 @@ export default function ProjectAnalyticsPage() {
             All Tasks
           </Link>
           <Link
+            to={`/projects/${projectId}/gantt`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            Timeline
+          </Link>
+          <Link
             to={`/projects/${projectId}/analytics`}
             className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
           >

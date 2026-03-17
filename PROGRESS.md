@@ -25,7 +25,7 @@
 | **Phase 11** | ✅ Done | AU-03 | Auto-close parent task when all subtasks done |
 | **Phase 12** | ✅ Done | AU-01 | Advanced automation — trigger-action rules (AU-04 deferred: needs Git webhook infra) |
 | **Phase 13** | ✅ Done | M-02, N-02, AU-02 | Email invites, notification digest, overdue task notifications |
-| **Phase 14** | 🔲 Not started | TM-02 | Timeline / Gantt view |
+| **Phase 14** | ✅ Done | TM-02 | Timeline / Gantt view (project-level) |
 | **Phase 15** | ✅ Done | AU-04 | Git webhook: GitHub PR / GitLab MR open → link task, merge → close task |
 | **Phase 16** | ✅ Done | F-01, F-02, F-03 | Global search (+ comments), saved views, group-by (status / assignee / priority) |
 
@@ -37,7 +37,6 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 14: Timeline / Gantt view (TM-02) — deferred
 - Phase 17: TBD
 
 ## Recently Completed (outside phases)
