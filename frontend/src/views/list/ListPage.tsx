@@ -5,7 +5,8 @@ import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { PRIORITY_DOT_COLORS, PRIORITY_COLORS } from '@/lib/priority'
 import { dependenciesApi } from '@/api/dependencies'
-import { useWorkspaceMembers, type Member } from '@/api/workspaces'
+import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
+import { projectsApi } from '@/api/projects'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
@@ -29,6 +30,18 @@ export default function ListPage() {
   const { data: list } = useQuery({
     queryKey: ['list', listId],
     queryFn: () => listsApi.get(listId!),
+  })
+
+  const { data: project } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectsApi.get(projectId!),
+    enabled: !!projectId,
+  })
+
+  const { data: workspace } = useQuery({
+    queryKey: ['workspace', project?.workspace_id],
+    queryFn: () => workspacesApi.get(project!.workspace_id),
+    enabled: !!project?.workspace_id,
   })
 
   const [newTitle, setNewTitle] = useState('')
@@ -252,9 +265,31 @@ export default function ListPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3">
-        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Home</Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-base font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
+        <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+        {workspace && (
+          <>
+            <span className="text-slate-300 shrink-0">/</span>
+            <Link
+              to={`/workspaces/${workspace.id}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[120px] transition-colors"
+            >
+              {workspace.name}
+            </Link>
+          </>
+        )}
+        {project && (
+          <>
+            <span className="text-slate-300 shrink-0">/</span>
+            <Link
+              to={`/projects/${projectId}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[120px] transition-colors"
+            >
+              {project.name}
+            </Link>
+          </>
+        )}
+        <span className="text-slate-300 shrink-0">/</span>
+        <span className="text-sm font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           {canManageSettings && (
             <Link
