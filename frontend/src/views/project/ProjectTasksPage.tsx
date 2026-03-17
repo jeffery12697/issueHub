@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority, type Task } from '@/api/tasks'
 import { listsApi } from '@/api/lists'
 import { projectsApi } from '@/api/projects'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
+import { savedViewsApi } from '@/api/savedViews'
+
+type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1', low: '#38bdf8', medium: '#fbbf24', high: '#f97316', urgent: '#ef4444',
@@ -29,11 +32,14 @@ function listBadgeColor(name: string) {
 export default function ProjectTasksPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   const [filterRules, setFilterRules] = useState<FilterRule[]>([])
   const [includeSubtasks, setIncludeSubtasks] = useState(false)
   const [page, setPage] = useState(1)
-  const [groupByStatus, setGroupByStatus] = useState(false)
+  const [groupBy, setGroupBy] = useState<GroupBy>('none')
+  const [showViewsPanel, setShowViewsPanel] = useState(false)
+  const [newViewName, setNewViewName] = useState('')
 
   // Derive API params from filter rules
   const listEq = filterRules.find((r) => r.field === 'list' && r.op === 'eq')?.value
@@ -80,34 +86,111 @@ export default function ProjectTasksPage() {
   const total = result?.total ?? 0
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  // Build display groups for group-by-status mode
-  const displayGroups = (() => {
-    if (!groupByStatus) {
-      return [{ statusId: null as string | null, statusName: '', statusColor: '', tasks, showHeader: false }]
-    }
-    const seenIds = new Set<string>()
-    const orderedStatuses: Array<{ id: string; name: string; color: string }> = []
-    for (const l of listDetails) {
-      for (const s of (l.statuses ?? [])) {
-        if (!seenIds.has(s.id)) { seenIds.add(s.id); orderedStatuses.push(s) }
-      }
-    }
-    const result2: Array<{ statusId: string | null; statusName: string; statusColor: string; tasks: Task[]; showHeader: boolean }> = []
-    for (const s of orderedStatuses) {
-      const groupTasks = tasks.filter((t) => t.status_id === s.id)
-      if (groupTasks.length === 0) continue
-      result2.push({ statusId: s.id, statusName: s.name, statusColor: s.color, tasks: groupTasks, showHeader: true })
-    }
-    const noStatus = tasks.filter((t) => !t.status_id)
-    if (noStatus.length > 0) {
-      result2.push({ statusId: null, statusName: 'No Status', statusColor: '#cbd5e1', tasks: noStatus, showHeader: true })
-    }
-    return result2
-  })()
-
   const workspaceId = project?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+
+  type DisplayGroup = { groupKey: string | null; groupLabel: string; groupColor: string; tasks: Task[]; showHeader: boolean }
+
+  // Build display groups
+  const displayGroups = ((): DisplayGroup[] => {
+    if (groupBy === 'none') {
+      return [{ groupKey: null, groupLabel: '', groupColor: '', tasks, showHeader: false }]
+    }
+
+    if (groupBy === 'status') {
+      const seenIds = new Set<string>()
+      const orderedStatuses: Array<{ id: string; name: string; color: string }> = []
+      for (const l of listDetails) {
+        for (const s of (l.statuses ?? [])) {
+          if (!seenIds.has(s.id)) { seenIds.add(s.id); orderedStatuses.push(s) }
+        }
+      }
+      const result: DisplayGroup[] = []
+      for (const s of orderedStatuses) {
+        const groupTasks = tasks.filter((t) => t.status_id === s.id)
+        if (groupTasks.length === 0) continue
+        result.push({ groupKey: s.id, groupLabel: s.name, groupColor: s.color, tasks: groupTasks, showHeader: true })
+      }
+      const noStatus = tasks.filter((t) => !t.status_id)
+      if (noStatus.length > 0) {
+        result.push({ groupKey: null, groupLabel: 'No Status', groupColor: '#cbd5e1', tasks: noStatus, showHeader: true })
+      }
+      return result
+    }
+
+    if (groupBy === 'assignee') {
+      const seenIds = new Set<string>()
+      tasks.forEach((t) => t.assignee_ids.forEach((id) => seenIds.add(id)))
+      const result: DisplayGroup[] = []
+      for (const uid of seenIds) {
+        const groupTasks = tasks.filter((t) => t.assignee_ids.includes(uid))
+        if (groupTasks.length === 0) continue
+        result.push({
+          groupKey: uid,
+          groupLabel: memberMap[uid]?.display_name ?? 'Unknown',
+          groupColor: '#a78bfa',
+          tasks: groupTasks,
+          showHeader: true,
+        })
+      }
+      const unassigned = tasks.filter((t) => t.assignee_ids.length === 0)
+      if (unassigned.length > 0) {
+        result.push({ groupKey: null, groupLabel: 'Unassigned', groupColor: '#cbd5e1', tasks: unassigned, showHeader: true })
+      }
+      return result
+    }
+
+    if (groupBy === 'priority') {
+      const PRIORITY_ORDER: Priority[] = ['urgent', 'high', 'medium', 'low', 'none']
+      const result: DisplayGroup[] = []
+      for (const p of PRIORITY_ORDER) {
+        const groupTasks = tasks.filter((t) => t.priority === p)
+        if (groupTasks.length === 0) continue
+        result.push({
+          groupKey: p,
+          groupLabel: p === 'none' ? 'No Priority' : p.charAt(0).toUpperCase() + p.slice(1),
+          groupColor: PRIORITY_DOT_COLORS[p],
+          tasks: groupTasks,
+          showHeader: true,
+        })
+      }
+      return result
+    }
+
+    return [{ groupKey: null, groupLabel: '', groupColor: '', tasks, showHeader: false }]
+  })()
+
+  const { data: savedViews = [] } = useQuery({
+    queryKey: ['saved-views', 'project', projectId],
+    queryFn: () => savedViewsApi.listForProject(projectId!),
+    enabled: !!projectId,
+  })
+
+  const createView = useMutation({
+    mutationFn: (name: string) =>
+      savedViewsApi.createForProject(projectId!, name, {
+        filter_rules: filterRules,
+        cf_filters: {},
+        group_by: groupBy,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['saved-views', 'project', projectId] })
+      setNewViewName('')
+    },
+  })
+
+  const deleteView = useMutation({
+    mutationFn: savedViewsApi.delete,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-views', 'project', projectId] }),
+  })
+
+  function applyView(view: (typeof savedViews)[0]) {
+    setFilterRules(view.filters_json.filter_rules ?? [])
+    setGroupBy((view.filters_json.group_by as GroupBy) ?? 'none')
+    setPage(1)
+    setShowViewsPanel(false)
+  }
 
   const hasFilters = filterRules.length > 0
   function resetPage() { setPage(1) }
@@ -151,16 +234,83 @@ export default function ProjectTasksPage() {
               {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
             </p>
           </div>
-          <button
-            onClick={() => setGroupByStatus((v) => !v)}
-            className={`border text-sm px-4 py-2 rounded-lg transition-colors font-medium ${
-              groupByStatus
-                ? 'bg-violet-100 text-violet-700 border-violet-300'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            ⊞ Group by status
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Group by selector */}
+            <div className="relative">
+              <select
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as GroupBy)}
+                className={`h-9 appearance-none pl-3 pr-7 rounded-lg text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
+                  groupBy !== 'none'
+                    ? 'border-violet-300 bg-violet-50 text-violet-700'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <option value="none">⊞ Group by…</option>
+                <option value="status">Status</option>
+                <option value="assignee">Assignee</option>
+                <option value="priority">Priority</option>
+              </select>
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-50">▾</span>
+            </div>
+            {/* Saved views */}
+            <div className="relative">
+              <button
+                onClick={() => setShowViewsPanel((v) => !v)}
+                className={`border text-sm px-3 py-2 rounded-lg transition-colors font-medium flex items-center gap-1.5 ${
+                  showViewsPanel
+                    ? 'bg-violet-100 text-violet-700 border-violet-300'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                📋 Views
+                {savedViews.length > 0 && (
+                  <span className="text-[11px] bg-violet-100 text-violet-600 px-1.5 rounded-full font-semibold">
+                    {savedViews.length}
+                  </span>
+                )}
+              </button>
+              {showViewsPanel && (
+                <div className="absolute right-0 mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
+                  {savedViews.length === 0 && (
+                    <p className="text-xs text-slate-400 px-1 pb-1">No saved views yet.</p>
+                  )}
+                  {savedViews.map((v) => (
+                    <div key={v.id} className="flex items-center gap-2 group">
+                      <button
+                        onClick={() => applyView(v)}
+                        className="flex-1 text-left text-sm text-slate-700 hover:text-violet-600 font-medium truncate py-1"
+                      >
+                        {v.name}
+                      </button>
+                      <button
+                        onClick={() => deleteView.mutate(v.id)}
+                        className="text-slate-300 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <div className="border-t border-slate-100 pt-2 flex gap-2">
+                    <input
+                      value={newViewName}
+                      onChange={(e) => setNewViewName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && newViewName.trim()) createView.mutate(newViewName.trim()) }}
+                      placeholder="View name…"
+                      className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                    <button
+                      onClick={() => { if (newViewName.trim()) createView.mutate(newViewName.trim()) }}
+                      disabled={!newViewName.trim()}
+                      className="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700 disabled:opacity-40 transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Filter bar */}
@@ -223,15 +373,15 @@ export default function ProjectTasksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {displayGroups.flatMap(({ statusId, statusName, statusColor, tasks: groupTasks, showHeader }) => {
+                {displayGroups.flatMap(({ groupKey, groupLabel, groupColor, tasks: groupTasks, showHeader }) => {
                   const rows = []
                   if (showHeader) {
                     rows.push(
-                      <tr key={`hdr-${statusId ?? 'none'}`} className="bg-slate-50/80">
+                      <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80">
                         <td colSpan={7} className="px-4 py-2.5 border-b border-slate-100">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: statusColor }} />
-                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{statusName}</span>
+                            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{groupLabel}</span>
                             <span className="text-[11px] font-medium text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
                           </div>
                         </td>

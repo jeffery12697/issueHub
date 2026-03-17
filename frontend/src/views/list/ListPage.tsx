@@ -10,8 +10,11 @@ import { useFieldDefinitions } from '@/api/customFields'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
+import { savedViewsApi } from '@/api/savedViews'
 import { toast } from '@/store/toastStore'
 import { useAuthStore } from '@/store/authStore'
+
+type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -41,7 +44,9 @@ export default function ListPage() {
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(1)
-  const [groupByStatus, setGroupByStatus] = useState(false)
+  const [groupBy, setGroupBy] = useState<GroupBy>('none')
+  const [showViewsPanel, setShowViewsPanel] = useState(false)
+  const [newViewName, setNewViewName] = useState('')
   const PAGE_SIZE = 50
 
   // Derive API params from filter rules
@@ -97,33 +102,83 @@ export default function ListPage() {
 
   const { sorted: sortedTasks, taskMap } = tasks
 
-  // Build display groups: one group (no header) when flat, multiple (with headers) when grouped
-  const displayGroups = (() => {
-    if (!groupByStatus) {
-      return [{ statusId: null as string | null, statusName: '', statusColor: '', tasks: sortedTasks, showHeader: false }]
+  // memberMap is needed by displayGroups (assignee grouping)
+  const workspaceIdEarly = allTasks[0]?.workspace_id
+  const { data: membersEarly = [] } = useWorkspaceMembers(workspaceIdEarly)
+  const memberMap = Object.fromEntries(membersEarly.map((m) => [m.user_id, m]))
+
+  // Build display groups: flat when none, grouped with headers otherwise
+  type DisplayGroup = { groupKey: string | null; groupLabel: string; groupColor: string; tasks: Task[]; showHeader: boolean }
+  const displayGroups = ((): DisplayGroup[] => {
+    if (groupBy === 'none') {
+      return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: sortedTasks, showHeader: false }]
     }
-    const statuses = list?.statuses ?? []
-    const result: Array<{ statusId: string | null; statusName: string; statusColor: string; tasks: Task[]; showHeader: boolean }> = []
-    for (const s of statuses) {
-      const groupTasks = allTasks.filter((t) => t.status_id === s.id)
-      if (groupTasks.length === 0) continue
-      // Order parents first, then their subtasks
-      const subs: Record<string, Task[]> = {}
-      groupTasks.filter((t) => t.parent_task_id).forEach((t) => { (subs[t.parent_task_id!] ??= []).push(t) })
-      const topLevelIds = new Set(groupTasks.filter((t) => !t.parent_task_id).map((t) => t.id))
-      const ordered: Task[] = []
-      for (const t of groupTasks.filter((t) => !t.parent_task_id)) {
-        ordered.push(t)
-        if (subs[t.id]) ordered.push(...subs[t.id])
+
+    if (groupBy === 'status') {
+      const statuses = list?.statuses ?? []
+      const result: DisplayGroup[] = []
+      for (const s of statuses) {
+        const groupTasks = allTasks.filter((t) => t.status_id === s.id)
+        if (groupTasks.length === 0) continue
+        const subs: Record<string, Task[]> = {}
+        groupTasks.filter((t) => t.parent_task_id).forEach((t) => { (subs[t.parent_task_id!] ??= []).push(t) })
+        const topLevelIds = new Set(groupTasks.filter((t) => !t.parent_task_id).map((t) => t.id))
+        const ordered: Task[] = []
+        for (const t of groupTasks.filter((t) => !t.parent_task_id)) {
+          ordered.push(t)
+          if (subs[t.id]) ordered.push(...subs[t.id])
+        }
+        groupTasks.filter((t) => t.parent_task_id && !topLevelIds.has(t.parent_task_id!)).forEach((t) => ordered.push(t))
+        result.push({ groupKey: s.id, groupLabel: s.name, groupColor: s.color, tasks: ordered, showHeader: true })
       }
-      groupTasks.filter((t) => t.parent_task_id && !topLevelIds.has(t.parent_task_id!)).forEach((t) => ordered.push(t))
-      result.push({ statusId: s.id, statusName: s.name, statusColor: s.color, tasks: ordered, showHeader: true })
+      const noStatus = allTasks.filter((t) => !t.status_id)
+      if (noStatus.length > 0) {
+        result.push({ groupKey: null, groupLabel: 'No Status', groupColor: '#cbd5e1', tasks: noStatus, showHeader: true })
+      }
+      return result
     }
-    const noStatus = allTasks.filter((t) => !t.status_id)
-    if (noStatus.length > 0) {
-      result.push({ statusId: null, statusName: 'No Status', statusColor: '#cbd5e1', tasks: noStatus, showHeader: true })
+
+    if (groupBy === 'assignee') {
+      const result: DisplayGroup[] = []
+      const seenIds = new Set<string>()
+      allTasks.forEach((t) => t.assignee_ids.forEach((id) => seenIds.add(id)))
+      for (const uid of seenIds) {
+        const groupTasks = allTasks.filter((t) => t.assignee_ids.includes(uid))
+        if (groupTasks.length === 0) continue
+        const member = memberMap[uid]
+        result.push({
+          groupKey: uid,
+          groupLabel: member?.display_name ?? 'Unknown',
+          groupColor: '#a78bfa',
+          tasks: groupTasks,
+          showHeader: true,
+        })
+      }
+      const unassigned = allTasks.filter((t) => t.assignee_ids.length === 0)
+      if (unassigned.length > 0) {
+        result.push({ groupKey: null, groupLabel: 'Unassigned', groupColor: '#cbd5e1', tasks: unassigned, showHeader: true })
+      }
+      return result
     }
-    return result
+
+    if (groupBy === 'priority') {
+      const PRIORITY_ORDER: Priority[] = ['urgent', 'high', 'medium', 'low', 'none']
+      const result: DisplayGroup[] = []
+      for (const p of PRIORITY_ORDER) {
+        const groupTasks = allTasks.filter((t) => t.priority === p)
+        if (groupTasks.length === 0) continue
+        result.push({
+          groupKey: p,
+          groupLabel: p === 'none' ? 'No Priority' : p.charAt(0).toUpperCase() + p.slice(1),
+          groupColor: PRIORITY_DOT_COLORS[p],
+          tasks: groupTasks,
+          showHeader: true,
+        })
+      }
+      return result
+    }
+
+    return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: sortedTasks, showHeader: false }]
   })()
 
   const createTask = useMutation({
@@ -159,10 +214,39 @@ export default function ListPage() {
     onError: () => toast.error('Bulk delete failed'),
   })
 
+  const { data: savedViews = [] } = useQuery({
+    queryKey: ['saved-views', 'list', listId],
+    queryFn: () => savedViewsApi.listForList(listId!),
+    enabled: !!listId,
+  })
+
+  const createView = useMutation({
+    mutationFn: (name: string) =>
+      savedViewsApi.createForList(listId!, name, {
+        filter_rules: filterRules,
+        cf_filters: cfFilters,
+        group_by: groupBy,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['saved-views', 'list', listId] })
+      setNewViewName('')
+    },
+  })
+
+  const deleteView = useMutation({
+    mutationFn: savedViewsApi.delete,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-views', 'list', listId] }),
+  })
+
+  function applyView(view: (typeof savedViews)[0]) {
+    setFilterRules(view.filters_json.filter_rules ?? [])
+    setCfFilters(view.filters_json.cf_filters ?? {})
+    setGroupBy((view.filters_json.group_by as GroupBy) ?? 'none')
+    setPage(1)
+    setShowViewsPanel(false)
+  }
+
   const { data: fieldDefs = [] } = useFieldDefinitions(listId)
-  const workspaceId = allTasks[0]?.workspace_id
-  const { data: members = [] } = useWorkspaceMembers(workspaceId)
-  const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
   const currentUserId = useAuthStore((s) => s.user?.id)
   const myRole = currentUserId ? memberMap[currentUserId]?.role : undefined
   const canManageSettings = myRole === 'owner' || myRole === 'admin'
@@ -215,16 +299,81 @@ export default function ListPage() {
             >
               ⬇ Export CSV
             </button>
-            <button
-              onClick={() => setGroupByStatus((v) => !v)}
-              className={`border text-sm px-4 py-2 rounded-lg transition-colors font-medium ${
-                groupByStatus
-                  ? 'bg-violet-100 text-violet-700 border-violet-300'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              ⊞ Group by status
-            </button>
+            {/* Group by selector */}
+            <div className="relative">
+              <select
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as GroupBy)}
+                className={`h-9 appearance-none pl-3 pr-7 rounded-lg text-sm font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
+                  groupBy !== 'none'
+                    ? 'border-violet-300 bg-violet-50 text-violet-700'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <option value="none">⊞ Group by…</option>
+                <option value="status">Status</option>
+                <option value="assignee">Assignee</option>
+                <option value="priority">Priority</option>
+              </select>
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-50">▾</span>
+            </div>
+            {/* Saved views */}
+            <div className="relative">
+              <button
+                onClick={() => setShowViewsPanel((v) => !v)}
+                className={`border text-sm px-3 py-2 rounded-lg transition-colors font-medium flex items-center gap-1.5 ${
+                  showViewsPanel
+                    ? 'bg-violet-100 text-violet-700 border-violet-300'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                📋 Views
+                {savedViews.length > 0 && (
+                  <span className="text-[11px] bg-violet-100 text-violet-600 px-1.5 rounded-full font-semibold">
+                    {savedViews.length}
+                  </span>
+                )}
+              </button>
+              {showViewsPanel && (
+                <div className="absolute right-0 mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
+                  {savedViews.length === 0 && (
+                    <p className="text-xs text-slate-400 px-1 pb-1">No saved views yet.</p>
+                  )}
+                  {savedViews.map((v) => (
+                    <div key={v.id} className="flex items-center gap-2 group">
+                      <button
+                        onClick={() => applyView(v)}
+                        className="flex-1 text-left text-sm text-slate-700 hover:text-violet-600 font-medium truncate py-1"
+                      >
+                        {v.name}
+                      </button>
+                      <button
+                        onClick={() => deleteView.mutate(v.id)}
+                        className="text-slate-300 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <div className="border-t border-slate-100 pt-2 flex gap-2">
+                    <input
+                      value={newViewName}
+                      onChange={(e) => setNewViewName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && newViewName.trim()) createView.mutate(newViewName.trim()) }}
+                      placeholder="View name…"
+                      className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                    <button
+                      onClick={() => { if (newViewName.trim()) createView.mutate(newViewName.trim()) }}
+                      disabled={!newViewName.trim()}
+                      className="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700 disabled:opacity-40 transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setCreating(true)}
               className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
@@ -410,15 +559,15 @@ export default function ListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {displayGroups.flatMap(({ statusId, statusName, statusColor, tasks: groupTasks, showHeader }) => {
+                {displayGroups.flatMap(({ groupKey, groupLabel, groupColor, tasks: groupTasks, showHeader }) => {
                   const rows = []
                   if (showHeader) {
                     rows.push(
-                      <tr key={`hdr-${statusId ?? 'none'}`} className="bg-slate-50/80">
+                      <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80">
                         <td colSpan={8} className="px-4 py-2.5 border-b border-slate-100">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: statusColor }} />
-                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{statusName}</span>
+                            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{groupLabel}</span>
                             <span className="text-[11px] font-medium text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
                           </div>
                         </td>

@@ -266,13 +266,22 @@ class TaskRepository:
         await self.session.flush()
 
     async def search(self, workspace_id: UUID, q: str, limit: int = 50) -> list[Task]:
+        from app.models.comment import Comment
+
         pattern = f"%{q}%"
+        comment_match = (
+            select(Comment.task_id)
+            .where(Comment.body.ilike(pattern))
+            .where(Comment.deleted_at.is_(None))
+        )
         result = await self.session.execute(
             select(Task)
             .where(Task.workspace_id == workspace_id)
             .where(Task.deleted_at.is_(None))
             .where(
-                (Task.title.ilike(pattern)) | (Task.description.ilike(pattern))
+                (Task.title.ilike(pattern))
+                | (Task.description.ilike(pattern))
+                | Task.id.in_(comment_match)
             )
             .order_by(Task.created_at.desc())
             .limit(limit)
