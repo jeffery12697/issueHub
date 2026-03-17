@@ -44,9 +44,13 @@ function dateOnly(d: Date): Date {
 function daysBetween(a: Date, b: Date): number {
   return Math.round((dateOnly(b).getTime() - dateOnly(a).getTime()) / 86400000)
 }
-/** Parse 'YYYY-MM-DD' in local time (avoids UTC offset shifting day) */
+/**
+ * Parse a date string in local time.
+ * Handles both 'YYYY-MM-DD' and 'YYYY-MM-DDTHH:MM:SS...' (backend sends datetime).
+ * Slicing to 10 chars gets the date part regardless of the time component.
+ */
 function parseLocal(s: string): Date {
-  const [y, m, d] = s.split('-').map(Number)
+  const [y, m, d] = s.slice(0, 10).split('-').map(Number)
   return new Date(y, m - 1, d)
 }
 
@@ -239,9 +243,10 @@ export default function ProjectGanttPage() {
 
     return (
       <div
-        className={`flex-1 relative transition-colors ${
+        className={`relative transition-colors ${
           isEven ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-900/60'
         } group-hover:bg-violet-50/20 dark:group-hover:bg-violet-950/20`}
+        style={{ width: totalPx }}
       >
         {/* Grid lines */}
         {showGridLines && dayTicks.filter((t) => t.isWeekStart).map((tick) => (
@@ -447,8 +452,8 @@ export default function ProjectGanttPage() {
                 </span>
               </div>
 
-              {/* Timeline header */}
-              <div className="flex-1 relative select-none">
+              {/* Timeline header — explicit width so absolutely-positioned labels are never clipped */}
+              <div className="relative select-none" style={{ width: totalPx }}>
                 {/* Month row */}
                 <div className="absolute inset-x-0 top-0" style={{ height: 28 }}>
                   {monthSegments.map((seg, i) => (
@@ -536,7 +541,7 @@ export default function ProjectGanttPage() {
                         {undatedTasks.length}
                       </span>
                     </div>
-                    <div className="flex-1 bg-slate-50 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-700" />
+                    <div className="bg-slate-50 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-700" style={{ width: totalPx }} />
                   </div>
 
                   {undatedTasks.map((task, rowIdx) => (
@@ -544,9 +549,10 @@ export default function ProjectGanttPage() {
                       {renderLeftCell(task, true, rowIdx % 2 === 0)}
                       {/* Dashed line placeholder */}
                       <div
-                        className={`flex-1 flex items-center transition-colors ${
+                        className={`flex items-center transition-colors ${
                           rowIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-900/60'
                         } group-hover:bg-violet-50/20 dark:group-hover:bg-violet-950/20`}
+                        style={{ width: totalPx }}
                       >
                         <div className="w-full mx-4 border-t border-dashed border-slate-200 dark:border-slate-700" />
                       </div>
