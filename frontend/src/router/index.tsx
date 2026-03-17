@@ -19,7 +19,7 @@ import WorkloadPage from '@/views/workspace/WorkloadPage'
 import ProjectTasksPage from '@/views/project/ProjectTasksPage'
 import ProjectAnalyticsPage from '@/views/project/ProjectAnalyticsPage'
 import ProjectGanttPage from '@/views/project/ProjectGanttPage'
-import ProjectStatusMappingsPage from '@/views/project/ProjectStatusMappingsPage'
+import ProjectSettingsPage from '@/views/project/ProjectSettingsPage'
 import InviteAcceptPage from '@/views/workspace/InviteAcceptPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -60,7 +60,7 @@ export default function AppRouter() {
         <Route path="/projects/:projectId" element={<ProjectTasksPage />} />
         <Route path="/projects/:projectId/gantt" element={<ProjectGanttPage />} />
         <Route path="/projects/:projectId/analytics" element={<ProjectAnalyticsPage />} />
-        <Route path="/projects/:projectId/status-mappings" element={<ProjectStatusMappingsPage />} />
+        <Route path="/projects/:projectId/settings" element={<ProjectSettingsPage />} />
         <Route path="/projects/:projectId/lists/:listId" element={<ListPage />} />
         <Route path="/projects/:projectId/lists/:listId/board" element={<BoardPage />} />
         <Route path="/projects/:projectId/lists/:listId/settings" element={<ListSettingsPage />} />
