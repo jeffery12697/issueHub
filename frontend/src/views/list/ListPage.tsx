@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listsApi, useWorkspaceLists } from '@/api/lists'
+import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { PRIORITY_DOT_COLORS, PRIORITY_COLORS } from '@/lib/priority'
 import { dependenciesApi } from '@/api/dependencies'
@@ -234,7 +234,11 @@ export default function ListPage() {
     onError: () => toast.error('Move failed'),
   })
 
-  const { data: workspaceLists = [] } = useWorkspaceLists(workspace?.id)
+  const { data: projectLists = [] } = useQuery({
+    queryKey: ['lists', projectId],
+    queryFn: () => listsApi.list(projectId!),
+    enabled: !!projectId,
+  })
 
   const { data: savedViews = [] } = useQuery({
     queryKey: ['saved-views', 'list', listId],
@@ -481,7 +485,7 @@ export default function ListPage() {
               }}
             >
               <option value="" disabled>Move to list…</option>
-              {workspaceLists.filter((l) => l.id !== listId).map((l) => (
+              {projectLists.filter((l) => l.id !== listId).map((l) => (
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
             </select>

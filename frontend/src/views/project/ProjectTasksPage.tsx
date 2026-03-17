@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority, type Task } from '@/api/tasks'
-import { listsApi, useWorkspaceLists } from '@/api/lists'
+import { listsApi } from '@/api/lists'
 import { projectsApi } from '@/api/projects'
 import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
@@ -101,7 +101,6 @@ export default function ProjectTasksPage() {
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
-  const { data: workspaceLists = [] } = useWorkspaceLists(workspaceId)
 
   const bulkUpdate = useMutation({
     mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string } }) =>
@@ -452,7 +451,7 @@ export default function ProjectTasksPage() {
               }}
             >
               <option value="" disabled>Move to list…</option>
-              {workspaceLists.map((l) => (
+              {lists.map((l) => (
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
             </select>
