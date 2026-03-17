@@ -132,8 +132,13 @@ export default function ProjectTasksPage() {
     onError: () => toast.error('Move failed'),
   })
 
-  // All statuses across all lists for the bulk status dropdown
-  const allStatuses = listDetails.flatMap((l) => l.statuses ?? [])
+  // For bulk status: only valid when all selected tasks share the same list
+  const selectedTasks = tasks.filter((t) => selectedIds.has(t.id))
+  const selectedListIds = new Set(selectedTasks.map((t) => t.list_id).filter(Boolean))
+  const singleSelectedListId = selectedListIds.size === 1 ? [...selectedListIds][0] : null
+  const selectedListStatuses = singleSelectedListId
+    ? (listDetails.find((l) => l.id === singleSelectedListId)?.statuses ?? [])
+    : []
 
   type DisplayGroup = { groupKey: string | null; groupLabel: string; groupColor: string; tasks: Task[]; showHeader: boolean }
 
@@ -410,21 +415,23 @@ export default function ProjectTasksPage() {
           <div className="mb-4 flex items-center gap-3 bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-xl px-4 py-2.5">
             <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">{selectedIds.size} selected</span>
             <div className="w-px h-4 bg-violet-200 dark:bg-violet-800" />
-            <select
-              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              defaultValue=""
-              onChange={(e) => {
-                if (e.target.value) {
-                  bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { status_id: e.target.value } })
-                  e.target.value = ''
-                }
-              }}
-            >
-              <option value="" disabled>Set status…</option>
-              {allStatuses.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            {singleSelectedListId && (
+              <select
+                className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                defaultValue=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { status_id: e.target.value } })
+                    e.target.value = ''
+                  }
+                }}
+              >
+                <option value="" disabled>Set status…</option>
+                {selectedListStatuses.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
             <select
               className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
               defaultValue=""
