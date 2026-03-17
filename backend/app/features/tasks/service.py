@@ -37,7 +37,7 @@ class TaskService:
     async def create(self, dto: CreateTaskDTO) -> Task:
         await self._require_workspace_member(dto.workspace_id, dto.reporter_id)
         task_number, task_prefix = await self.project_repo.claim_task_number(dto.project_id)
-        task_key = f"{task_prefix}-{task_number:04d}"
+        task_key = f"{task_prefix}-{task_number:05d}"
         order_index = await self.repo.get_max_order_index(dto.list_id) + 100.0
         task = await self.repo.create(dto, order_index=order_index, task_number=task_number, task_key=task_key)
         await self.audit_repo.log(task.id, actor_id=dto.reporter_id, action="created")
@@ -59,7 +59,7 @@ class TaskService:
             subtask_list_id = parent.list_id
 
         task_number, task_prefix = await self.project_repo.claim_task_number(parent.project_id)
-        task_key = f"{task_prefix}-{task_number:04d}"
+        task_key = f"{task_prefix}-{task_number:05d}"
         order_index = await self.repo.get_max_order_index(subtask_list_id) + 100.0
         dto = body.to_dto(
             list_id=subtask_list_id,
