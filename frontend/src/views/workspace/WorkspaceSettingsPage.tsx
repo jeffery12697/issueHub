@@ -1,5 +1,20 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useQuery } from '@tanstack/react-query'
 import { workspacesApi, useWorkspaceMembers, useInviteMember, useUpdateMemberRole, useRemoveMember, useSendInvite } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
@@ -577,6 +592,66 @@ function TeamCard({
 type EditableStatus = TemplateStatus & { _key: string }
 type EditableField = TemplateField & { _key: string }
 
+function SortableTemplateStatusRow({
+  status,
+  onChange,
+  onDelete,
+}: {
+  status: EditableStatus
+  onChange: (field: keyof TemplateStatus, value: string | boolean | number) => void
+  onDelete: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: status._key })
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
+      <button
+        {...attributes}
+        {...listeners}
+        className="text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 cursor-grab active:cursor-grabbing touch-none"
+        tabIndex={-1}
+        aria-label="Drag to reorder"
+      >
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/>
+          <circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/>
+          <circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/>
+        </svg>
+      </button>
+      <input
+        type="color"
+        value={status.color}
+        onChange={(e) => onChange('color', e.target.value)}
+        className="w-7 h-7 rounded cursor-pointer border border-slate-200 dark:border-slate-700 p-0.5"
+        title="Status color"
+      />
+      <input
+        value={status.name}
+        onChange={(e) => onChange('name', e.target.value)}
+        className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+        placeholder="Status name"
+      />
+      <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 shrink-0">
+        <input
+          type="checkbox"
+          checked={status.is_complete}
+          onChange={(e) => onChange('is_complete', e.target.checked)}
+          className="accent-violet-600"
+        />
+        Done
+      </label>
+      <button
+        onClick={onDelete}
+        className="text-slate-300 dark:text-slate-600 hover:text-red-400 text-xs transition-colors shrink-0"
+        title="Remove status"
+      >
+        ✕
+      </button>
+    </div>
+  )
+}
+
 function TemplateCard({
   template,
   onDelete,
@@ -634,6 +709,18 @@ function TemplateCard({
     setStatuses((prev) => [...prev, newStatus])
     setNewStatusName('')
     setNewStatusColor('#94a3b8')
+  }
+
+  const statusSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+
+  function handleStatusDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setStatuses((prev) => {
+      const oldIdx = prev.findIndex((s) => s._key === active.id)
+      const newIdx = prev.findIndex((s) => s._key === over.id)
+      return oldIdx === -1 || newIdx === -1 ? prev : arrayMove(prev, oldIdx, newIdx)
+    })
   }
 
   function handleSaveStatuses() {
@@ -768,39 +855,18 @@ function TemplateCard({
       {/* Inline status editor */}
       {showStatusEditor && (
         <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2">
-          {statuses.map((s) => (
-            <div key={s._key} className="flex items-center gap-2">
-              <input
-                type="color"
-                value={s.color}
-                onChange={(e) => handleStatusChange(s._key, 'color', e.target.value)}
-                className="w-7 h-7 rounded cursor-pointer border border-slate-200 dark:border-slate-700 p-0.5"
-                title="Status color"
-              />
-              <input
-                value={s.name}
-                onChange={(e) => handleStatusChange(s._key, 'name', e.target.value)}
-                className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                placeholder="Status name"
-              />
-              <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 shrink-0">
-                <input
-                  type="checkbox"
-                  checked={s.is_complete}
-                  onChange={(e) => handleStatusChange(s._key, 'is_complete', e.target.checked)}
-                  className="accent-violet-600"
+          <DndContext sensors={statusSensors} collisionDetection={closestCenter} onDragEnd={handleStatusDragEnd}>
+            <SortableContext items={statuses.map((s) => s._key)} strategy={verticalListSortingStrategy}>
+              {statuses.map((s) => (
+                <SortableTemplateStatusRow
+                  key={s._key}
+                  status={s}
+                  onChange={(field, value) => handleStatusChange(s._key, field, value)}
+                  onDelete={() => handleDeleteStatus(s._key)}
                 />
-                Done
-              </label>
-              <button
-                onClick={() => handleDeleteStatus(s._key)}
-                className="text-slate-300 dark:text-slate-600 hover:text-red-400 text-xs transition-colors shrink-0"
-                title="Remove status"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+              ))}
+            </SortableContext>
+          </DndContext>
 
           {/* Add status row */}
           <div className="flex items-center gap-2 pt-1">
