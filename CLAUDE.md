@@ -58,38 +58,6 @@ issueHub/
 | `docs/stories/NOTIFICATIONS.md` | N-01 ~ N-03: Task watchers, notification frequency, @mention |
 | `docs/stories/FILTERS.md` | F-01 ~ F-03: Global search, saved views, group-by |
 
-## Design Context
+## Design / Frontend
 
-### Users
-Software developers and cross-functional teams (devs, designers, PMs) tracking tasks, bugs, and sprints. Long sessions at a desk; need fast navigation, clear hierarchy, and zero cognitive overhead. The interface competes with terminals and editors — earn every glance.
-
-### Brand Personality
-**Focused · Fast · Clean** — a productivity tool that gets out of the way. Sharp and confident, never flashy. Users should feel in control.
-
-### Aesthetic Direction
-- Minimal, Linear-inspired: white/`slate-50` surfaces, `violet-600` as the single accent
-- `rounded-xl` cards, `rounded-lg` buttons/inputs, `shadow-sm` only (elevation via borders, not shadows)
-- **Typography**: system-ui (confirmed — native sans on each OS, no web font dependency)
-- **Dark mode: planned as a priority** — avoid hardcoded light-only values; use `dark:` Tailwind variants on new components
-- No purple gradients; no card-in-card nesting; no glassmorphism; no bounce/elastic animations
-- **Icons**: transitioning to Lucide React (`lucide-react`). New inline SVGs follow Feather style: `fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"`
-
-### Design Principles
-1. **Clarity over decoration** — every element must serve information hierarchy; remove anything that doesn't help the user decide
-2. **Violet is a signal, not wallpaper** — use `violet-600` only for interactive/active/actionable states; never as background decoration
-3. **Density with breathing room** — compact rows and tight spacing at the row level, whitespace at card/section boundaries
-4. **Consistent motion** — Tailwind-default 150ms `ease` only; no bounce, no elastic; `prefers-reduced-motion` global override in `index.css`; use skeleton loaders not spinners
-5. **Status speaks first** — priority colors (sky/amber/orange/red) and status badges are the highest-priority visual signals on any task surface
-
-### Key Tokens (quick reference)
-- **Page bg**: `bg-slate-50` · **Card**: `bg-white border border-slate-200 rounded-xl shadow-sm`
-- **Primary btn**: `bg-violet-600 text-white rounded-lg hover:bg-violet-700`
-- **Secondary btn**: `border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50`
-- **Focus ring**: `focus:outline-none focus:ring-2 focus:ring-violet-500`
-- **Active tint**: `bg-violet-50 text-violet-700`
-- **Priority colors**: import `PRIORITY_DOT_COLORS` / `PRIORITY_COLORS` from `@/lib/priority` — never redefine locally
-- **Avatar colors**: muted `-100` bg + `-700` text (6 hues); never saturated `-500`
-- **Table header**: `bg-slate-50 border-b border-slate-200`, cells `text-xs font-semibold text-slate-500 uppercase tracking-wider`
-
-### Delight
-Subtle micro-interactions only — the kind noticed unconsciously. Allowed: color transitions, `hover:-translate-y-0.5` lift, focus ring appearance, status badge color changes. Never: confetti, bounce animations, particle effects, celebration copy.
+> **Read `.impeccable.md`** for all design and frontend work — color tokens, typography, component conventions, icon system, spacing, responsive strategy, motion guidelines, and accessibility baseline.
