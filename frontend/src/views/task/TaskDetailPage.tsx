@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
 import { listsApi, useWorkspaceLists } from '@/api/lists'
+import { projectsApi } from '@/api/projects'
 import { useWatchStatus, useWatchTask, useUnwatchTask } from '@/api/watchers'
 import { auditApi, type AuditLog } from '@/api/audit'
 import { dependenciesApi } from '@/api/dependencies'
@@ -68,6 +69,12 @@ export default function TaskDetailPage() {
     queryKey: ['list', task?.list_id],
     queryFn: () => listsApi.get(task!.list_id!),
     enabled: !!task?.list_id,
+  })
+
+  const { data: project } = useQuery({
+    queryKey: ['project', task?.project_id],
+    queryFn: () => projectsApi.get(task!.project_id),
+    enabled: !!task?.project_id,
   })
 
   const { data: blockedBy = [] } = useQuery({
@@ -241,12 +248,26 @@ export default function TaskDetailPage() {
           </svg>
           Back
         </button>
-        {list && (
+        {project && (
           <>
             <span className="text-slate-300">/</span>
-            <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[140px]">
+            <Link
+              to={`/projects/${project.id}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+            >
+              {project.name}
+            </Link>
+          </>
+        )}
+        {list && task.list_id && task.project_id && (
+          <>
+            <span className="text-slate-300">/</span>
+            <Link
+              to={`/projects/${task.project_id}/lists/${task.list_id}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+            >
               {list.name}
-            </span>
+            </Link>
           </>
         )}
         {task.task_key && (
