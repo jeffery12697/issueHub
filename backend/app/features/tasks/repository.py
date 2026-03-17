@@ -281,6 +281,7 @@ class TaskRepository:
             .where(
                 (Task.title.ilike(pattern))
                 | (Task.description.ilike(pattern))
+                | (Task.task_key.ilike(pattern))
                 | Task.id.in_(comment_match)
             )
             .order_by(Task.created_at.desc())
