@@ -426,6 +426,37 @@ _Completed: 2026-03-15_
 
 ---
 
+## Phase 15 — AU-04: Git Webhook Integration
+_Completed: 2026-03-17_
+
+### Backend
+- [x] `POST /webhooks/git` endpoint (no `/api/v1` prefix — called by external services)
+- [x] Platform detection via headers: GitHub (`X-Hub-Signature-256` HMAC-SHA256) / GitLab (`X-Gitlab-Token` plain token)
+- [x] `app/features/webhooks/schemas.py` — Pydantic models for GitHub PR and GitLab MR payloads
+- [x] `app/features/webhooks/service.py` — task key extraction regex `[A-Z]+-\d{1,6}` from branch name
+- [x] PR/MR opened → write `git_branch_linked` audit entry (no status change)
+- [x] PR/MR merged → set task to first `is_complete=true` status; write `status_changed` audit entry with git metadata
+- [x] Idempotent: already-complete tasks go to `skipped`; missing task keys go to `errors`; always returns 200
+- [x] Migration `0021` — `audit_logs.actor_id` made nullable for system-generated events
+- [x] `TaskRepository.get_by_task_key()` — lookup by `task_key` indexed column
+- [x] `AuditRepository.log()` accepts `actor_id: UUID | None`; `list_for_task` uses `outerjoin` for null actors
+- [x] `AuditLogResponse` schema — `actor_id` and `actor_name` made nullable
+- [x] `WEBHOOK_SECRET` added to `Settings` and `.env.example`
+- [x] 11 tests: both platforms, signature verification, open/merge/abandon, dedup, unknown key, no key, multiple keys
+
+### Bug Fixes During Testing
+- [x] Regex `\b` word boundary removed — underscore-separated branch names (`JEFF-0006_desc`) were not matching
+- [x] DB patch: existing `done`-category statuses updated to `is_complete=true`
+- [x] `audit/schemas.py` — nullable actor fields fixed (was causing 500 on task page load)
+
+### Frontend
+- [x] `api/audit.ts` — `actor_id` and `actor_name` typed as `string | null`
+- [x] `TaskDetailPage` history — shows "Git" when `actor_name` is null
+- [x] `HistorySection` — filters `val` to only render array entries in `renderChange` (non-array webhook metadata fields were crashing the page)
+- [x] `git_branch_linked` action renders branch name inline; excluded from generic change renderer
+
+---
+
 ## UI/UX Improvements + Filter Operators + List Visibility Enforcement
 _Completed: 2026-03-15_
 

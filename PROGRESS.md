@@ -36,7 +36,7 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 15: AU-04 Git webhook — completed
+- Phase 14: Timeline / Gantt view (TM-02) — not started
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
