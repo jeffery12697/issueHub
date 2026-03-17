@@ -555,3 +555,24 @@ _Completed: 2026-03-17_
 - [x] GIN trigram index on `tasks.title` — fast `%pattern%` ILIKE without seq scan
 - [x] GIN trigram index on `tasks.task_key` — fast key search
 - [x] GIN trigram index on `comments.body` — fast comment content search
+
+---
+
+## Design Quality Pass (critique → normalize → arrange → colorize)
+_Completed: 2026-03-17_
+
+### Normalize — Design System Alignment
+- [x] `priority.ts` — added `PRIORITY_CHIP` export: canonical chip button styles (border+bg+text) per priority level
+- [x] `TaskDetailPage.tsx` — removed 3 local priority constant redefinitions; import from `@/lib/priority`; replaced all emoji/char icons (`⊘`, `⚡`, `🔗`, `🔒`, `✕`) with inline SVGs; fixed comment avatar from gradient to `bg-violet-100 text-violet-700`; sidebar labels `text-[11px]` → `text-xs` (replace_all)
+- [x] `ListPage.tsx` — task title `<button onClick navigate>` → `<Link>`; subtask parent crumb same; emoji badges (`⛔`, `⚠`, `✕`) → inline SVGs; removed unused `useNavigate`
+- [x] `BoardPage.tsx` — `⚠` overdue emoji → inline SVG triangle
+- [x] `MyTasksPage.tsx` — removed local `PRIORITY_COLOR` map (wrong tokens); import `PRIORITY_COLORS` from canonical source
+
+### Arrange — Layout & Spacing
+- [x] `ListPage.tsx` — removed redundant `<h2>` list name (duplicated breadcrumb); toolbar flattened to always-row; `mb-5` → `mb-4` on toolbar + filter container
+- [x] `AnalyticsPage.tsx` + `ProjectAnalyticsPage.tsx` — `mb-5` → `mb-4` before bars; `space-y-4` → `space-y-3` for bar items
+- [x] `ProjectPage.tsx` — `mb-6` → `mb-5` on page header row
+
+### Colorize — Strategic Color
+- [x] `ListPage.tsx` — priority label text now uses `PRIORITY_COLORS[priority].text` (was flat `text-slate-600`); dot and text carry same color signal
+- [x] `MyTasksPage.tsx` — Overdue group count badge uses `bg-red-50 text-red-500` (was neutral slate); reinforces red section header urgency
