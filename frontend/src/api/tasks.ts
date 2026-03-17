@@ -26,6 +26,11 @@ export type Task = {
   task_key: string | null
 }
 
+export type TaskSearchResult = Task & {
+  list_name: string | null
+  project_name: string | null
+}
+
 export type CreateTaskData = {
   title: string
   description?: string
@@ -100,7 +105,7 @@ export const tasksApi = {
     URL.revokeObjectURL(url)
   },
   search: (workspaceId: string, q: string) =>
-    apiClient.get<Task[]>(`/workspaces/${workspaceId}/search`, { params: { q } }).then((r) => r.data),
+    apiClient.get<TaskSearchResult[]>(`/workspaces/${workspaceId}/search`, { params: { q } }).then((r) => r.data),
   bulkUpdate: (taskIds: string[], data: { status_id?: string; priority?: string }) =>
     apiClient.post<{ updated: number }>('/tasks/bulk-update', { task_ids: taskIds, ...data }).then((r) => r.data),
   bulkDelete: (taskIds: string[]) =>

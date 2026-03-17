@@ -161,3 +161,8 @@ class TaskResponse(BaseModel):
     task_key: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class TaskSearchResult(TaskResponse):
+    list_name: str | None = None
+    project_name: str | None = None

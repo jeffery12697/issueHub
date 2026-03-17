@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority, type Task } from '@/api/tasks'
@@ -8,6 +8,7 @@ import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
+import { useUIStore } from '@/store/uiStore'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
 
@@ -87,6 +88,8 @@ export default function ProjectTasksPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   const workspaceId = project?.workspace_id
+  const setWorkspaceId = useUIStore((s) => s.setWorkspaceId)
+  useEffect(() => { if (workspaceId) setWorkspaceId(workspaceId) }, [workspaceId])
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 

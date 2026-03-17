@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
@@ -9,6 +9,7 @@ import { dependenciesApi } from '@/api/dependencies'
 import { useComments, useCreateComment, useDeleteComment } from '@/api/comments'
 import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinition, type FieldValue } from '@/api/customFields'
 import { useAuthStore } from '@/store/authStore'
+import { useUIStore } from '@/store/uiStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
@@ -124,6 +125,8 @@ export default function TaskDetailPage() {
   const { data: comments = [] } = useComments(taskId!)
   const createComment = useCreateComment(taskId!)
   const deleteComment = useDeleteComment(taskId!)
+  const setWorkspaceId = useUIStore((s) => s.setWorkspaceId)
+  useEffect(() => { if (task?.workspace_id) setWorkspaceId(task.workspace_id) }, [task?.workspace_id])
   const { data: members = [] } = useWorkspaceMembers(task?.workspace_id)
   const { data: workspaceLists = [] } = useWorkspaceLists(task?.workspace_id)
   const { data: watchStatus } = useWatchStatus(taskId)

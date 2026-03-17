@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { usePreferences, useUpdatePreferences } from '@/api/auth'
 import NotificationBell from '@/components/NotificationBell'
+import GlobalSearch from '@/components/GlobalSearch'
 
 export default function HeaderActions() {
   const { logout, user } = useAuthStore()
@@ -25,6 +26,7 @@ export default function HeaderActions() {
 
   return (
     <div className="flex items-center gap-1">
+      <GlobalSearch />
       <NotificationBell />
 
       {user && (

@@ -1,9 +1,10 @@
+import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { workspacesApi, useWorkspaceMembers } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
+import { useUIStore } from '@/store/uiStore'
 import HeaderActions from '@/components/HeaderActions'
-import GlobalSearch from '@/components/GlobalSearch'
 
 const NAV_LINKS = [
   { label: 'Projects', suffix: '' },
@@ -15,6 +16,9 @@ const NAV_LINKS = [
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {
   const location = useLocation()
   const currentUserId = useAuthStore((s) => s.user?.id)
+  const setWorkspaceId = useUIStore((s) => s.setWorkspaceId)
+
+  useEffect(() => { setWorkspaceId(workspaceId) }, [workspaceId, setWorkspaceId])
 
   const { data: workspace } = useQuery({
     queryKey: ['workspace', workspaceId],
@@ -58,7 +62,6 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
-        <GlobalSearch workspaceId={workspaceId} />
         {canManageSettings && (
           <Link
             to={`${basePath}/settings`}

@@ -22,6 +22,7 @@ from app.features.tasks.schemas import (
     MoveTaskRequest,
     UpdateTaskRequest,
     TaskResponse,
+    TaskSearchResult,
 )
 from app.features.lists.repository import ListRepository
 from app.features.projects.repository import ProjectRepository
@@ -474,17 +475,48 @@ async def export_tasks_csv(
     )
 
 
-@router.get("/workspaces/{workspace_id}/search", response_model=list[TaskResponse])
+@router.get("/workspaces/{workspace_id}/search", response_model=list[TaskSearchResult])
 async def search_tasks(
     workspace_id: UUID,
     q: str = "",
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
 ):
+    from sqlalchemy import select as sa_select
+    from app.models.list_ import List as ListModel
+    from app.models.project import Project as ProjectModel
+
     if len(q) < 2:
         return []
     tasks = await service.search(workspace_id, q, actor_id=current_user.id)
-    return [TaskResponse.model_validate(t) for t in tasks]
+
+    # Bulk-fetch list and project names for enrichment
+    unique_list_ids = {t.list_id for t in tasks if t.list_id}
+    unique_project_ids = {t.project_id for t in tasks}
+
+    list_names: dict = {}
+    if unique_list_ids:
+        rows = await session.execute(
+            sa_select(ListModel.id, ListModel.name).where(ListModel.id.in_(unique_list_ids))
+        )
+        list_names = {row.id: row.name for row in rows}
+
+    project_names: dict = {}
+    if unique_project_ids:
+        rows = await session.execute(
+            sa_select(ProjectModel.id, ProjectModel.name).where(ProjectModel.id.in_(unique_project_ids))
+        )
+        project_names = {row.id: row.name for row in rows}
+
+    return [
+        TaskSearchResult(
+            **TaskResponse.model_validate(t).model_dump(),
+            list_name=list_names.get(t.list_id) if t.list_id else None,
+            project_name=project_names.get(t.project_id),
+        )
+        for t in tasks
+    ]
 
 
 @router.post("/tasks/bulk-update", response_model=BulkOperationResponse)

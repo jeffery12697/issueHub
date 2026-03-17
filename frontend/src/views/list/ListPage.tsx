@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
@@ -13,6 +13,7 @@ import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
 import { toast } from '@/store/toastStore'
 import { useAuthStore } from '@/store/authStore'
+import { useUIStore } from '@/store/uiStore'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
 
@@ -101,6 +102,9 @@ export default function ListPage() {
   })()
 
   const { sorted: sortedTasks, taskMap } = tasks
+
+  const setWorkspaceId = useUIStore((s) => s.setWorkspaceId)
+  useEffect(() => { if (allTasks[0]?.workspace_id) setWorkspaceId(allTasks[0].workspace_id) }, [allTasks[0]?.workspace_id])
 
   // memberMap is needed by displayGroups (assignee grouping)
   const workspaceIdEarly = allTasks[0]?.workspace_id
