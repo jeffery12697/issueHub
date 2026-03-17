@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority, type Task } from '@/api/tasks'
-import { listsApi } from '@/api/lists'
+import { listsApi, useWorkspaceLists } from '@/api/lists'
 import { projectsApi } from '@/api/projects'
 import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
+import DeleteButton from '@/components/DeleteButton'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
+import { toast } from '@/store/toastStore'
 import { useUIStore } from '@/store/uiStore'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
@@ -41,6 +43,7 @@ export default function ProjectTasksPage() {
   const [groupBy, setGroupBy] = useState<GroupBy>('none')
   const [showViewsPanel, setShowViewsPanel] = useState(false)
   const [newViewName, setNewViewName] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Derive API params from filter rules
   const listEq = filterRules.find((r) => r.field === 'list' && r.op === 'eq')?.value
@@ -97,6 +100,41 @@ export default function ProjectTasksPage() {
   })
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+
+  const { data: workspaceLists = [] } = useWorkspaceLists(workspaceId)
+
+  const bulkUpdate = useMutation({
+    mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string } }) =>
+      tasksApi.bulkUpdate(taskIds, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] })
+      setSelectedIds(new Set())
+    },
+    onError: () => toast.error('Bulk update failed'),
+  })
+
+  const bulkDelete = useMutation({
+    mutationFn: (taskIds: string[]) => tasksApi.bulkDelete(taskIds),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] })
+      setSelectedIds(new Set())
+    },
+    onError: () => toast.error('Bulk delete failed'),
+  })
+
+  const bulkMove = useMutation({
+    mutationFn: ({ taskIds, targetListId }: { taskIds: string[]; targetListId: string }) =>
+      tasksApi.bulkMove(taskIds, targetListId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] })
+      setSelectedIds(new Set())
+      toast.success('Tasks moved')
+    },
+    onError: () => toast.error('Move failed'),
+  })
+
+  // All statuses across all lists for the bulk status dropdown
+  const allStatuses = listDetails.flatMap((l) => l.statuses ?? [])
 
   type DisplayGroup = { groupKey: string | null; groupLabel: string; groupColor: string; tasks: Task[]; showHeader: boolean }
 
@@ -368,6 +406,65 @@ export default function ProjectTasksPage() {
           />
         </div>
 
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <div className="mb-4 flex items-center gap-3 bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-xl px-4 py-2.5">
+            <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">{selectedIds.size} selected</span>
+            <div className="w-px h-4 bg-violet-200 dark:bg-violet-800" />
+            <select
+              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { status_id: e.target.value } })
+                  e.target.value = ''
+                }
+              }}
+            >
+              <option value="" disabled>Set status…</option>
+              {allStatuses.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <select
+              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { priority: e.target.value } })
+                  e.target.value = ''
+                }
+              }}
+            >
+              <option value="" disabled>Set priority…</option>
+              {(['none', 'low', 'medium', 'high', 'urgent'] as Priority[]).map((p) => (
+                <option key={p} value={p} className="capitalize">{p}</option>
+              ))}
+            </select>
+            <select
+              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkMove.mutate({ taskIds: Array.from(selectedIds), targetListId: e.target.value })
+                  e.target.value = ''
+                }
+              }}
+            >
+              <option value="" disabled>Move to list…</option>
+              {workspaceLists.map((l) => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
+            <DeleteButton
+              variant="button"
+              label="Delete"
+              message={`Permanently delete ${selectedIds.size} task${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`}
+              onConfirm={() => bulkDelete.mutate(Array.from(selectedIds))}
+            />
+          </div>
+        )}
+
         {/* Table */}
         {isLoading ? (
           <p className="text-slate-400 dark:text-slate-500 text-sm">Loading...</p>
@@ -383,6 +480,17 @@ export default function ProjectTasksPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <tr>
+                  <th className="w-10 px-4 py-3.5">
+                    <input
+                      type="checkbox"
+                      className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
+                      checked={tasks.length > 0 && tasks.every((t) => selectedIds.has(t.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedIds(new Set(tasks.map((t) => t.id)))
+                        else setSelectedIds(new Set())
+                      }}
+                    />
+                  </th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">List</th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
@@ -398,7 +506,7 @@ export default function ProjectTasksPage() {
                   if (showHeader) {
                     rows.push(
                       <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80 dark:bg-slate-800/80">
-                        <td colSpan={7} className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <td colSpan={8} className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
                             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{groupLabel}</span>
@@ -412,7 +520,20 @@ export default function ProjectTasksPage() {
                     const list = task.list_id ? listMap[task.list_id] : null
                     const status = task.status_id ? statusMap[task.status_id] : null
                     rows.push(
-                      <tr key={task.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50/50 dark:bg-violet-950/30' : ''}`}>
+                        <td className="w-10 px-4 py-3">
+                          <input
+                            type="checkbox"
+                            className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
+                            checked={selectedIds.has(task.id)}
+                            onChange={(e) => {
+                              const next = new Set(selectedIds)
+                              if (e.target.checked) next.add(task.id)
+                              else next.delete(task.id)
+                              setSelectedIds(next)
+                            }}
+                          />
+                        </td>
                         {/* Title */}
                         <td className={`px-4 py-3 ${task.parent_task_id ? 'pl-10' : ''}`}>
                           {task.parent_task_id && (
