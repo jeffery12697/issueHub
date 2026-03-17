@@ -424,11 +424,11 @@ export default function ListPage() {
         </div>
 
         {selectedIds.size > 0 && (
-          <div className="mb-4 flex items-center gap-3 bg-violet-50 border border-violet-200 rounded-xl px-4 py-2.5">
-            <span className="text-xs font-semibold text-violet-700">{selectedIds.size} selected</span>
-            <div className="w-px h-4 bg-violet-200" />
+          <div className="mb-4 flex items-center gap-3 bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-xl px-4 py-2.5">
+            <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">{selectedIds.size} selected</span>
+            <div className="w-px h-4 bg-violet-200 dark:bg-violet-800" />
             <select
-              className="h-7 text-xs border border-violet-300 rounded-md px-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
               defaultValue=""
               onChange={(e) => {
                 if (e.target.value) {
@@ -443,7 +443,7 @@ export default function ListPage() {
               ))}
             </select>
             <select
-              className="h-7 text-xs border border-violet-300 rounded-md px-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
               defaultValue=""
               onChange={(e) => {
                 if (e.target.value) {
@@ -501,7 +501,7 @@ export default function ListPage() {
                             value={val}
                             onChange={(e) => set(e.target.value)}
                             className={`h-8 appearance-none pl-3 pr-7 rounded-full text-xs font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
-                              val ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                              val ? 'border-violet-400 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                             }`}
                           >
                             <option value="">{field.name}: All</option>
@@ -523,7 +523,7 @@ export default function ListPage() {
                         onChange={(e) => set(e.target.value)}
                         placeholder={field.name}
                         className={`h-8 border rounded-full px-3 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 w-32 transition-colors ${
-                          val ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                          val ? 'border-violet-400 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                         }`}
                       />
                     )
@@ -531,7 +531,7 @@ export default function ListPage() {
                   {Object.keys(cfFilters).length > 0 && (
                     <button
                       onClick={() => { setCfFilters({}); setPage(1) }}
-                      className="h-8 flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
+                      className="h-8 flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50 dark:hover:bg-red-950"
                     >
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -588,10 +588,10 @@ export default function ListPage() {
             >+ New task</button>
           </div>
         ) : (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="task-table">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden" id="task-table">
             <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-4 py-3.5 w-10">
                     <input
@@ -607,26 +607,26 @@ export default function ListPage() {
                       className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                     />
                   </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Assignees</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reviewer</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Date</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Assignees</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reviewer</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Due Date</th>
                   <th className="px-4 py-3.5"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {displayGroups.flatMap(({ groupKey, groupLabel, groupColor, tasks: groupTasks, showHeader }) => {
                   const rows = []
                   if (showHeader) {
                     rows.push(
-                      <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80">
-                        <td colSpan={8} className="px-4 py-2.5 border-b border-slate-100">
+                      <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80 dark:bg-slate-800/80">
+                        <td colSpan={8} className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
-                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{groupLabel}</span>
-                            <span className="text-[11px] font-medium text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{groupLabel}</span>
+                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
                           </div>
                         </td>
                       </tr>
@@ -636,7 +636,7 @@ export default function ListPage() {
                     const isSubtask = !!task.parent_task_id
                     const parentTask = isSubtask ? taskMap[task.parent_task_id!] : null
                     rows.push(
-                      <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''} ${isSubtask ? 'bg-slate-50/60' : ''}`}>
+                      <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50 dark:bg-violet-950' : ''} ${isSubtask ? 'bg-slate-50/60 dark:bg-slate-800/60' : ''}`}>
                         <td className="px-4 py-3 w-10">
                           <input
                             type="checkbox"
@@ -653,10 +653,10 @@ export default function ListPage() {
                         <td className={`px-4 py-3 ${isSubtask ? 'pl-10' : ''}`}>
                           {isSubtask && (
                             <div className="flex items-center gap-1 mb-0.5">
-                              <span className="text-slate-300 text-xs">↳</span>
+                              <span className="text-slate-300 dark:text-slate-600 text-xs">↳</span>
                               <Link
                                 to={`/tasks/${task.parent_task_id}`}
-                                className="text-xs text-slate-400 hover:text-violet-500 transition-colors truncate max-w-[180px]"
+                                className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors truncate max-w-[180px]"
                               >
                                 {parentTask?.title ?? 'Parent task'}
                               </Link>
@@ -664,13 +664,13 @@ export default function ListPage() {
                           )}
                           <div className="flex items-center gap-2 flex-wrap">
                             {task.task_key && (
-                              <span className="text-[11px] font-mono font-semibold text-slate-400 shrink-0">
+                              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 shrink-0">
                                 {task.task_key}
                               </span>
                             )}
                             <Link
                               to={`/tasks/${task.id}`}
-                              className={`hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
+                              className={`hover:text-violet-600 dark:hover:text-violet-400 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700 dark:text-slate-300' : 'font-semibold text-slate-800 dark:text-slate-200 text-base'}`}
                             >
                               {task.title}
                             </Link>
@@ -701,7 +701,7 @@ export default function ListPage() {
                               {statusMap[task.status_id].name}
                             </span>
                           ) : (
-                            <span className="text-slate-300 text-sm">—</span>
+                            <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -710,7 +710,7 @@ export default function ListPage() {
                               className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                               style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
                             />
-                            <span className={task.priority === 'none' ? 'text-slate-400' : PRIORITY_COLORS[task.priority].text}>
+                            <span className={task.priority === 'none' ? 'text-slate-400 dark:text-slate-500' : PRIORITY_COLORS[task.priority].text}>
                               {task.priority === 'none' ? '—' : task.priority}
                             </span>
                           </span>
@@ -722,7 +722,7 @@ export default function ListPage() {
                           {task.reviewer_id && memberMap[task.reviewer_id] ? (
                             <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
                           ) : (
-                            <span className="text-slate-300 text-sm">—</span>
+                            <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -748,14 +748,14 @@ export default function ListPage() {
 
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-400 dark:text-slate-500">
               Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount}
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 ← Prev
               </button>
@@ -768,7 +768,7 @@ export default function ListPage() {
                     className={`w-8 h-8 text-sm rounded-lg border transition-colors ${
                       p === page
                         ? 'bg-violet-600 text-white border-violet-600'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     {p}
@@ -778,7 +778,7 @@ export default function ListPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Next →
               </button>
@@ -794,7 +794,7 @@ function Avatar({ member, title }: { member: Member; title?: string }) {
   return (
     <span
       title={`${title ? title + ': ' : ''}${member.display_name}`}
-      className="inline-flex w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold items-center justify-center border-2 border-white shadow-sm select-none"
+      className="inline-flex w-7 h-7 rounded-full bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 text-xs font-semibold items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm select-none"
     >
       {member.display_name[0].toUpperCase()}
     </span>
@@ -818,7 +818,7 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
   const label = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
 
   if (statusComplete) {
-    return <span className="text-xs text-slate-400">{label}</span>
+    return <span className="text-xs text-slate-400 dark:text-slate-500">{label}</span>
   }
   if (isOverdue) {
     return (
