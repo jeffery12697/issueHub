@@ -24,3 +24,15 @@ export const PRIORITY_COLORS: Record<Priority, { bg: string; text: string; dot: 
   high:   { bg: 'bg-orange-50',  text: 'text-orange-500', dot: '#f97316' },
   urgent: { bg: 'bg-red-50',     text: 'text-red-500',    dot: '#ef4444' },
 }
+
+/**
+ * Priority chip style for selector buttons (border + bg + text).
+ * Used in sidebar/detail views where priority is displayed as a clickable pill with a border.
+ */
+export const PRIORITY_CHIP: Record<Priority, string> = {
+  none:   'border-slate-200 text-slate-400',
+  low:    'bg-sky-50 border-sky-200 text-sky-700',
+  medium: 'bg-amber-50 border-amber-200 text-amber-700',
+  high:   'bg-orange-50 border-orange-200 text-orange-700',
+  urgent: 'bg-red-50 border-red-200 text-red-700',
+}

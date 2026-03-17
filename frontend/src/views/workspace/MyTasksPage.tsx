@@ -1,17 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { useMyTasks } from '@/api/tasks'
+import { useMyTasks, type Priority } from '@/api/tasks'
 import { projectsApi, type Project } from '@/api/projects'
 import { useWorkspaceLists, type List } from '@/api/lists'
 import WorkspaceHeader from '@/components/WorkspaceHeader'
-
-const PRIORITY_COLOR: Record<string, string> = {
-  urgent: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-blue-100 text-blue-700',
-  none: 'bg-slate-100 text-slate-500',
-}
+import { PRIORITY_COLORS } from '@/lib/priority'
 
 export default function MyTasksPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -124,7 +117,7 @@ function TaskGroup({
               i > 0 ? 'border-t border-slate-100' : ''
             }`}
           >
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize shrink-0 ${PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.none}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize shrink-0 ${(PRIORITY_COLORS[task.priority as Priority] ?? PRIORITY_COLORS.none).bg} ${(PRIORITY_COLORS[task.priority as Priority] ?? PRIORITY_COLORS.none).text}`}>
               {task.priority === 'none' ? '—' : task.priority}
             </span>
             <span className="flex-1 text-sm text-slate-800 truncate">{task.title}</span>

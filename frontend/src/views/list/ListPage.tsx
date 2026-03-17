@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
@@ -22,7 +22,6 @@ const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
 export default function ListPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
-  const navigate = useNavigate()
   const qc = useQueryClient()
 
   useListSocket(listId)
@@ -355,9 +354,12 @@ export default function ListPage() {
                       </button>
                       <button
                         onClick={() => deleteView.mutate(v.id)}
-                        className="text-slate-300 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                        aria-label={`Delete view ${v.name}`}
                       >
-                        ✕
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
                       </button>
                     </div>
                   ))}
@@ -497,9 +499,12 @@ export default function ListPage() {
                   {Object.keys(cfFilters).length > 0 && (
                     <button
                       onClick={() => { setCfFilters({}); setPage(1) }}
-                      className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
+                      className="h-8 flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
                     >
-                      ✕ Clear fields
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                      Clear fields
                     </button>
                   )}
                 </div>
@@ -617,12 +622,12 @@ export default function ListPage() {
                           {isSubtask && (
                             <div className="flex items-center gap-1 mb-0.5">
                               <span className="text-slate-300 text-xs">↳</span>
-                              <button
-                                onClick={() => navigate(`/tasks/${task.parent_task_id}`)}
+                              <Link
+                                to={`/tasks/${task.parent_task_id}`}
                                 className="text-xs text-slate-400 hover:text-violet-500 transition-colors truncate max-w-[180px]"
                               >
                                 {parentTask?.title ?? 'Parent task'}
-                              </button>
+                              </Link>
                             </div>
                           )}
                           <div className="flex items-center gap-2 flex-wrap">
@@ -631,20 +636,26 @@ export default function ListPage() {
                                 {task.task_key}
                               </span>
                             )}
-                            <button
-                              onClick={() => navigate(`/tasks/${task.id}`)}
-                              className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
+                            <Link
+                              to={`/tasks/${task.id}`}
+                              className={`hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
                             >
                               {task.title}
-                            </button>
+                            </Link>
                             {depFlags[task.id]?.is_blocked && (
                               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 shrink-0" title="Blocked by another task">
-                                ⛔ Blocked
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                                </svg>
+                                Blocked
                               </span>
                             )}
                             {depFlags[task.id]?.is_blocking && (
                               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 shrink-0" title="Blocking another task">
-                                ⚠ Blocking
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                Blocking
                               </span>
                             )}
                           </div>
@@ -778,7 +789,10 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
   if (isOverdue) {
     return (
       <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-        <span>⚠</span> {label}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {label}
       </span>
     )
   }

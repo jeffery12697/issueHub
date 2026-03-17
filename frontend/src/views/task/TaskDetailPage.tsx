@@ -19,32 +19,9 @@ import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 import RichTextEditor from '@/components/RichTextEditor'
 import AttachmentList from '@/components/AttachmentList'
+import { PRIORITY_COLORS, PRIORITY_DOT_COLORS, PRIORITY_CHIP } from '@/lib/priority'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
-
-const PRIORITY_COLORS: Record<Priority, string> = {
-  none: 'text-slate-400',
-  low: 'text-sky-500',
-  medium: 'text-amber-500',
-  high: 'text-orange-500',
-  urgent: 'text-red-500',
-}
-
-const PRIORITY_DOT: Record<Priority, string> = {
-  none: '#cbd5e1',
-  low: '#38bdf8',
-  medium: '#fbbf24',
-  high: '#f97316',
-  urgent: '#ef4444',
-}
-
-const PRIORITY_CHIP: Record<Priority, string> = {
-  none: 'border-slate-200 text-slate-400',
-  low: 'bg-sky-50 border-sky-200 text-sky-700',
-  medium: 'bg-amber-50 border-amber-200 text-amber-700',
-  high: 'bg-orange-50 border-orange-200 text-orange-700',
-  urgent: 'bg-red-50 border-red-200 text-red-700',
-}
 
 type DetailTab = 'subtasks' | 'dependencies' | 'links' | 'fields' | 'time'
 
@@ -212,7 +189,11 @@ export default function TaskDetailPage() {
   const errorStatus = (error as any)?.response?.status
   if (errorStatus === 403) return (
     <div className="flex flex-col items-center justify-center h-screen gap-3">
-      <span className="text-4xl">🔒</span>
+      <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </div>
       <p className="text-slate-700 font-semibold">Access denied</p>
       <p className="text-slate-400 text-sm">You don't have permission to view this task.</p>
       <button onClick={() => navigate(-1)} className="mt-2 text-sm text-violet-600 hover:underline">Go back</button>
@@ -392,7 +373,7 @@ export default function TaskDetailPage() {
                                   </span>
                                 )}
                                 {sub.priority !== 'none' && (
-                                  <span className={`text-xs capitalize font-medium shrink-0 ${PRIORITY_COLORS[sub.priority]}`}>
+                                  <span className={`text-xs capitalize font-medium shrink-0 ${PRIORITY_COLORS[sub.priority].text}`}>
                                     {sub.priority}
                                   </span>
                                 )}
@@ -464,9 +445,16 @@ export default function TaskDetailPage() {
                                 onClick={() => navigate(`/tasks/${t.id}`)}
                                 className="flex-1 text-left px-3 py-1.5 rounded-lg hover:bg-red-50 text-sm text-slate-700 transition-colors flex items-center gap-2"
                               >
-                                <span className="text-red-400 text-xs">⊘</span>{t.title}
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400 shrink-0" aria-hidden="true">
+                                  <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                                </svg>
+                                {t.title}
                               </button>
-                              <button onClick={() => removeBlockedBy.mutate(t.id)} className="text-slate-300 hover:text-red-400 text-xs transition-colors px-1">✕</button>
+                              <button onClick={() => removeBlockedBy.mutate(t.id)} className="text-slate-300 hover:text-red-400 transition-colors px-1" aria-label="Remove blocker">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                              </button>
                             </li>
                           ))}
                         </ul>
@@ -529,7 +517,10 @@ export default function TaskDetailPage() {
                                 onClick={() => navigate(`/tasks/${t.id}`)}
                                 className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-orange-50 text-sm text-slate-700 transition-colors flex items-center gap-2"
                               >
-                                <span className="text-orange-400 text-xs">⚡</span>{t.title}
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-400 shrink-0" aria-hidden="true">
+                                  <polyline points="13 17 18 12 13 7"/><line x1="6" y1="12" x2="18" y2="12"/>
+                                </svg>
+                                {t.title}
                               </button>
                             </li>
                           ))}
@@ -546,7 +537,9 @@ export default function TaskDetailPage() {
                       <ul className="space-y-1 mb-3">
                         {links.map((link) => (
                           <li key={link.id} className="flex items-center gap-2 group px-2 py-1.5 rounded-lg hover:bg-slate-50">
-                            <span className="text-slate-300 text-xs shrink-0">🔗</span>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 shrink-0" aria-hidden="true">
+                              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                            </svg>
                             <a
                               href={link.url}
                               target="_blank"
@@ -557,9 +550,12 @@ export default function TaskDetailPage() {
                             </a>
                             <button
                               onClick={() => deleteLink.mutate(link.id)}
-                              className="text-slate-200 hover:text-red-400 text-xs transition-colors opacity-0 group-hover:opacity-100"
+                              className="text-slate-200 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                              aria-label="Remove link"
                             >
-                              ✕
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
                             </button>
                           </li>
                         ))}
@@ -635,8 +631,13 @@ export default function TaskDetailPage() {
                             <span className="text-xs text-slate-300 shrink-0">{new Date(entry.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                             <button
                               onClick={() => deleteTimeEntry.mutate(entry.id)}
-                              className="text-slate-200 hover:text-red-400 text-xs transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                            >✕</button>
+                              className="text-slate-200 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                              aria-label="Remove time entry"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -704,7 +705,7 @@ export default function TaskDetailPage() {
                 <ul className="space-y-4 mb-6">
                   {comments.map((c) => (
                     <li key={c.id} className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                         {c.author_name?.[0]?.toUpperCase() ?? '?'}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -813,7 +814,7 @@ export default function TaskDetailPage() {
                   onClick={() => { setPriorityOpen((o) => !o); setStatusOpen(false) }}
                   className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full ${PRIORITY_CHIP[task.priority]}`}
                 >
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[task.priority] }} />
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }} />
                   <span className="flex-1 text-left capitalize">{task.priority === 'none' ? 'No priority' : task.priority}</span>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                     <path d="M6 9l6 6 6-6"/>
@@ -829,7 +830,7 @@ export default function TaskDetailPage() {
                           onClick={() => { updateTask.mutate({ priority: p }); setPriorityOpen(false) }}
                           className="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-slate-50 transition-colors"
                         >
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT[p] }} />
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_DOT_COLORS[p] }} />
                           <span className={`text-sm flex-1 capitalize ${task.priority === p ? 'font-semibold text-slate-900' : 'text-slate-600'}`}>
                             {p === 'none' ? 'No priority' : p}
                           </span>
@@ -861,7 +862,12 @@ export default function TaskDetailPage() {
                           <button
                             onClick={() => updateTask.mutate({ assignee_ids: task.assignee_ids.filter((a) => a !== id) })}
                             className="text-slate-300 hover:text-red-400 transition-colors leading-none ml-0.5"
-                          >×</button>
+                            aria-label={`Remove ${m?.display_name ?? 'assignee'}`}
+                          >
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
                         </span>
                       )
                     })}
@@ -893,7 +899,11 @@ export default function TaskDetailPage() {
                       </span>
                       {memberMap[task.reviewer_id].display_name}
                     </span>
-                    <button onClick={() => updateTask.mutate({ reviewer_id: null })} className="text-xs text-slate-300 hover:text-red-400 transition-colors">✕</button>
+                    <button onClick={() => updateTask.mutate({ reviewer_id: null })} className="text-slate-300 hover:text-red-400 transition-colors" aria-label="Remove reviewer">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
                   </div>
                 ) : (
                   <select
