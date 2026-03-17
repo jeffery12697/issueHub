@@ -33,6 +33,7 @@ export default function ProjectTasksPage() {
   const [filterRules, setFilterRules] = useState<FilterRule[]>([])
   const [includeSubtasks, setIncludeSubtasks] = useState(false)
   const [page, setPage] = useState(1)
+  const [groupByStatus, setGroupByStatus] = useState(false)
 
   // Derive API params from filter rules
   const listEq = filterRules.find((r) => r.field === 'list' && r.op === 'eq')?.value
@@ -79,6 +80,31 @@ export default function ProjectTasksPage() {
   const total = result?.total ?? 0
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
+  // Build display groups for group-by-status mode
+  const displayGroups = (() => {
+    if (!groupByStatus) {
+      return [{ statusId: null as string | null, statusName: '', statusColor: '', tasks, showHeader: false }]
+    }
+    const seenIds = new Set<string>()
+    const orderedStatuses: Array<{ id: string; name: string; color: string }> = []
+    for (const l of listDetails) {
+      for (const s of (l.statuses ?? [])) {
+        if (!seenIds.has(s.id)) { seenIds.add(s.id); orderedStatuses.push(s) }
+      }
+    }
+    const result2: Array<{ statusId: string | null; statusName: string; statusColor: string; tasks: Task[]; showHeader: boolean }> = []
+    for (const s of orderedStatuses) {
+      const groupTasks = tasks.filter((t) => t.status_id === s.id)
+      if (groupTasks.length === 0) continue
+      result2.push({ statusId: s.id, statusName: s.name, statusColor: s.color, tasks: groupTasks, showHeader: true })
+    }
+    const noStatus = tasks.filter((t) => !t.status_id)
+    if (noStatus.length > 0) {
+      result2.push({ statusId: null, statusName: 'No Status', statusColor: '#cbd5e1', tasks: noStatus, showHeader: true })
+    }
+    return result2
+  })()
+
   const workspaceId = project?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
@@ -117,12 +143,24 @@ export default function ProjectTasksPage() {
       </header>
 
       <main className="max-w-5xl mx-auto py-8 px-6">
-        <div className="mb-5">
-          <h2 className="text-2xl font-bold text-slate-900">{project?.name}</h2>
-          <p className="text-sm text-slate-400 mt-0.5">
-            {total} task{total !== 1 ? 's' : ''}
-            {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
-          </p>
+        <div className="mb-5 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">{project?.name}</h2>
+            <p className="text-sm text-slate-400 mt-0.5">
+              {total} task{total !== 1 ? 's' : ''}
+              {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
+            </p>
+          </div>
+          <button
+            onClick={() => setGroupByStatus((v) => !v)}
+            className={`border text-sm px-4 py-2 rounded-lg transition-colors font-medium ${
+              groupByStatus
+                ? 'bg-violet-100 text-violet-700 border-violet-300'
+                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            ⊞ Group by status
+          </button>
         </div>
 
         {/* Filter bar */}
@@ -185,91 +223,108 @@ export default function ProjectTasksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {tasks.map((task: Task) => {
-                  const list = task.list_id ? listMap[task.list_id] : null
-                  const status = task.status_id ? statusMap[task.status_id] : null
-                  return (
-                    <tr key={task.id} className="hover:bg-slate-50 transition-colors">
-                      {/* Title */}
-                      <td className={`px-4 py-3 ${task.parent_task_id ? 'pl-10' : ''}`}>
-                        {task.parent_task_id && (
-                          <div className="text-xs text-slate-300 mb-0.5">↳</div>
-                        )}
-                        {task.task_key && (
-                          <span className="text-[11px] font-mono font-semibold text-slate-400 block mb-0.5">
-                            {task.task_key}
-                          </span>
-                        )}
-                        <button
-                          onClick={() => navigate(`/tasks/${task.id}`)}
-                          className="text-left font-semibold text-slate-800 hover:text-violet-600 transition-colors"
-                        >
-                          {task.title}
-                        </button>
-                      </td>
-
-                      {/* List badge */}
-                      <td className="px-4 py-3">
-                        {list ? (
-                          <Link
-                            to={`/projects/${projectId}/lists/${list.id}`}
-                            className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${listBadgeColor(list.name)}`}
+                {displayGroups.flatMap(({ statusId, statusName, statusColor, tasks: groupTasks, showHeader }) => {
+                  const rows = []
+                  if (showHeader) {
+                    rows.push(
+                      <tr key={`hdr-${statusId ?? 'none'}`} className="bg-slate-50/80">
+                        <td colSpan={7} className="px-4 py-2.5 border-b border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: statusColor }} />
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{statusName}</span>
+                            <span className="text-[11px] font-medium text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  }
+                  groupTasks.forEach((task: Task) => {
+                    const list = task.list_id ? listMap[task.list_id] : null
+                    const status = task.status_id ? statusMap[task.status_id] : null
+                    rows.push(
+                      <tr key={task.id} className="hover:bg-slate-50 transition-colors">
+                        {/* Title */}
+                        <td className={`px-4 py-3 ${task.parent_task_id ? 'pl-10' : ''}`}>
+                          {task.parent_task_id && (
+                            <div className="text-xs text-slate-300 mb-0.5">↳</div>
+                          )}
+                          {task.task_key && (
+                            <span className="text-[11px] font-mono font-semibold text-slate-400 block mb-0.5">
+                              {task.task_key}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => navigate(`/tasks/${task.id}`)}
+                            className="text-left font-semibold text-slate-800 hover:text-violet-600 transition-colors"
                           >
-                            {list.name}
-                          </Link>
-                        ) : (
-                          <span className="text-slate-300 text-sm">—</span>
-                        )}
-                      </td>
+                            {task.title}
+                          </button>
+                        </td>
 
-                      {/* Status */}
-                      <td className="px-4 py-3">
-                        {status ? (
-                          <span
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                            style={{ backgroundColor: status.color + '20', color: status.color }}
-                          >
-                            {status.name}
+                        {/* List badge */}
+                        <td className="px-4 py-3">
+                          {list ? (
+                            <Link
+                              to={`/projects/${projectId}/lists/${list.id}`}
+                              className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${listBadgeColor(list.name)}`}
+                            >
+                              {list.name}
+                            </Link>
+                          ) : (
+                            <span className="text-slate-300 text-sm">—</span>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3">
+                          {status ? (
+                            <span
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+                              style={{ backgroundColor: status.color + '20', color: status.color }}
+                            >
+                              {status.name}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 text-sm">—</span>
+                          )}
+                        </td>
+
+                        {/* Priority */}
+                        <td className="px-4 py-3">
+                          <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                              style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
+                            />
+                            {task.priority === 'none' ? '—' : task.priority}
                           </span>
-                        ) : (
-                          <span className="text-slate-300 text-sm">—</span>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Priority */}
-                      <td className="px-4 py-3">
-                        <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-                            style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
+                        {/* Assignees */}
+                        <td className="px-4 py-3">
+                          <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
+                        </td>
+
+                        {/* Reviewer */}
+                        <td className="px-4 py-3">
+                          {task.reviewer_id && memberMap[task.reviewer_id] ? (
+                            <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
+                          ) : (
+                            <span className="text-slate-300 text-sm">—</span>
+                          )}
+                        </td>
+
+                        {/* Due date */}
+                        <td className="px-4 py-3">
+                          <DueDateBadge
+                            dueDate={task.due_date}
+                            statusComplete={status?.is_complete}
                           />
-                          {task.priority === 'none' ? '—' : task.priority}
-                        </span>
-                      </td>
-
-                      {/* Assignees */}
-                      <td className="px-4 py-3">
-                        <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
-                      </td>
-
-                      {/* Reviewer */}
-                      <td className="px-4 py-3">
-                        {task.reviewer_id && memberMap[task.reviewer_id] ? (
-                          <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
-                        ) : (
-                          <span className="text-slate-300 text-sm">—</span>
-                        )}
-                      </td>
-
-                      {/* Due date */}
-                      <td className="px-4 py-3">
-                        <DueDateBadge
-                          dueDate={task.due_date}
-                          statusComplete={status?.is_complete}
-                        />
-                      </td>
-                    </tr>
-                  )
+                        </td>
+                      </tr>
+                    )
+                  })
+                  return rows
                 })}
               </tbody>
             </table>

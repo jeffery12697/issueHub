@@ -41,6 +41,7 @@ export default function ListPage() {
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(1)
+  const [groupByStatus, setGroupByStatus] = useState(false)
   const PAGE_SIZE = 50
 
   // Derive API params from filter rules
@@ -95,6 +96,36 @@ export default function ListPage() {
   })()
 
   const { sorted: sortedTasks, taskMap } = tasks
+
+  // Build display groups: one group (no header) when flat, multiple (with headers) when grouped
+  const displayGroups = (() => {
+    if (!groupByStatus) {
+      return [{ statusId: null as string | null, statusName: '', statusColor: '', tasks: sortedTasks, showHeader: false }]
+    }
+    const statuses = list?.statuses ?? []
+    const result: Array<{ statusId: string | null; statusName: string; statusColor: string; tasks: Task[]; showHeader: boolean }> = []
+    for (const s of statuses) {
+      const groupTasks = allTasks.filter((t) => t.status_id === s.id)
+      if (groupTasks.length === 0) continue
+      // Order parents first, then their subtasks
+      const subs: Record<string, Task[]> = {}
+      groupTasks.filter((t) => t.parent_task_id).forEach((t) => { (subs[t.parent_task_id!] ??= []).push(t) })
+      const topLevelIds = new Set(groupTasks.filter((t) => !t.parent_task_id).map((t) => t.id))
+      const ordered: Task[] = []
+      for (const t of groupTasks.filter((t) => !t.parent_task_id)) {
+        ordered.push(t)
+        if (subs[t.id]) ordered.push(...subs[t.id])
+      }
+      groupTasks.filter((t) => t.parent_task_id && !topLevelIds.has(t.parent_task_id!)).forEach((t) => ordered.push(t))
+      result.push({ statusId: s.id, statusName: s.name, statusColor: s.color, tasks: ordered, showHeader: true })
+    }
+    const noStatus = allTasks.filter((t) => !t.status_id)
+    if (noStatus.length > 0) {
+      result.push({ statusId: null, statusName: 'No Status', statusColor: '#cbd5e1', tasks: noStatus, showHeader: true })
+    }
+    return result
+  })()
+
   const createTask = useMutation({
     mutationFn: (title: string) => tasksApi.create(listId!, { title }),
     onSuccess: () => {
@@ -183,6 +214,16 @@ export default function ListPage() {
               className="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium"
             >
               ⬇ Export CSV
+            </button>
+            <button
+              onClick={() => setGroupByStatus((v) => !v)}
+              className={`border text-sm px-4 py-2 rounded-lg transition-colors font-medium ${
+                groupByStatus
+                  ? 'bg-violet-100 text-violet-700 border-violet-300'
+                  : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              ⊞ Group by status
             </button>
             <button
               onClick={() => setCreating(true)}
@@ -369,103 +410,120 @@ export default function ListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {sortedTasks.map((task: Task) => {
-                  const isSubtask = !!task.parent_task_id
-                  const parentTask = isSubtask ? taskMap[task.parent_task_id!] : null
-                  return (
-                  <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''} ${isSubtask ? 'bg-slate-50/60' : ''}`}>
-                    <td className="px-4 py-3 w-10">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(task.id)}
-                        onChange={(e) => {
-                          const next = new Set(selectedIds)
-                          if (e.target.checked) next.add(task.id)
-                          else next.delete(task.id)
-                          setSelectedIds(next)
-                        }}
-                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
-                      />
-                    </td>
-                    <td className={`px-4 py-3 ${isSubtask ? 'pl-10' : ''}`}>
-                      {isSubtask && (
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <span className="text-slate-300 text-xs">↳</span>
-                          <button
-                            onClick={() => navigate(`/tasks/${task.parent_task_id}`)}
-                            className="text-xs text-slate-400 hover:text-violet-500 transition-colors truncate max-w-[180px]"
-                          >
-                            {parentTask?.title ?? 'Parent task'}
-                          </button>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {task.task_key && (
-                          <span className="text-[11px] font-mono font-semibold text-slate-400 shrink-0">
-                            {task.task_key}
+                {displayGroups.flatMap(({ statusId, statusName, statusColor, tasks: groupTasks, showHeader }) => {
+                  const rows = []
+                  if (showHeader) {
+                    rows.push(
+                      <tr key={`hdr-${statusId ?? 'none'}`} className="bg-slate-50/80">
+                        <td colSpan={8} className="px-4 py-2.5 border-b border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: statusColor }} />
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{statusName}</span>
+                            <span className="text-[11px] font-medium text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  }
+                  groupTasks.forEach((task: Task) => {
+                    const isSubtask = !!task.parent_task_id
+                    const parentTask = isSubtask ? taskMap[task.parent_task_id!] : null
+                    rows.push(
+                      <tr key={task.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50' : ''} ${isSubtask ? 'bg-slate-50/60' : ''}`}>
+                        <td className="px-4 py-3 w-10">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(task.id)}
+                            onChange={(e) => {
+                              const next = new Set(selectedIds)
+                              if (e.target.checked) next.add(task.id)
+                              else next.delete(task.id)
+                              setSelectedIds(next)
+                            }}
+                            className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                          />
+                        </td>
+                        <td className={`px-4 py-3 ${isSubtask ? 'pl-10' : ''}`}>
+                          {isSubtask && (
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <span className="text-slate-300 text-xs">↳</span>
+                              <button
+                                onClick={() => navigate(`/tasks/${task.parent_task_id}`)}
+                                className="text-xs text-slate-400 hover:text-violet-500 transition-colors truncate max-w-[180px]"
+                              >
+                                {parentTask?.title ?? 'Parent task'}
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {task.task_key && (
+                              <span className="text-[11px] font-mono font-semibold text-slate-400 shrink-0">
+                                {task.task_key}
+                              </span>
+                            )}
+                            <button
+                              onClick={() => navigate(`/tasks/${task.id}`)}
+                              className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
+                            >
+                              {task.title}
+                            </button>
+                            {depFlags[task.id]?.is_blocked && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 shrink-0" title="Blocked by another task">
+                                ⛔ Blocked
+                              </span>
+                            )}
+                            {depFlags[task.id]?.is_blocking && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 shrink-0" title="Blocking another task">
+                                ⚠ Blocking
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {task.status_id && statusMap[task.status_id] ? (
+                            <span
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+                              style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
+                            >
+                              {statusMap[task.status_id].name}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                              style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
+                            />
+                            {task.priority === 'none' ? '—' : task.priority}
                           </span>
-                        )}
-                        <button
-                          onClick={() => navigate(`/tasks/${task.id}`)}
-                          className={`text-left hover:text-violet-600 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700' : 'font-semibold text-slate-800 text-base'}`}
-                        >
-                          {task.title}
-                        </button>
-                        {depFlags[task.id]?.is_blocked && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 shrink-0" title="Blocked by another task">
-                            ⛔ Blocked
-                          </span>
-                        )}
-                        {depFlags[task.id]?.is_blocking && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 shrink-0" title="Blocking another task">
-                            ⚠ Blocking
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {task.status_id && statusMap[task.status_id] ? (
-                        <span
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                          style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
-                        >
-                          {statusMap[task.status_id].name}
-                        </span>
-                      ) : (
-                        <span className="text-slate-300 text-sm">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-                          style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
-                        />
-                        {task.priority === 'none' ? '—' : task.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
-                    </td>
-                    <td className="px-4 py-3">
-                      {task.reviewer_id && memberMap[task.reviewer_id] ? (
-                        <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
-                      ) : (
-                        <span className="text-slate-300 text-sm">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <DeleteButton
-                        variant="icon"
-                        message={`Delete "${task.title}"? This cannot be undone.`}
-                        onConfirm={() => deleteTask.mutate(task.id)}
-                      />
-                    </td>
-                  </tr>
-                  )
+                        </td>
+                        <td className="px-4 py-3">
+                          <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
+                        </td>
+                        <td className="px-4 py-3">
+                          {task.reviewer_id && memberMap[task.reviewer_id] ? (
+                            <Avatar member={memberMap[task.reviewer_id]} title="Reviewer" />
+                          ) : (
+                            <span className="text-slate-300 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <DeleteButton
+                            variant="icon"
+                            message={`Delete "${task.title}"? This cannot be undone.`}
+                            onConfirm={() => deleteTask.mutate(task.id)}
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })
+                  return rows
                 })}
               </tbody>
             </table>
