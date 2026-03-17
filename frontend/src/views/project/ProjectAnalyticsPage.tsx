@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { projectsApi, useProjectAnalytics } from '@/api/projects'
+import { workspacesApi } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
 
 export default function ProjectAnalyticsPage() {
@@ -10,6 +11,12 @@ export default function ProjectAnalyticsPage() {
     queryKey: ['project', projectId],
     queryFn: () => projectsApi.get(projectId!),
     enabled: !!projectId,
+  })
+
+  const { data: workspace } = useQuery({
+    queryKey: ['workspace', project?.workspace_id],
+    queryFn: () => workspacesApi.get(project!.workspace_id),
+    enabled: !!project?.workspace_id,
   })
 
   const { data: analytics, isLoading } = useProjectAnalytics(projectId)
@@ -23,13 +30,19 @@ export default function ProjectAnalyticsPage() {
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-4">
         <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+        {workspace && (
+          <>
+            <span className="text-slate-200 shrink-0">/</span>
+            <Link
+              to={`/workspaces/${workspace.id}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+            >
+              {workspace.name}
+            </Link>
+          </>
+        )}
         <span className="text-slate-200 shrink-0">/</span>
-        <Link
-          to={`/workspaces/${project?.workspace_id}`}
-          className="text-base font-semibold text-slate-800 truncate max-w-[160px]"
-        >
-          {project?.name}
-        </Link>
+        <span className="text-sm font-semibold text-slate-800 truncate max-w-[160px]">{project?.name}</span>
         <nav className="flex items-center gap-1 ml-2">
           <Link
             to={`/projects/${projectId}`}

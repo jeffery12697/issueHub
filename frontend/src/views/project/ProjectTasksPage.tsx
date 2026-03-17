@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, type Priority, type Task } from '@/api/tasks'
 import { listsApi } from '@/api/lists'
 import { projectsApi } from '@/api/projects'
-import { useWorkspaceMembers, type Member } from '@/api/workspaces'
+import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
@@ -90,6 +90,11 @@ export default function ProjectTasksPage() {
   const workspaceId = project?.workspace_id
   const setWorkspaceId = useUIStore((s) => s.setWorkspaceId)
   useEffect(() => { if (workspaceId) setWorkspaceId(workspaceId) }, [workspaceId])
+  const { data: workspace } = useQuery({
+    queryKey: ['workspace', workspaceId],
+    queryFn: () => workspacesApi.get(workspaceId!),
+    enabled: !!workspaceId,
+  })
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
@@ -202,13 +207,19 @@ export default function ProjectTasksPage() {
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-4">
         <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0">← Home</Link>
+        {workspace && (
+          <>
+            <span className="text-slate-200 shrink-0">/</span>
+            <Link
+              to={`/workspaces/${workspace.id}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+            >
+              {workspace.name}
+            </Link>
+          </>
+        )}
         <span className="text-slate-200 shrink-0">/</span>
-        <Link
-          to={`/workspaces/${project?.workspace_id}`}
-          className="text-base font-semibold text-slate-800 truncate max-w-[160px]"
-        >
-          {project?.name}
-        </Link>
+        <span className="text-sm font-semibold text-slate-800 truncate max-w-[160px]">{project?.name}</span>
         <nav className="flex items-center gap-1 ml-2">
           <Link
             to={`/projects/${projectId}`}

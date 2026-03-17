@@ -12,7 +12,7 @@ import { useFieldDefinitions, useFieldValues, useUpsertValues, type FieldDefinit
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
-import { useWorkspaceMembers, type Member } from '@/api/workspaces'
+import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
 import { useTimeEntries, useLogTime, useDeleteTimeEntry } from '@/api/timeEntries'
 import HeaderActions from '@/components/HeaderActions'
@@ -52,6 +52,12 @@ export default function TaskDetailPage() {
     queryKey: ['project', task?.project_id],
     queryFn: () => projectsApi.get(task!.project_id),
     enabled: !!task?.project_id,
+  })
+
+  const { data: workspace } = useQuery({
+    queryKey: ['workspace', project?.workspace_id],
+    queryFn: () => workspacesApi.get(project!.workspace_id),
+    enabled: !!project?.workspace_id,
   })
 
   const { data: blockedBy = [] } = useQuery({
@@ -229,6 +235,17 @@ export default function TaskDetailPage() {
           </svg>
           Back
         </button>
+        {workspace && (
+          <>
+            <span className="text-slate-300">/</span>
+            <Link
+              to={`/workspaces/${workspace.id}`}
+              className="text-xs font-medium text-slate-500 hover:text-violet-600 bg-slate-100 hover:bg-violet-50 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
+            >
+              {workspace.name}
+            </Link>
+          </>
+        )}
         {project && (
           <>
             <span className="text-slate-300">/</span>
