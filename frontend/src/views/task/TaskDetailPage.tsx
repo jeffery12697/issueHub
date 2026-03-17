@@ -1114,7 +1114,7 @@ function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Reco
               <span className={`w-2 h-2 rounded-full shrink-0 ${ACTION_DOT[log.action] ?? 'bg-slate-300'}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="font-semibold text-slate-700">{log.actor_name}</span>{' '}
+              <span className="font-semibold text-slate-700">{log.actor_name ?? 'Git'}</span>{' '}
               <span className="text-slate-500 capitalize">{log.action.replace(/_/g, ' ')}</span>
               {log.action === 'time_logged' && log.changes && (
                 <div className="text-slate-400 mt-0.5">

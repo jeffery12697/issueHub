@@ -3,8 +3,8 @@ import { apiClient } from './client'
 export type AuditLog = {
   id: string
   task_id: string
-  actor_id: string
-  actor_name: string
+  actor_id: string | null
+  actor_name: string | null
   action: string
   changes: Record<string, [string | null, string]> | null
   created_at: string

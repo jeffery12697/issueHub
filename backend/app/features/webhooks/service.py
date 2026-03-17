@@ -10,7 +10,8 @@ from app.features.audit.repository import AuditRepository
 from app.features.webhooks.schemas import WebhookResult
 
 # Matches task keys like PROJ-0042, BACKEND-1, TSK-00007 (1–6 digits)
-_TASK_KEY_RE = re.compile(r"\b([A-Z]+-\d{1,6})\b")
+# No word boundaries — underscore is a word char so \b fails on JEFF-0006_desc style branches
+_TASK_KEY_RE = re.compile(r"([A-Z]+-\d{1,6})")
 
 
 def extract_task_keys(text: str) -> list[str]:
