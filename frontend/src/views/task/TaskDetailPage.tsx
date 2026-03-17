@@ -753,7 +753,7 @@ export default function TaskDetailPage() {
             {/* History card */}
             {auditLogs.length > 0 && (
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-                <HistorySection logs={auditLogs} memberMap={memberMap} />
+                <HistorySection logs={auditLogs} memberMap={memberMap} listMap={Object.fromEntries(workspaceLists.map((l) => [l.id, l.name]))} />
               </div>
             )}
           </div>
@@ -1105,12 +1105,13 @@ const ACTION_DOT: Record<string, string> = {
   link_removed: 'bg-red-300',
 }
 
-function HistorySection({ logs, memberMap }: { logs: AuditLog[]; memberMap: Record<string, Member> }) {
+function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; memberMap: Record<string, Member>; listMap: Record<string, string> }) {
   const [expanded, setExpanded] = useState(false)
   const visible = expanded ? logs : logs.slice(0, 5)
 
   function renderValue(field: string, id: string | null | undefined): string {
     if (field === 'reviewer_id') return resolveName(id, memberMap)
+    if (field === 'list_id') return (id && listMap[id]) ? listMap[id] : (id ?? '—')
     return id ?? '—'
   }
 
