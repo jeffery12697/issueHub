@@ -34,6 +34,7 @@ from app.features.automations.repository import AutomationRepository
 from app.features.teams.repository import TeamRepository
 from app.features.notifications.repository import NotificationRepository
 from app.features.watchers.repository import WatcherRepository
+from app.features.status_mappings.repository import StatusMappingRepository
 from app.models.task import Task, Priority
 from app.models.user import User
 
@@ -96,6 +97,7 @@ def get_service(session: AsyncSession = Depends(get_session)) -> TaskService:
         audit_repo=AuditRepository(session),
         automation_repo=AutomationRepository(session),
         team_repo=TeamRepository(session),
+        status_mapping_repo=StatusMappingRepository(session),
     )
 
 

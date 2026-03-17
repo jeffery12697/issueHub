@@ -346,6 +346,12 @@ export default function ProjectGanttPage() {
           >
             Analytics
           </Link>
+          <Link
+            to={`/projects/${projectId}/status-mappings`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            Status Mappings
+          </Link>
         </nav>
 
         <div className="ml-auto">

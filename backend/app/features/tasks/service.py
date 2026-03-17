@@ -10,6 +10,7 @@ from app.features.workspaces.repository import WorkspaceRepository
 from app.features.audit.repository import AuditRepository
 from app.features.automations.repository import AutomationRepository
 from app.features.teams.repository import TeamRepository
+from app.features.status_mappings.repository import StatusMappingRepository
 from app.models.automation import ActionType, TriggerType
 from app.models.task import Task, Priority
 from app.models.workspace import WorkspaceRole
@@ -25,6 +26,7 @@ class TaskService:
         audit_repo: AuditRepository,
         automation_repo: AutomationRepository | None = None,
         team_repo: TeamRepository | None = None,
+        status_mapping_repo: StatusMappingRepository | None = None,
     ):
         self.repo = repo
         self.list_repo = list_repo
@@ -33,6 +35,7 @@ class TaskService:
         self.audit_repo = audit_repo
         self.automation_repo = automation_repo
         self.team_repo = team_repo
+        self.status_mapping_repo = status_mapping_repo
 
     async def create(self, dto: CreateTaskDTO) -> Task:
         await self._require_workspace_member(dto.workspace_id, dto.reporter_id)
@@ -240,13 +243,20 @@ class TaskService:
         if not list_:
             raise HTTPException(status_code=404, detail="List not found")
         project = await self.project_repo.get_by_id(list_.project_id)
-        old_list_id = str(task.list_id)
+        old_list_id = task.list_id
+        old_status_id = task.status_id
         task.list_id = list_id
         task.project_id = project.id
         task.workspace_id = project.workspace_id
-        task.status_id = None
+        # Apply status mapping if available, otherwise clear status
+        new_status_id = None
+        if self.status_mapping_repo and old_list_id and old_status_id:
+            mapping = await self.status_mapping_repo.get_mapping(old_list_id, list_id, old_status_id)
+            if mapping:
+                new_status_id = mapping.to_status_id
+        task.status_id = new_status_id
         await self.repo.session.flush()
-        await self.audit_repo.log(task_id, actor_id=actor_id, action="moved", changes={"list_id": [old_list_id, str(list_id)]})
+        await self.audit_repo.log(task_id, actor_id=actor_id, action="moved", changes={"list_id": [str(old_list_id), str(list_id)]})
         return task
 
     async def delete(self, task_id: UUID, actor_id: UUID) -> None:
@@ -294,13 +304,19 @@ class TaskService:
             t = await self.repo.get_by_id(tid)
             if not t:
                 continue
-            old_list_id = str(t.list_id)
+            old_list_id = t.list_id
+            old_status_id = t.status_id
             t.list_id = list_id
             t.project_id = project.id
             t.workspace_id = project.workspace_id
-            t.status_id = None
+            new_status_id = None
+            if self.status_mapping_repo and old_list_id and old_status_id:
+                mapping = await self.status_mapping_repo.get_mapping(old_list_id, list_id, old_status_id)
+                if mapping:
+                    new_status_id = mapping.to_status_id
+            t.status_id = new_status_id
             await self.repo.session.flush()
-            await self.audit_repo.log(tid, actor_id=actor_id, action="moved", changes={"list_id": [old_list_id, str(list_id)]})
+            await self.audit_repo.log(tid, actor_id=actor_id, action="moved", changes={"list_id": [str(old_list_id), str(list_id)]})
             count += 1
         return count
 

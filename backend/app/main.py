@@ -29,6 +29,7 @@ from app.features.automations.router import router as automations_router
 from app.features.attachments.router import router as attachments_router
 from app.features.webhooks.router import router as webhooks_router
 from app.features.saved_views.router import router as saved_views_router
+from app.features.status_mappings.router import router as status_mappings_router
 from app.core.scheduler import scheduler
 from app.core import storage
 from app.jobs.overdue import check_overdue_tasks
@@ -84,6 +85,7 @@ app.include_router(automations_router, prefix="/api/v1")
 app.include_router(attachments_router, prefix="/api/v1")
 app.include_router(webhooks_router)
 app.include_router(saved_views_router, prefix="/api/v1")
+app.include_router(status_mappings_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 
