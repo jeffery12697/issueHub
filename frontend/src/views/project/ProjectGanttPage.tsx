@@ -402,9 +402,9 @@ export default function ProjectGanttPage() {
         </div>
 
         <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
-          {allTasks.length} task{allTasks.length !== 1 ? 's' : ''}
+          {datedTasks.length} task{datedTasks.length !== 1 ? 's' : ''}
           {undatedTasks.length > 0 && (
-            <span className="text-slate-300 dark:text-slate-600"> · {undatedTasks.length} without dates</span>
+            <span className="text-slate-300 dark:text-slate-600"> · {undatedTasks.length} hidden (no dates)</span>
           )}
         </span>
       </div>
@@ -422,11 +422,17 @@ export default function ProjectGanttPage() {
             ))}
           </div>
         </div>
-      ) : allTasks.length === 0 ? (
+      ) : datedTasks.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center py-20">
-            <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No tasks yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm">Tasks will appear on the timeline once created.</p>
+            <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">
+              {allTasks.length === 0 ? 'No tasks yet' : 'No tasks with dates'}
+            </p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">
+              {allTasks.length === 0
+                ? 'Tasks will appear on the timeline once created.'
+                : 'Set a start date or due date on tasks to see them here.'}
+            </p>
           </div>
         </div>
       ) : (
@@ -525,41 +531,6 @@ export default function ProjectGanttPage() {
                 </div>
               ))}
 
-              {/* Undated tasks section */}
-              {undatedTasks.length > 0 && (
-                <>
-                  {/* Section separator */}
-                  <div className="flex" style={{ height: 34 }}>
-                    <div
-                      className="shrink-0 sticky left-0 z-10 flex items-center gap-2 px-4 bg-slate-50 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-700"
-                      style={{ width: LEFT_W }}
-                    >
-                      <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                        No dates
-                      </span>
-                      <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/70 dark:bg-slate-700/70 px-1.5 py-0.5 rounded-full">
-                        {undatedTasks.length}
-                      </span>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-700" style={{ width: totalPx }} />
-                  </div>
-
-                  {undatedTasks.map((task, rowIdx) => (
-                    <div key={task.id} className="flex group" style={{ height: ROW_H }}>
-                      {renderLeftCell(task, true, rowIdx % 2 === 0)}
-                      {/* Dashed line placeholder */}
-                      <div
-                        className={`flex items-center transition-colors ${
-                          rowIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-900/60'
-                        } group-hover:bg-violet-50/20 dark:group-hover:bg-violet-950/20`}
-                        style={{ width: totalPx }}
-                      >
-                        <div className="w-full mx-4 border-t border-dashed border-slate-200 dark:border-slate-700" />
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
             </div>
 
           </div>
