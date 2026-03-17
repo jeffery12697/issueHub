@@ -110,13 +110,13 @@ export default function ProjectAnalyticsPage() {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-slate-700 mb-5">Tasks by Status</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-4">Tasks by Status</h3>
               {(analytics?.tasks_by_status ?? []).length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-slate-400 text-sm">No tasks with statuses yet.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {(analytics?.tasks_by_status ?? [])
                     .sort((a, b) => b.count - a.count)
                     .map((row, i) => {

@@ -766,7 +766,7 @@ export default function TaskDetailPage() {
               {/* Status */}
               {statuses.length > 0 && (
                 <div className="relative px-4 py-3 border-b border-slate-100">
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</p>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</p>
                   <button
                     onClick={() => { setStatusOpen((o) => !o); setPriorityOpen(false) }}
                     className="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full"
@@ -809,7 +809,7 @@ export default function TaskDetailPage() {
 
               {/* Priority */}
               <div className="relative px-4 py-3 border-b border-slate-100">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Priority</p>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Priority</p>
                 <button
                   onClick={() => { setPriorityOpen((o) => !o); setStatusOpen(false) }}
                   className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full ${PRIORITY_CHIP[task.priority]}`}
@@ -848,7 +848,7 @@ export default function TaskDetailPage() {
 
               {/* Assignees */}
               <div className="px-4 py-3 border-b border-slate-100">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Assignees</p>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Assignees</p>
                 {task.assignee_ids.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {task.assignee_ids.map((id) => {
@@ -890,7 +890,7 @@ export default function TaskDetailPage() {
 
               {/* Reviewer */}
               <div className="px-4 py-3 border-b border-slate-100">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Reviewer</p>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Reviewer</p>
                 {task.reviewer_id && memberMap[task.reviewer_id] ? (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-slate-700">
@@ -920,7 +920,7 @@ export default function TaskDetailPage() {
               {/* Dates */}
               <div className="px-4 py-3 border-b border-slate-100 space-y-3">
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Start Date</p>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Start Date</p>
                   <input
                     key={task.start_date ?? 'start-none'}
                     type="date"
@@ -931,7 +931,7 @@ export default function TaskDetailPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Due Date</p>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Due Date</p>
                   <input
                     key={task.due_date ?? 'none'}
                     type="date"
@@ -945,7 +945,7 @@ export default function TaskDetailPage() {
 
               {/* Story Points */}
               <div className="px-4 py-3 border-b border-slate-100">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Story Points</p>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Story Points</p>
                 <input
                   key={task.story_points ?? 'sp-none'}
                   type="number"
@@ -963,7 +963,7 @@ export default function TaskDetailPage() {
               {/* Move to List */}
               {workspaceLists.length > 1 && (
                 <div className="px-4 py-3 border-b border-slate-100">
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Move to List</p>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Move to List</p>
                   <select
                     value=""
                     onChange={(e) => { if (e.target.value) moveTask.mutate(e.target.value) }}

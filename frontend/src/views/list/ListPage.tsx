@@ -283,14 +283,11 @@ export default function ListPage() {
       </header>
 
       <main className="max-w-5xl mx-auto py-8 px-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">{list?.name}</h2>
-            <p className="text-sm text-slate-400 mt-0.5">
-              {totalCount} item{totalCount === 1 ? '' : 's'}
-              {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
-            </p>
-          </div>
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <p className="text-sm text-slate-500">
+            {totalCount} task{totalCount === 1 ? '' : 's'}
+            {totalPages > 1 && <span className="text-slate-400"> · page {page} of {totalPages}</span>}
+          </p>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => tasksApi.exportCsv(listId!)}
@@ -434,7 +431,7 @@ export default function ListPage() {
           </div>
         )}
 
-        <div className="mb-5 space-y-2">
+        <div className="mb-4 space-y-2">
           <FilterBar
             fields={[
               {
