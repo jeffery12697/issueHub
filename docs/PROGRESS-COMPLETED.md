@@ -498,3 +498,31 @@ _Completed: 2026-03-17_
 - [x] `ProjectTasksPage`: groups ordered by status definition order across all lists; no subtask reordering
 - [x] "No Status" group appended at end for tasks with `status_id = null`
 - [x] Table rendered via `displayGroups.flatMap(...)` — single task row template used in both flat and grouped modes
+
+---
+
+## Phase 16 — F-01 Global Search, F-02 Saved Views, F-03 Group-by
+_Completed: 2026-03-17_
+
+### F-01: Global Search (comment content)
+- [x] `TaskRepository.search()` extended with `OR Task.id IN (SELECT task_id FROM comments WHERE body ILIKE ...)` subquery
+- [x] Search now matches task title, description, **and** comment body
+- [x] Existing `GlobalSearch.tsx` + `/workspaces/{workspace_id}/search` endpoint unchanged
+
+### F-02: Saved Views
+- [x] `backend/app/models/saved_view.py` — `SavedView` model: `user_id`, `list_id | project_id`, `name`, `filters_json (JSONB)`
+- [x] `backend/alembic/versions/0022_add_saved_views.py` — creates `saved_views` table with FK indexes
+- [x] `backend/app/features/saved_views/` — repository (CRUD), schemas, router registered in `main.py`
+- [x] Endpoints: `GET/POST /lists/{id}/saved-views`, `GET/POST /projects/{id}/saved-views`, `DELETE /saved-views/{id}`
+- [x] `frontend/src/api/savedViews.ts` — `SavedView`, `SavedViewFilters` types + full CRUD helpers
+- [x] `ListPage` — "📋 Views" panel: list/apply/delete saved views; inline save-as-name input
+- [x] `ProjectTasksPage` — same Views panel; saves `filter_rules` + `group_by`
+- [x] `filters_json` stores `{ filter_rules, cf_filters, group_by }` — full state snapshot
+
+### F-03: Group-by (status / assignee / priority)
+- [x] `groupByStatus: boolean` → `groupBy: 'none' | 'status' | 'assignee' | 'priority'` in both pages
+- [x] Toolbar button → styled `<select>` with 4 options; turns violet when active
+- [x] Status mode: unchanged behavior (ordered by list status definition, "No Status" at end)
+- [x] Assignee mode: one group per assignee (tasks appear in each of their assignees' groups) + "Unassigned"
+- [x] Priority mode: fixed order Urgent → High → Medium → Low → No Priority, dot colors from `PRIORITY_DOT_COLORS`
+- [x] All modes use shared `DisplayGroup` type `{ groupKey, groupLabel, groupColor, tasks, showHeader }`

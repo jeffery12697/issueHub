@@ -27,7 +27,7 @@
 | **Phase 13** | ✅ Done | M-02, N-02, AU-02 | Email invites, notification digest, overdue task notifications |
 | **Phase 14** | 🔲 Not started | TM-02 | Timeline / Gantt view |
 | **Phase 15** | ✅ Done | AU-04 | Git webhook: GitHub PR / GitLab MR open → link task, merge → close task |
-| **Phase 16** | 🔲 Not started | F-01, F-02, F-03 | Global search, saved views, group-by (assignee / priority / status) |
+| **Phase 16** | ✅ Done | F-01, F-02, F-03 | Global search (+ comments), saved views, group-by (status / assignee / priority) |
 
 ### Deferred
 
@@ -37,7 +37,8 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 14: Timeline / Gantt view (TM-02) — not started
+- Phase 14: Timeline / Gantt view (TM-02) — deferred
+- Phase 17: TBD
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)
