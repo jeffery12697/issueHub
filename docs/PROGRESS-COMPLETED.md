@@ -526,3 +526,32 @@ _Completed: 2026-03-17_
 - [x] Assignee mode: one group per assignee (tasks appear in each of their assignees' groups) + "Unassigned"
 - [x] Priority mode: fixed order Urgent → High → Medium → Low → No Priority, dot colors from `PRIORITY_DOT_COLORS`
 - [x] All modes use shared `DisplayGroup` type `{ groupKey, groupLabel, groupColor, tasks, showHeader }`
+
+---
+
+## Search improvements (outside phases)
+_Completed: 2026-03-17_
+
+### Global search on all pages
+- [x] `uiStore` — added `workspaceId: string | null` + `setWorkspaceId` action
+- [x] `WorkspaceHeader`, `ListPage`, `ProjectTasksPage`, `TaskDetailPage` each call `setWorkspaceId` on data load
+- [x] `GlobalSearch` — no longer needs a prop; reads `workspaceId` from uiStore; returns `null` when not in a workspace context
+- [x] `HeaderActions` — embeds `GlobalSearch` so it appears on every page header automatically
+- [x] `WorkspaceHeader` — removed standalone `<GlobalSearch workspaceId={...} />` (now provided by HeaderActions)
+
+### Search result enrichment
+- [x] `TaskSearchResult` schema extends `TaskResponse` with `list_name: str | None` and `project_name: str | None`
+- [x] Search endpoint bulk-fetches list/project names and returns them in results
+- [x] Frontend `Task` type extended with `TaskSearchResult = Task & { list_name, project_name }`
+- [x] Search dropdown shows `project › list` breadcrumb under each result title
+- [x] Dropdown header: "Searches titles, descriptions & comments" hint text
+
+### Search by task key
+- [x] `Task.task_key.ilike(pattern)` added to `TaskRepository.search()` WHERE clause
+- [x] Users can search `PROJ-42`, `42`, or `PROJ` to find tasks by sequential number
+
+### pg_trgm performance indexes (migration 0023)
+- [x] `CREATE EXTENSION IF NOT EXISTS pg_trgm`
+- [x] GIN trigram index on `tasks.title` — fast `%pattern%` ILIKE without seq scan
+- [x] GIN trigram index on `tasks.task_key` — fast key search
+- [x] GIN trigram index on `comments.body` — fast comment content search

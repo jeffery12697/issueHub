@@ -42,6 +42,8 @@
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)
+- Global search improvements: search by task key (PROJ-42), show project › list in results, visible on all pages, searches comments
+- pg_trgm GIN indexes on tasks.title, tasks.task_key, comments.body for fast ILIKE search at scale
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
