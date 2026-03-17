@@ -56,3 +56,4 @@ issueHub/
 | `docs/stories/TIME_MANAGEMENT.md` | TM-01 ~ TM-04: Due/start date, Gantt, time tracking, story points |
 | `docs/stories/AUTOMATION.md` | AU-01 ~ AU-04: Trigger-action rules, overdue notify, auto-close subtasks, Git integration |
 | `docs/stories/NOTIFICATIONS.md` | N-01 ~ N-03: Task watchers, notification frequency, @mention |
+| `docs/stories/FILTERS.md` | F-01 ~ F-03: Global search, saved views, group-by |
