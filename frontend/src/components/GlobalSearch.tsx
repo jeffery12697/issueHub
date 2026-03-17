@@ -74,7 +74,7 @@ export default function GlobalSearch() {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex items-center gap-1.5 h-8 border border-slate-200 rounded-lg px-2.5 bg-white focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-400 transition-all w-48">
+      <div className="flex items-center gap-1.5 h-8 border border-slate-200 rounded-lg px-2.5 bg-white focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-400 transition-all w-32 sm:w-48">
         <span className="text-slate-400 text-xs select-none" aria-hidden="true">🔍</span>
         <input
           type="text"
@@ -96,7 +96,7 @@ export default function GlobalSearch() {
           id="global-search-results"
           role="listbox"
           aria-label="Search results"
-          className="absolute z-50 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 w-96 right-0 overflow-hidden"
+          className="absolute z-50 bg-white border border-slate-200 rounded-xl shadow-lg mt-1 right-0 overflow-hidden w-[min(24rem,calc(100vw-1rem))]"
         >
           <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
             <p className="text-[11px] text-slate-400">

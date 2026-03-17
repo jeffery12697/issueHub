@@ -56,7 +56,7 @@ export default function BoardPage() {
           ← Home
         </Link>
         <span className="text-slate-300">/</span>
-        <span className="text-base font-semibold text-slate-800">{list?.name}</span>
+        <span className="text-base font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           {canManageSettings && (
             <Link

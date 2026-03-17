@@ -255,7 +255,7 @@ export default function ListPage() {
       <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center gap-3">
         <Link to="/" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Home</Link>
         <span className="text-slate-300">/</span>
-        <span className="text-base font-semibold text-slate-800">{list?.name}</span>
+        <span className="text-base font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
           {canManageSettings && (
             <Link
@@ -284,7 +284,7 @@ export default function ListPage() {
       </header>
 
       <main className="max-w-5xl mx-auto py-8 px-6">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">{list?.name}</h2>
             <p className="text-sm text-slate-400 mt-0.5">
@@ -292,7 +292,7 @@ export default function ListPage() {
               {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => tasksApi.exportCsv(listId!)}
               className="border border-slate-200 text-slate-600 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium flex items-center gap-1.5"
@@ -552,7 +552,8 @@ export default function ListPage() {
           </div>
         ) : (
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="task-table">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-3.5 w-10">
@@ -696,6 +697,7 @@ export default function ListPage() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

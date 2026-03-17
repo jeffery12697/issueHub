@@ -49,7 +49,7 @@ export default function HeaderActions() {
             <div className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
               {initials}
             </div>
-            <span className="text-sm text-slate-700 font-medium max-w-[140px] truncate">{user.display_name}</span>
+            <span className="text-sm text-slate-700 font-medium max-w-[140px] truncate hidden sm:inline">{user.display_name}</span>
           </button>
 
           {menuOpen && (

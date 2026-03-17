@@ -26,7 +26,7 @@ export default function AnalyticsPage() {
 
         {isLoading ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-white border border-slate-200 rounded-xl h-24 animate-pulse" />
               ))}
@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
         ) : (
           <>
             {/* Stat cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <StatCard
                 label="Total Tasks"
                 value={total}
