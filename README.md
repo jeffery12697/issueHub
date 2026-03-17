@@ -1,6 +1,13 @@
 # IssueHub
 
-A full-featured project management and issue tracking system inspired by ClickUp, Jira, and Linear. Built with a React frontend and FastAPI backend.
+A full-featured project management and issue tracking system inspired by Linear, ClickUp, and Jira. Built with a React frontend and FastAPI backend.
+
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 
 ---
 
@@ -9,23 +16,25 @@ A full-featured project management and issue tracking system inspired by ClickUp
 ### Task Management
 - Create, edit, and delete tasks across projects and lists
 - Subtasks (one level deep) with auto-close parent when all subtasks complete
-- Task dependencies (blocked by / blocking) with inline badges
-- Promote subtask to top-level task
+- Task dependencies (blocked by / blocking) with inline resolution badges
+- Promote a subtask to a top-level task
 - Move tasks between lists
-- Bulk update (status, priority) and bulk delete
-- File attachments on tasks and comments (stored in MinIO / S3)
+- Bulk status/priority updates and bulk delete
+- File attachments on tasks and comments (MinIO / S3)
 
 ### Views
-- **List view** — sortable table with filters (is / is-not operators), pagination, bulk selection, CSV export
-- **Board view** — kanban drag-and-drop columns by status
-- **My Tasks** — cross-list view of tasks assigned to the current user
-- **Project Tasks** — cross-list view of all tasks in a project with advanced filters
-- **Workload** — per-member open task count and story points
-- **Analytics** — task breakdown by status with story point totals (workspace and project level)
+| View | Description |
+|------|-------------|
+| **List** | Sortable table with filters, pagination, bulk selection, and CSV export |
+| **Board** | Kanban drag-and-drop columns by status |
+| **My Tasks** | Cross-list view of everything assigned to the current user |
+| **Project Tasks** | Cross-list view for all tasks in a project with advanced filters |
+| **Workload** | Per-member open task count and story points |
+| **Analytics** | Task breakdown by status with story point totals (workspace and project) |
 
-### Status & Custom Fields
-- Per-list configurable statuses with colors and "done" marking
-- 6 custom field types: text, number, date, dropdown, checkbox, URL
+### Statuses & Custom Fields
+- Per-list configurable statuses with colors and "done" semantics
+- 6 field types: text, number, date, dropdown, checkbox, URL
 - Role-based field visibility and editability
 - List templates with preset statuses and custom fields
 
@@ -36,37 +45,36 @@ A full-featured project management and issue tracking system inspired by ClickUp
 
 ### Collaboration
 - Multi-assignee and reviewer per task
-- Real-time updates via WebSocket (Redis Pub/Sub)
+- Real-time updates via WebSocket + Redis Pub/Sub
 - In-app notifications: @mentions, assignee changes, task updates, watchers
-- Task watchers
-- Rich text comments and descriptions — bold/italic/lists/headings/tables/images/text color/font size/highlight with @mention autocomplete
-- Task links (external URLs)
-- Full audit trail of all field changes
+- Rich text comments and descriptions (Tiptap) — bold, italic, lists, headings, tables, images, text color, font size, highlight, @mention autocomplete
+- Task links (external URLs) and full audit trail
 
 ### Notifications & Email
 - In-app notification feed with unread badge
 - Notification preferences: immediate or daily digest
-- Daily digest email summarizing unread notifications
+- Daily digest email summarizing unread notifications (8 AM, Asia/Taipei)
 - Overdue task email notifications (daily background job)
-- Email invites to workspaces
+- Email-based workspace invites
 
 ### Automation
 - Trigger-action rules scoped to a list
 - Triggers: status changed, priority changed
 - Actions: set status, set priority, assign reviewer, clear assignees
+- Git webhook integration: GitHub PR / GitLab MR open → link task, merge → close task
 
-### Organization
+### Search & Filters
+- Global full-text search across tasks, keys, and comments (pg_trgm GIN indexes)
+- Search by task key (e.g. `PROJ-00042`)
+- Saved views per list
+- Group-by: status, assignee, priority
+
+### Organization & Access Control
 - Workspaces → Projects → Lists → Tasks hierarchy
 - Teams with roles (team admin / team member)
-- List visibility restricted by team — enforced on all task fetch endpoints
+- List visibility restricted by team — enforced on all task endpoints
 - Workspace roles: owner, admin, member
-- Email-based workspace invites
-
-### Access Control
-- Workspace settings (members, teams, templates) — owner/admin only
-- List settings (statuses, custom fields, automations, visibility) — owner/admin only
-- Task CRUD — all workspace members
-- Team-restricted lists: only members of the assigned team (plus owner/admin) can view tasks
+- Team-restricted lists: only assigned team members (plus owner/admin) can view
 
 ---
 
@@ -74,16 +82,16 @@ A full-featured project management and issue tracking system inspired by ClickUp
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS (dark mode) |
 | State / Data | TanStack Query v5, Zustand, React Router v6 |
 | Backend | FastAPI, Python 3.12, SQLAlchemy (async) |
-| Database | PostgreSQL 16 (ltree extension for task trees) |
+| Database | PostgreSQL 16 (ltree for task trees, pg_trgm for search) |
 | Cache / Pub-Sub | Redis 7 |
 | Real-time | WebSocket + Redis Pub/Sub |
 | Auth | Google OAuth 2.0 + JWT (access + refresh tokens) |
 | Rich Text | Tiptap |
 | File Storage | MinIO (S3-compatible) |
-| Email | SMTP (Mailtrap for dev, any SMTP provider for prod) |
+| Email | SMTP — Mailtrap for dev, any SMTP provider for prod |
 | Background Jobs | APScheduler (overdue notifications, digest emails) |
 
 ---
@@ -101,9 +109,10 @@ issueHub/
 │   └── tests/             # pytest test suite
 ├── frontend/
 │   └── src/
-│       ├── api/           # Axios API clients + TanStack Query hooks
-│       ├── components/    # shared components
-│       ├── hooks/         # WebSocket hooks
+│       ├── api/           # Axios clients + TanStack Query hooks
+│       ├── components/    # shared UI components
+│       ├── context/       # React context providers (theme, etc.)
+│       ├── hooks/         # custom hooks (WebSocket, theme, …)
 │       ├── store/         # Zustand stores
 │       └── views/         # page components
 ├── docs/                  # architecture docs and user stories
@@ -116,7 +125,7 @@ issueHub/
 
 ### Prerequisites
 - Docker and Docker Compose
-- A Google OAuth 2.0 app (Client ID + Secret) — or use dev login (see below)
+- A Google OAuth 2.0 app (Client ID + Secret) — or use dev login (no OAuth required)
 
 ### 1. Clone and configure
 
@@ -141,7 +150,7 @@ GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
 FRONTEND_URL=http://localhost:5173
 ALLOW_DEV_LOGIN=true
 
-# Email (optional — set MAIL_ENABLED=true to send real emails)
+# Email — set MAIL_ENABLED=true to send real emails
 MAIL_SERVER=sandbox.smtp.mailtrap.io
 MAIL_PORT=2525
 MAIL_SENDER_NAME=IssueHub
@@ -161,7 +170,7 @@ docker compose up --build
 |---------|-----|
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:8000 |
-| API docs (Swagger) | http://localhost:8000/docs |
+| Swagger docs | http://localhost:8000/docs |
 | MinIO console | http://localhost:9001 |
 
 ### 3. Run database migrations
@@ -172,9 +181,9 @@ docker compose exec backend alembic upgrade head
 
 ### 4. Log in
 
-**With Google OAuth** — click "Sign in with Google" on the login page.
+**Google OAuth** — click "Sign in with Google" on the login page.
 
-**With dev login** (no OAuth setup needed) — toggle "Dev login" on the login page and enter any email and display name.
+**Dev login** (no OAuth setup needed) — toggle "Dev login" and enter any email and display name.
 
 ---
 
@@ -184,7 +193,7 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend pytest
 ```
 
-The test suite uses a separate in-memory SQLite-compatible setup with automatic table truncation between tests.
+The test suite uses a separate async test database with automatic table truncation between tests.
 
 ---
 
@@ -218,7 +227,7 @@ The test suite uses a separate in-memory SQLite-compatible setup with automatic 
 
 ## API Overview
 
-All endpoints are prefixed with `/api/v1`. Interactive docs available at `/docs`.
+All endpoints are prefixed with `/api/v1`. Full interactive docs at `/docs`.
 
 | Resource | Endpoints |
 |----------|-----------|
@@ -233,4 +242,5 @@ All endpoints are prefixed with `/api/v1`. Interactive docs available at `/docs`
 | Templates | `GET/POST/PATCH/DELETE /workspaces/{id}/list-templates` |
 | Invites | `POST /workspaces/{id}/invites`, `POST /invites/{token}/accept` |
 | Notifications | `GET /notifications`, mark read, unread count, preferences |
+| Webhooks | `POST /webhooks/github`, `POST /webhooks/gitlab` |
 | WebSocket | `ws://localhost:8000/ws/tasks/{id}`, `/ws/lists/{id}` |
