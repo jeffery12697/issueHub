@@ -132,6 +132,11 @@ class BulkDeleteRequest(BaseModel):
     task_ids: list[UUID]
 
 
+class BulkMoveRequest(BaseModel):
+    task_ids: list[UUID]
+    list_id: UUID
+
+
 class BulkOperationResponse(BaseModel):
     updated: int
 

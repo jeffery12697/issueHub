@@ -278,6 +278,32 @@ class TaskService:
         await self._require_workspace_member(task.workspace_id, actor_id)
         return await self.repo.bulk_update(task_ids, status_id, priority)
 
+    async def bulk_move(self, task_ids: list[UUID], list_id: UUID, actor_id: UUID) -> int:
+        if not task_ids:
+            raise HTTPException(422, "task_ids cannot be empty")
+        task = await self.repo.get_by_id(task_ids[0])
+        if not task:
+            raise HTTPException(404, "Task not found")
+        await self._require_workspace_member(task.workspace_id, actor_id)
+        list_ = await self.list_repo.get_by_id(list_id)
+        if not list_:
+            raise HTTPException(404, "List not found")
+        project = await self.project_repo.get_by_id(list_.project_id)
+        count = 0
+        for tid in task_ids:
+            t = await self.repo.get_by_id(tid)
+            if not t:
+                continue
+            old_list_id = str(t.list_id)
+            t.list_id = list_id
+            t.project_id = project.id
+            t.workspace_id = project.workspace_id
+            t.status_id = None
+            await self.repo.session.flush()
+            await self.audit_repo.log(tid, actor_id=actor_id, action="moved", changes={"list_id": [old_list_id, str(list_id)]})
+            count += 1
+        return count
+
     async def bulk_delete(self, task_ids: list[UUID], actor_id: UUID) -> int:
         if not task_ids:
             raise HTTPException(422, "task_ids cannot be empty")

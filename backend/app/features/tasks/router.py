@@ -17,6 +17,7 @@ from app.features.tasks.service import TaskService
 from app.features.tasks.schemas import (
     BulkUpdateRequest,
     BulkDeleteRequest,
+    BulkMoveRequest,
     BulkOperationResponse,
     CreateTaskRequest,
     MoveTaskRequest,
@@ -534,6 +535,22 @@ async def bulk_update_tasks(
     )
     await session.commit()
     return BulkOperationResponse(updated=updated)
+
+
+@router.post("/tasks/bulk-move", response_model=BulkOperationResponse)
+async def bulk_move_tasks(
+    body: BulkMoveRequest,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    moved = await service.bulk_move(
+        task_ids=body.task_ids,
+        list_id=body.list_id,
+        actor_id=current_user.id,
+    )
+    await session.commit()
+    return BulkOperationResponse(updated=moved)
 
 
 @router.post("/tasks/bulk-delete", response_model=BulkOperationResponse)

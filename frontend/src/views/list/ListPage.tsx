@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listsApi } from '@/api/lists'
+import { listsApi, useWorkspaceLists } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { PRIORITY_DOT_COLORS, PRIORITY_COLORS } from '@/lib/priority'
 import { dependenciesApi } from '@/api/dependencies'
@@ -222,6 +222,19 @@ export default function ListPage() {
     },
     onError: () => toast.error('Bulk delete failed'),
   })
+
+  const bulkMove = useMutation({
+    mutationFn: ({ taskIds, targetListId }: { taskIds: string[]; targetListId: string }) =>
+      tasksApi.bulkMove(taskIds, targetListId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks', listId] })
+      setSelectedIds(new Set())
+      toast.success('Tasks moved')
+    },
+    onError: () => toast.error('Move failed'),
+  })
+
+  const { data: workspaceLists = [] } = useWorkspaceLists(workspace?.id)
 
   const { data: savedViews = [] } = useQuery({
     queryKey: ['saved-views', 'list', listId],
@@ -455,6 +468,21 @@ export default function ListPage() {
               <option value="" disabled>Set priority…</option>
               {(['none', 'low', 'medium', 'high', 'urgent'] as Priority[]).map((p) => (
                 <option key={p} value={p} className="capitalize">{p}</option>
+              ))}
+            </select>
+            <select
+              className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkMove.mutate({ taskIds: Array.from(selectedIds), targetListId: e.target.value })
+                  e.target.value = ''
+                }
+              }}
+            >
+              <option value="" disabled>Move to list…</option>
+              {workspaceLists.filter((l) => l.id !== listId).map((l) => (
+                <option key={l.id} value={l.id}>{l.name}</option>
               ))}
             </select>
             <DeleteButton
