@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { tasksApi, type Priority } from '@/api/tasks'
 import { useUIStore } from '@/store/uiStore'
+
+const HIDE_ON = [/^\/$/, /\/settings$/]
 
 const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   none: '#cbd5e1',
@@ -14,6 +16,8 @@ const PRIORITY_DOT_COLORS: Record<Priority, string> = {
 
 export default function GlobalSearch() {
   const workspaceId = useUIStore((s) => s.workspaceId)
+  const { pathname } = useLocation()
+  if (HIDE_ON.some((re) => re.test(pathname))) return null
   const [inputValue, setInputValue] = useState('')
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
