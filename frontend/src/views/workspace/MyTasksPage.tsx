@@ -70,7 +70,7 @@ export default function MyTasksPage() {
         ) : (
           <div className="space-y-6">
             {overdue.length > 0 && (
-              <TaskGroup title="Overdue" tasks={overdue} onOpen={(id) => navigate(`/tasks/${id}`)} accent="text-red-600" projectMap={projectMap} listMap={listMap} />
+              <TaskGroup title="Overdue" tasks={overdue} onOpen={(id) => navigate(`/tasks/${id}`)} accent="text-red-600" badgeClass="bg-red-50 text-red-500" projectMap={projectMap} listMap={listMap} />
             )}
             {upcoming.length > 0 && (
               <TaskGroup title="Upcoming" tasks={upcoming} onOpen={(id) => navigate(`/tasks/${id}`)} projectMap={projectMap} listMap={listMap} />
@@ -90,6 +90,7 @@ function TaskGroup({
   tasks,
   onOpen,
   accent = 'text-slate-500',
+  badgeClass = 'bg-slate-100 text-slate-500',
   projectMap,
   listMap,
 }: {
@@ -97,6 +98,7 @@ function TaskGroup({
   tasks: { id: string; title: string; priority: string; due_date: string | null; status_id: string | null; project_id: string; list_id: string | null }[]
   onOpen: (id: string) => void
   accent?: string
+  badgeClass?: string
   projectMap: Record<string, string>
   listMap: Record<string, string>
 }) {
@@ -104,7 +106,7 @@ function TaskGroup({
     <div>
       <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${accent}`}>
         {title}
-        <span className="inline-flex items-center justify-center h-4 px-1.5 rounded-full bg-slate-100 text-slate-500 font-semibold text-[10px] normal-case tracking-normal">
+        <span className={`inline-flex items-center justify-center h-4 px-1.5 rounded-full font-semibold text-[10px] normal-case tracking-normal ${badgeClass}`}>
           {tasks.length}
         </span>
       </h3>

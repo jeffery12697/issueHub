@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
-import { PRIORITY_DOT_COLORS } from '@/lib/priority'
+import { PRIORITY_DOT_COLORS, PRIORITY_COLORS } from '@/lib/priority'
 import { dependenciesApi } from '@/api/dependencies'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
@@ -670,12 +670,14 @@ export default function ListPage() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600">
+                          <span className="flex items-center gap-2 text-sm font-medium capitalize">
                             <span
                               className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                               style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
                             />
-                            {task.priority === 'none' ? '—' : task.priority}
+                            <span className={task.priority === 'none' ? 'text-slate-400' : PRIORITY_COLORS[task.priority].text}>
+                              {task.priority === 'none' ? '—' : task.priority}
+                            </span>
                           </span>
                         </td>
                         <td className="px-4 py-3">
