@@ -57,3 +57,23 @@ issueHub/
 | `docs/stories/AUTOMATION.md` | AU-01 ~ AU-04: Trigger-action rules, overdue notify, auto-close subtasks, Git integration |
 | `docs/stories/NOTIFICATIONS.md` | N-01 ~ N-03: Task watchers, notification frequency, @mention |
 | `docs/stories/FILTERS.md` | F-01 ~ F-03: Global search, saved views, group-by |
+
+## Design Context
+
+### Users
+Software developers and cross-functional teams (devs, designers, PMs) tracking tasks, bugs, and sprints. Long sessions, need fast navigation, clear hierarchy, zero cognitive overhead.
+
+### Brand Personality
+Focused · Fast · Clean — sharp and confident, never flashy. Users should feel in control.
+
+### Aesthetic Direction
+- Minimal, Linear-inspired: white/`slate-50` surfaces, `violet-600` as the single accent
+- `rounded-xl` cards, `rounded-lg` buttons/inputs, `shadow-sm` only
+- No dark mode (light only); no purple gradients; no card-in-card nesting
+
+### Design Principles
+1. **Clarity over decoration** — every element must serve information hierarchy
+2. **Violet is a signal** — use `violet-600` only for interactive/active/actionable states
+3. **Density with breathing room** — compact rows but whitespace at card/section level
+4. **Consistent motion** — `150–200ms ease` transitions only; always respect `prefers-reduced-motion`
+5. **Status speaks first** — priority colors (sky/amber/orange/red) and status badges are highest-priority signals
