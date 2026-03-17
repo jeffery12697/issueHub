@@ -43,6 +43,16 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handle)
   }, [])
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!open) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open])
+
   function handleNotificationClick(notif: Notification) {
     if (!notif.is_read) {
       markRead.mutate(notif.id)
@@ -71,7 +81,11 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-9 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
+        <div
+          role="dialog"
+          aria-label="Notifications"
+          className="absolute right-0 top-9 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <span className="text-sm font-semibold text-slate-800">Notifications</span>
             {unreadCount > 0 && (
@@ -104,7 +118,7 @@ export default function NotificationBell() {
                     }`}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 leading-snug">{notif.body}</p>
+                    <p className="text-sm text-slate-700 leading-snug line-clamp-3">{notif.body}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{relativeTime(notif.created_at)}</p>
                   </div>
                 </button>

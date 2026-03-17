@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Respect OS-level reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Tiptap editor prose styles */
 .prose h1 { @apply text-xl font-bold text-slate-900 mt-4 mb-2; }
 .prose h2 { @apply text-lg font-bold text-slate-800 mt-3 mb-1.5; }

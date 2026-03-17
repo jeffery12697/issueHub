@@ -111,6 +111,7 @@ export default function FilterBar({
             {/* Remove */}
             <button
               onClick={() => removeRule(rule.id)}
+              aria-label={`Remove ${fieldConfig?.label ?? rule.field} filter`}
               className="px-2 h-full text-violet-400 hover:text-red-500 hover:bg-red-50 transition-colors text-sm leading-none"
             >
               ×

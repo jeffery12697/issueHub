@@ -5,6 +5,7 @@ import { listsApi, type ListStatus } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
+import { useAuthStore } from '@/store/authStore'
 import HeaderActions from '@/components/HeaderActions'
 
 const PRIORITY_COLORS: Record<Priority, { bg: string; text: string; dot: string }> = {
@@ -47,6 +48,10 @@ export default function BoardPage() {
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
+  const currentUserId = useAuthStore((s) => s.user?.id)
+  const myRole = currentUserId ? memberMap[currentUserId]?.role : undefined
+  const canManageSettings = myRole === 'owner' || myRole === 'admin'
+
   const statuses = list?.statuses ?? []
   const noStatusTasks = tasks.filter((t) => !t.status_id)
 
@@ -60,12 +65,14 @@ export default function BoardPage() {
         <span className="text-slate-300">/</span>
         <span className="text-base font-semibold text-slate-800">{list?.name}</span>
         <div className="ml-auto flex items-center gap-3">
-          <Link
-            to={`/projects/${projectId}/lists/${listId}/settings`}
-            className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
-          >
-            ⚙ Settings
-          </Link>
+          {canManageSettings && (
+            <Link
+              to={`/projects/${projectId}/lists/${listId}/settings`}
+              className="text-slate-400 hover:text-slate-600 text-sm transition-colors"
+            >
+              ⚙ Settings
+            </Link>
+          )}
           <div className="flex rounded-lg border border-slate-200 overflow-hidden">
             <Link
               to={`/projects/${projectId}/lists/${listId}`}
@@ -259,12 +266,13 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
   const today = new Date()
   const dueDate = task.due_date ? new Date(task.due_date) : null
   const isComplete = task.status_id ? (statusMap[task.status_id]?.is_complete ?? false) : false
-  const isOverdue = dueDate && !isComplete &&
-    `${dueDate.getFullYear()}-${dueDate.getMonth()}-${dueDate.getDate()}` <
-    `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
-  const isDueToday = dueDate && !isComplete &&
-    `${dueDate.getFullYear()}-${dueDate.getMonth()}-${dueDate.getDate()}` ===
-    `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+  // Month is padded (+1 for 0-index) to ensure correct lexicographic date sort
+  const fmtDate = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const todayStr = fmtDate(today)
+  const dueDateStr = dueDate ? fmtDate(dueDate) : null
+  const isOverdue = dueDateStr !== null && !isComplete && dueDateStr < todayStr
+  const isDueToday = dueDateStr !== null && !isComplete && dueDateStr === todayStr
 
   const pColor = PRIORITY_COLORS[task.priority]
   const assignees = task.assignee_ids.map((id) => memberMap[id]).filter(Boolean)

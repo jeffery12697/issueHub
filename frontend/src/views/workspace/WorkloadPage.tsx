@@ -104,6 +104,7 @@ function MemberCard({ member }: { member: WorkloadMember }) {
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
         className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors text-left"
       >
         <span className={`inline-flex w-9 h-9 rounded-full ${color} text-white text-sm font-bold items-center justify-center shrink-0 select-none`}>

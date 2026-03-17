@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
@@ -15,6 +15,16 @@ export default function HeaderActions() {
 
   const { data: prefs } = usePreferences()
   const updatePref = useUpdatePreferences()
+
+  // Close menu on Escape key
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [menuOpen])
 
   function handleLogout() {
     logout()

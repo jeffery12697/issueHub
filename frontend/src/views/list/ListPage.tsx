@@ -104,11 +104,11 @@ export default function ListPage() {
   const { sorted: sortedTasks, taskMap } = tasks
 
   const setWorkspaceId = useUIStore((s) => s.setWorkspaceId)
-  useEffect(() => { if (allTasks[0]?.workspace_id) setWorkspaceId(allTasks[0].workspace_id) }, [allTasks[0]?.workspace_id])
+  const wsId = allTasks[0]?.workspace_id
+  useEffect(() => { if (wsId) setWorkspaceId(wsId) }, [wsId])
 
   // memberMap is needed by displayGroups (assignee grouping)
-  const workspaceIdEarly = allTasks[0]?.workspace_id
-  const { data: membersEarly = [] } = useWorkspaceMembers(workspaceIdEarly)
+  const { data: membersEarly = [] } = useWorkspaceMembers(wsId)
   const memberMap = Object.fromEntries(membersEarly.map((m) => [m.user_id, m]))
 
   // Build display groups: flat when none, grouped with headers otherwise
@@ -524,7 +524,21 @@ export default function ListPage() {
         )}
 
         {isLoading ? (
-          <p className="text-slate-400 text-sm">Loading...</p>
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-slate-50 border-b border-slate-200 h-12" />
+            <div className="divide-y divide-slate-100">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-3.5">
+                  <div className="w-4 h-4 rounded bg-slate-200 animate-pulse shrink-0" />
+                  <div className="flex-1 h-4 rounded bg-slate-200 animate-pulse" />
+                  <div className="w-20 h-5 rounded-full bg-slate-200 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 animate-pulse" />
+                  <div className="w-7 h-7 rounded-full bg-slate-200 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : allTasks.length === 0 ? (
           <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
             <p className="text-slate-700 font-medium mb-1">No tasks yet</p>
@@ -742,11 +756,13 @@ function Avatar({ member, title }: { member: Member; title?: string }) {
 function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; statusComplete: boolean | undefined }) {
   if (!dueDate) return <span className="text-slate-300 text-xs">—</span>
 
-  // Compare date only (Asia/Taipei boundary)
+  // Compare date only (Asia/Taipei boundary). Month is padded to ensure correct lexicographic sort.
   const today = new Date()
   const due = new Date(dueDate)
-  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
-  const dueStr = `${due.getFullYear()}-${due.getMonth()}-${due.getDate()}`
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const todayStr = fmt(today)
+  const dueStr = fmt(due)
   const isOverdue = !statusComplete && dueStr < todayStr
   const isDueToday = !statusComplete && dueStr === todayStr
 
