@@ -236,6 +236,33 @@ class TaskService:
         await self.audit_repo.log(task_id, actor_id=actor_id, action="promoted")
         return promoted
 
+    async def _resolve_status_after_move(
+        self, old_list_id: UUID | None, old_status_id: UUID | None, to_list_id: UUID
+    ) -> UUID | None:
+        """Resolve what status to assign after moving a task to a new list.
+
+        Priority:
+        1. Explicit status mapping rule (from_list + from_status → to_status)
+        2. Status in destination list whose name matches the old status name
+        3. None (clear status)
+        """
+        if not old_list_id or not old_status_id:
+            return None
+        # 1. Check explicit mapping
+        if self.status_mapping_repo:
+            mapping = await self.status_mapping_repo.get_mapping(old_list_id, to_list_id, old_status_id)
+            if mapping:
+                return mapping.to_status_id
+        # 2. Match by name in destination list
+        old_status = await self.list_repo.get_status_by_id(old_status_id)
+        if old_status:
+            dest_statuses = await self.list_repo.list_statuses(to_list_id)
+            for s in dest_statuses:
+                if s.name.strip().lower() == old_status.name.strip().lower():
+                    return s.id
+        # 3. Clear
+        return None
+
     async def move(self, task_id: UUID, list_id: UUID, actor_id: UUID) -> Task:
         task = await self.get_or_404(task_id)
         await self._require_workspace_member(task.workspace_id, actor_id)
@@ -248,13 +275,7 @@ class TaskService:
         task.list_id = list_id
         task.project_id = project.id
         task.workspace_id = project.workspace_id
-        # Apply status mapping if available, otherwise clear status
-        new_status_id = None
-        if self.status_mapping_repo and old_list_id and old_status_id:
-            mapping = await self.status_mapping_repo.get_mapping(old_list_id, list_id, old_status_id)
-            if mapping:
-                new_status_id = mapping.to_status_id
-        task.status_id = new_status_id
+        task.status_id = await self._resolve_status_after_move(old_list_id, old_status_id, list_id)
         await self.repo.session.flush()
         await self.audit_repo.log(task_id, actor_id=actor_id, action="moved", changes={"list_id": [str(old_list_id), str(list_id)]})
         return task
@@ -309,12 +330,7 @@ class TaskService:
             t.list_id = list_id
             t.project_id = project.id
             t.workspace_id = project.workspace_id
-            new_status_id = None
-            if self.status_mapping_repo and old_list_id and old_status_id:
-                mapping = await self.status_mapping_repo.get_mapping(old_list_id, list_id, old_status_id)
-                if mapping:
-                    new_status_id = mapping.to_status_id
-            t.status_id = new_status_id
+            t.status_id = await self._resolve_status_after_move(old_list_id, old_status_id, list_id)
             await self.repo.session.flush()
             await self.audit_repo.log(tid, actor_id=actor_id, action="moved", changes={"list_id": [str(old_list_id), str(list_id)]})
             count += 1
