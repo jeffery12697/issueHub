@@ -58,6 +58,7 @@ issueHub/
 | `docs/stories/NOTIFICATIONS.md` | N-01 ~ N-03: Task watchers, notification frequency, @mention |
 | `docs/stories/FILTERS.md` | F-01 ~ F-03: Global search, saved views, group-by |
 | `docs/stories/EPICS.md` | E-01 ~ E-05: Epic CRUD, task assignment, detail view, timeline, overview |
+| `docs/stories/REPORTING.md` | R-01 ~ R-03: Custom dashboard widgets, burndown chart, CSV export |
 
 ## Design / Frontend
 

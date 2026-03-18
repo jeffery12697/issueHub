@@ -29,6 +29,8 @@
 | **Phase 15** | ✅ Done | AU-04 | Git webhook: GitHub PR / GitLab MR open → link task, merge → close task |
 | **Phase 16** | ✅ Done | F-01, F-02, F-03 | Global search (+ comments), saved views, group-by (status / assignee / priority) |
 
+| **Phase 18** | 🔜 Planned | R-01, R-02, R-03 | Reporting — custom dashboard widgets, burndown chart, CSV export |
+
 ### Deferred
 
 | Story | Blocked by | Description |
