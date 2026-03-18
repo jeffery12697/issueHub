@@ -703,7 +703,7 @@ export default function ListPage() {
         ) : (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden" id="task-table">
             <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[640px]">
+            <table className="w-full text-sm min-w-[900px]">
               <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-4 py-3.5 w-10">
