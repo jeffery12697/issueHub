@@ -13,11 +13,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_session
+from app.features.approvals.repository import ApprovalRepository
 from app.features.audit.repository import AuditRepository
 from app.features.lists.repository import ListRepository
 from app.features.tasks.repository import TaskRepository
 from app.features.webhooks.repository import GitLinkRepository
-from app.features.webhooks.schemas import GitHubPRPayload, GitLabMRPayload, WebhookResult
+from app.features.webhooks.schemas import (
+    GitHubPRPayload,
+    GitHubPRReviewPayload,
+    GitLabMRPayload,
+    WebhookResult,
+)
 from app.features.webhooks.service import WebhookService
 
 router = APIRouter(tags=["webhooks"])
@@ -40,6 +46,16 @@ def _verify_gitlab(token_header: str) -> None:
         raise HTTPException(status_code=500, detail="WEBHOOK_SECRET not configured")
     if not hmac.compare_digest(settings.webhook_secret, token_header):
         raise HTTPException(status_code=403, detail="Invalid GitLab token")
+
+
+def _make_service(session: AsyncSession) -> WebhookService:
+    return WebhookService(
+        task_repo=TaskRepository(session),
+        list_repo=ListRepository(session),
+        audit_repo=AuditRepository(session),
+        git_link_repo=GitLinkRepository(session),
+        approval_repo=ApprovalRepository(session),
+    )
 
 
 @router.post("/webhooks/git", response_model=WebhookResult)
@@ -68,13 +84,7 @@ async def git_webhook(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
-    svc = WebhookService(
-        task_repo=TaskRepository(session),
-        list_repo=ListRepository(session),
-        audit_repo=AuditRepository(session),
-        git_link_repo=GitLinkRepository(session),
-    )
-
+    svc = _make_service(session)
     result: WebhookResult
 
     if platform == "github" and github_event == "pull_request":
@@ -101,16 +111,25 @@ async def git_webhook(
                 pr_url=pr.pull_request.html_url,
             )
         else:
-            # Other PR actions (synchronize, labeled, etc.) — no-op
             result = WebhookResult(
-                event=f"pr_{pr.action}",
+                event=f"pr_{pr.action}", platform=platform, branch=branch,
+                task_keys_found=[], closed=[], linked=[], skipped=[], errors=[],
+            )
+
+    elif platform == "github" and github_event == "pull_request_review":
+        rev = GitHubPRReviewPayload.model_validate(payload)
+        if rev.action == "submitted" and rev.review.state == "approved":
+            result = await svc.handle_pr_approved(
                 platform=platform,
-                branch=branch,
-                task_keys_found=[],
-                closed=[],
-                linked=[],
-                skipped=[],
-                errors=[],
+                branch=rev.pull_request.head.ref,
+                approver_name=rev.review.user.login,
+                approver_email=None,  # GitHub does not expose email in webhooks
+            )
+        else:
+            result = WebhookResult(
+                event=f"pr_review_{rev.action}", platform=platform,
+                branch=rev.pull_request.head.ref,
+                task_keys_found=[], closed=[], linked=[], skipped=[], errors=[],
             )
 
     elif platform == "gitlab" and gitlab_event == "Merge Request Hook":
@@ -136,29 +155,23 @@ async def git_webhook(
                 pr_title=mr.object_attributes.title,
                 pr_url=mr.object_attributes.url,
             )
-        else:
-            result = WebhookResult(
-                event=f"mr_{mr.object_attributes.action}",
+        elif mr.object_attributes.action == "approved":
+            result = await svc.handle_pr_approved(
                 platform=platform,
                 branch=branch,
-                task_keys_found=[],
-                closed=[],
-                linked=[],
-                skipped=[],
-                errors=[],
+                approver_name=mr.user.name if mr.user else None,
+                approver_email=mr.user.email if mr.user else None,
+            )
+        else:
+            result = WebhookResult(
+                event=f"mr_{mr.object_attributes.action}", platform=platform, branch=branch,
+                task_keys_found=[], closed=[], linked=[], skipped=[], errors=[],
             )
 
     else:
-        # Unknown event type — acknowledge and ignore
         result = WebhookResult(
-            event=github_event or gitlab_event or "unknown",
-            platform=platform,
-            branch="",
-            task_keys_found=[],
-            closed=[],
-            linked=[],
-            skipped=[],
-            errors=[],
+            event=github_event or gitlab_event or "unknown", platform=platform, branch="",
+            task_keys_found=[], closed=[], linked=[], skipped=[], errors=[],
         )
 
     await session.commit()

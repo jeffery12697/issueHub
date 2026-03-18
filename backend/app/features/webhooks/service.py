@@ -8,6 +8,7 @@ from app.features.tasks.repository import TaskRepository
 from app.features.lists.repository import ListRepository
 from app.features.audit.repository import AuditRepository
 from app.features.webhooks.repository import GitLinkRepository
+from app.features.approvals.repository import ApprovalRepository
 from app.features.webhooks.schemas import WebhookResult
 
 # Matches task keys like PROJ-0042, BACKEND-1, TSK-00007 (1–6 digits), case-insensitive
@@ -31,11 +32,13 @@ class WebhookService:
         list_repo: ListRepository,
         audit_repo: AuditRepository,
         git_link_repo: GitLinkRepository,
+        approval_repo: ApprovalRepository,
     ):
         self.task_repo = task_repo
         self.list_repo = list_repo
         self.audit_repo = audit_repo
         self.git_link_repo = git_link_repo
+        self.approval_repo = approval_repo
 
     async def handle_pr_opened(
         self,
@@ -166,5 +169,65 @@ class WebhookService:
             closed=closed,
             linked=[],
             skipped=skipped,
+            errors=errors,
+        )
+
+    async def handle_pr_approved(
+        self,
+        platform: str,
+        branch: str,
+        approver_name: str | None,
+        approver_email: str | None,
+    ) -> WebhookResult:
+        task_keys = extract_task_keys(branch)
+        linked: list[str] = []
+        errors: list[str] = []
+
+        for key in task_keys:
+            task = await self.task_repo.get_by_task_key(key)
+            if not task:
+                errors.append(key)
+                continue
+
+            # Try to match to an IssueHub user by email (GitLab sends email; GitHub does not)
+            internal_user = None
+            if approver_email:
+                internal_user = await self.approval_repo.find_user_by_email(approver_email)
+
+            if internal_user:
+                already = await self.approval_repo.is_approved_by(task.id, internal_user.id)
+                if not already:
+                    await self.approval_repo.approve(task.id, internal_user.id)
+                    await self.audit_repo.log(
+                        task.id,
+                        actor_id=internal_user.id,
+                        action="task_approved",
+                        changes={"source": platform, "via": "webhook"},
+                    )
+            else:
+                display = approver_name or "Unknown"
+                await self.approval_repo.approve_external(
+                    task_id=task.id,
+                    source=platform,
+                    external_name=display,
+                    external_email=approver_email,
+                )
+                await self.audit_repo.log(
+                    task.id,
+                    actor_id=None,
+                    action="task_approved",
+                    changes={"source": platform, "via": "webhook", "approver": display},
+                )
+
+            linked.append(key)
+
+        return WebhookResult(
+            event="pr_approved",
+            platform=platform,
+            branch=branch,
+            task_keys_found=task_keys,
+            closed=[],
+            linked=linked,
+            skipped=[],
             errors=errors,
         )

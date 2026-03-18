@@ -32,10 +32,26 @@ class GitHubPRPayload(BaseModel):
     repository: GitHubRepository
 
 
+class GitHubReviewUser(BaseModel):
+    login: str
+
+
+class GitHubReview(BaseModel):
+    state: str           # "approved", "changes_requested", "commented"
+    user: GitHubReviewUser
+
+
+class GitHubPRReviewPayload(BaseModel):
+    action: str          # "submitted", "dismissed", "edited"
+    review: GitHubReview
+    pull_request: GitHubPullRequest
+    repository: GitHubRepository
+
+
 # ── GitLab ────────────────────────────────────────────────────────────────────
 
 class GitLabMRAttributes(BaseModel):
-    action: str          # "open", "merge", "close", "reopen", ...
+    action: str          # "open", "merge", "close", "reopen", "approved", ...
     source_branch: str
     merge_commit_sha: str | None = None
     iid: int | None = None  # MR number within the project
@@ -47,8 +63,15 @@ class GitLabProject(BaseModel):
     path_with_namespace: str
 
 
+class GitLabUser(BaseModel):
+    name: str | None = None
+    username: str | None = None
+    email: str | None = None
+
+
 class GitLabMRPayload(BaseModel):
     object_kind: str     # "merge_request"
+    user: GitLabUser | None = None
     object_attributes: GitLabMRAttributes
     project: GitLabProject
 

@@ -2,10 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
 
 export interface Approval {
-  user_id: string
+  user_id: string | null
   display_name: string
   avatar_url: string | null
   approved_at: string
+  source: string          // "internal" | "github" | "gitlab"
+  external_name: string | null
+  external_email: string | null
 }
 
 export function useTaskApprovals(taskId: string | undefined) {

@@ -1006,16 +1006,36 @@ export default function TaskDetailPage() {
                   <p className="text-xs text-slate-400 dark:text-slate-500">No approvals yet</p>
                 ) : (
                   <div className="space-y-1.5">
-                    {approvals.map((a) => (
-                      <div key={a.user_id} className="flex items-center gap-2">
-                        {a.avatar_url ? (
-                          <img src={a.avatar_url} alt={a.display_name} className="w-5 h-5 rounded-full shrink-0" />
+                    {approvals.map((a, i) => (
+                      <div key={a.user_id ?? `ext-${i}`} className="flex items-center gap-2">
+                        {/* Avatar / platform icon */}
+                        {a.source === 'internal' ? (
+                          a.avatar_url ? (
+                            <img src={a.avatar_url} alt={a.display_name} className="w-5 h-5 rounded-full shrink-0" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">
+                              {a.display_name[0].toUpperCase()}
+                            </span>
+                          )
+                        ) : a.source === 'github' ? (
+                          <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0" title="GitHub">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="text-slate-600 dark:text-slate-400" aria-hidden="true">
+                              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                          </span>
                         ) : (
-                          <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">
-                            {a.display_name[0].toUpperCase()}
+                          <span className="w-5 h-5 rounded-full bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center shrink-0" title="GitLab">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500 dark:text-orange-400" aria-hidden="true">
+                              <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 01-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 014.82 2a.43.43 0 01.58 0 .42.42 0 01.11.18l2.44 7.49h8.1l2.44-7.49a.42.42 0 01.11-.18.43.43 0 01.58 0 .42.42 0 01.11.18l2.44 7.51 1.22 3.78a.84.84 0 01-.3.94z"/>
+                            </svg>
                           </span>
                         )}
-                        <span className="text-xs text-slate-700 dark:text-slate-300 truncate flex-1">{a.display_name}</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-slate-700 dark:text-slate-300 truncate block">{a.display_name}</span>
+                          {a.source !== 'internal' && (
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500">{a.source} · via webhook</span>
+                          )}
+                        </div>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                     ))}
