@@ -182,7 +182,7 @@ async def seed(force_reset: bool = False):
         s.add_all([proj_club, proj_book, proj_ism])
         await s.flush()
 
-        # ── Lists (Backend / Frontend / App per project) ───────────────────
+        # ── Lists (Backend / Frontend / App / UI / DevOps per project) ───────
         def make_statuses(list_id) -> list[ListStatus]:
             return [
                 ListStatus(list_id=list_id, name="Backlog",     color="#6b7280", order_index=0.0, category=StatusCategory.not_started),
@@ -193,24 +193,30 @@ async def seed(force_reset: bool = False):
             ]
 
         # Club
-        list_club_be  = List(project_id=proj_club.id, name="Backend")
-        list_club_fe  = List(project_id=proj_club.id, name="Frontend")
-        list_club_app = List(project_id=proj_club.id, name="App")
+        list_club_be     = List(project_id=proj_club.id, name="Backend")
+        list_club_fe     = List(project_id=proj_club.id, name="Frontend")
+        list_club_app    = List(project_id=proj_club.id, name="App")
+        list_club_ui     = List(project_id=proj_club.id, name="UI")
+        list_club_devops = List(project_id=proj_club.id, name="DevOps")
 
         # Book
-        list_book_be  = List(project_id=proj_book.id, name="Backend")
-        list_book_fe  = List(project_id=proj_book.id, name="Frontend")
-        list_book_app = List(project_id=proj_book.id, name="App")
+        list_book_be     = List(project_id=proj_book.id, name="Backend")
+        list_book_fe     = List(project_id=proj_book.id, name="Frontend")
+        list_book_app    = List(project_id=proj_book.id, name="App")
+        list_book_ui     = List(project_id=proj_book.id, name="UI")
+        list_book_devops = List(project_id=proj_book.id, name="DevOps")
 
         # Ism
-        list_ism_be  = List(project_id=proj_ism.id, name="Backend")
-        list_ism_fe  = List(project_id=proj_ism.id, name="Frontend")
-        list_ism_app = List(project_id=proj_ism.id, name="App")
+        list_ism_be     = List(project_id=proj_ism.id, name="Backend")
+        list_ism_fe     = List(project_id=proj_ism.id, name="Frontend")
+        list_ism_app    = List(project_id=proj_ism.id, name="App")
+        list_ism_ui     = List(project_id=proj_ism.id, name="UI")
+        list_ism_devops = List(project_id=proj_ism.id, name="DevOps")
 
         all_lists = [
-            list_club_be, list_club_fe, list_club_app,
-            list_book_be, list_book_fe, list_book_app,
-            list_ism_be,  list_ism_fe,  list_ism_app,
+            list_club_be, list_club_fe, list_club_app, list_club_ui, list_club_devops,
+            list_book_be, list_book_fe, list_book_app, list_book_ui, list_book_devops,
+            list_ism_be,  list_ism_fe,  list_ism_app,  list_ism_ui,  list_ism_devops,
         ]
         s.add_all(all_lists)
         await s.flush()
@@ -663,6 +669,217 @@ async def seed(force_reset: bool = False):
             due=40, story_points=3, epic=epic_ism_feed,
         )
 
+        # ==================================================================
+        # CLUB — UI
+        # ==================================================================
+        t_club_ui_ds = make_task(
+            "Design system — colour tokens, type scale, spacing",
+            proj_club, list_club_ui, "Done",
+            alice, [alice], Priority.high,
+            due=-10, start=-30, story_points=5,
+            description="Establish Tailwind theme tokens used across all Club screens.",
+        )
+        t_club_ui_components = make_task(
+            "Component library — Button, Input, Modal, Badge",
+            proj_club, list_club_ui, "In Progress",
+            alice, [alice, carol], Priority.high,
+            due=8, start=-5, story_points=8, epic=epic_club_member,
+        )
+        t_club_ui_icons = make_task(
+            "Icon set — replace emoji with SVG icon system",
+            proj_club, list_club_ui, "In Review",
+            carol, [carol], Priority.medium,
+            due=4, story_points=3,
+        )
+        t_club_ui_event_card = make_task(
+            "Event card component — thumbnail, date chip, RSVP button",
+            proj_club, list_club_ui, "Backlog",
+            carol, [carol, alice], Priority.medium,
+            due=22, story_points=3, epic=epic_club_events,
+        )
+        t_club_ui_empty_states = make_task(
+            "Empty state illustrations — no events, no members",
+            proj_club, list_club_ui, "Backlog",
+            alice, [alice], Priority.low,
+            due=30, story_points=2, epic=epic_club_member,
+        )
+
+        # ==================================================================
+        # CLUB — DevOps
+        # ==================================================================
+        t_club_devops_ci = make_task(
+            "GitHub Actions CI — lint, test, build on every PR",
+            proj_club, list_club_devops, "Done",
+            dev, [dev], Priority.high,
+            due=-8, start=-18, story_points=3,
+        )
+        t_club_devops_docker = make_task(
+            "Dockerise backend + frontend with multi-stage build",
+            proj_club, list_club_devops, "In Progress",
+            dave, [dave, dev], Priority.high,
+            due=7, start=-2, story_points=5,
+            description="Base image: python:3.12-slim. Frontend built in Node stage, "
+                        "static files served via Caddy sidecar.",
+        )
+        t_club_devops_env = make_task(
+            "Environment config — staging vs production .env strategy",
+            proj_club, list_club_devops, "Backlog",
+            dev, [dev], Priority.medium,
+            due=15, story_points=2,
+        )
+        t_club_devops_db_backup = make_task(
+            "Automated daily Postgres backups to S3",
+            proj_club, list_club_devops, "Backlog",
+            dave, [dave], Priority.high,
+            due=20, story_points=3,
+        )
+        t_club_devops_monitor = make_task(
+            "Uptime monitoring + Sentry error tracking",
+            proj_club, list_club_devops, "Backlog",
+            dev, [dev], Priority.medium,
+            due=25, story_points=2,
+        )
+
+        # ==================================================================
+        # BOOK — UI
+        # ==================================================================
+        t_book_ui_ds = make_task(
+            "Design system — warm neutral palette, serif type scale",
+            proj_book, list_book_ui, "Done",
+            alice, [alice], Priority.high,
+            due=-12, start=-28, story_points=5,
+        )
+        t_book_ui_cover_card = make_task(
+            "Book cover card — hover zoom, rating stars, shelf badge",
+            proj_book, list_book_ui, "In Progress",
+            carol, [carol, alice], Priority.high,
+            due=6, start=-3, story_points=5, epic=epic_book_catalog,
+        )
+        t_book_ui_progress_ring = make_task(
+            "Reading progress ring component (SVG, animated)",
+            proj_book, list_book_ui, "Backlog",
+            alice, [alice], Priority.medium,
+            due=20, story_points=3, epic=epic_book_reading,
+        )
+        t_book_ui_review_form = make_task(
+            "Star-rating + review form with character counter",
+            proj_book, list_book_ui, "Backlog",
+            carol, [carol], Priority.medium,
+            due=25, story_points=3, epic=epic_book_catalog,
+        )
+        t_book_ui_dark_mode = make_task(
+            "Dark mode — sepia/night toggle for comfortable reading",
+            proj_book, list_book_ui, "Backlog",
+            alice, [alice, carol], Priority.low,
+            due=45, story_points=3,
+        )
+
+        # ==================================================================
+        # BOOK — DevOps
+        # ==================================================================
+        t_book_devops_ci = make_task(
+            "CI pipeline — pytest + ruff + type-check on PR",
+            proj_book, list_book_devops, "Done",
+            dev, [dev], Priority.high,
+            due=-6, start=-16, story_points=3,
+        )
+        t_book_devops_cdn = make_task(
+            "CDN setup — serve book cover images via CloudFront",
+            proj_book, list_book_devops, "In Progress",
+            dave, [dave], Priority.high,
+            due=10, start=-1, story_points=5,
+            description="Invalidation strategy: key by ISBN + size suffix. "
+                        "Lambda@Edge for on-the-fly resizing.",
+        )
+        t_book_devops_redis = make_task(
+            "Redis cluster — HA setup for catalog cache",
+            proj_book, list_book_devops, "Backlog",
+            dave, [dave, dev], Priority.medium,
+            due=30, story_points=5,
+        )
+        t_book_devops_db_index = make_task(
+            "Production DB index audit — slow query report",
+            proj_book, list_book_devops, "Backlog",
+            bob, [bob], Priority.medium,
+            due=20, story_points=2,
+        )
+        t_book_devops_deploy = make_task(
+            "Zero-downtime deploy with rolling restart + health check",
+            proj_book, list_book_devops, "Backlog",
+            dev, [dev, dave], Priority.high,
+            due=35, story_points=5,
+        )
+
+        # ==================================================================
+        # ISM — UI
+        # ==================================================================
+        t_ism_ui_ds = make_task(
+            "Design system — bold editorial type, high-contrast tokens",
+            proj_ism, list_ism_ui, "Done",
+            alice, [alice], Priority.high,
+            due=-14, start=-30, story_points=5,
+        )
+        t_ism_ui_article_card = make_task(
+            "Article card — headline, author chip, vote bar, topic tag",
+            proj_ism, list_ism_ui, "In Progress",
+            carol, [carol, alice], Priority.high,
+            due=8, start=-2, story_points=5, epic=epic_ism_feed,
+        )
+        t_ism_ui_debate_layout = make_task(
+            "Debate layout — split pro/con columns with sticky vote bar",
+            proj_ism, list_ism_ui, "Backlog",
+            alice, [alice, carol], Priority.medium,
+            due=25, story_points=8, epic=epic_ism_debate,
+        )
+        t_ism_ui_vote_animation = make_task(
+            "Vote button micro-animation — spring scale + colour shift",
+            proj_ism, list_ism_ui, "Backlog",
+            carol, [carol], Priority.low,
+            due=35, story_points=2, epic=epic_ism_feed,
+        )
+        t_ism_ui_a11y = make_task(
+            "Accessibility audit — WCAG 2.1 AA compliance pass",
+            proj_ism, list_ism_ui, "Backlog",
+            alice, [alice, carol], Priority.medium,
+            due=40, story_points=5,
+        )
+
+        # ==================================================================
+        # ISM — DevOps
+        # ==================================================================
+        t_ism_devops_ci = make_task(
+            "CI — lint + test + Docker build gate on PR",
+            proj_ism, list_ism_devops, "Done",
+            dev, [dev], Priority.high,
+            due=-7, start=-17, story_points=3,
+        )
+        t_ism_devops_k8s = make_task(
+            "Kubernetes deployment — Helm chart for API + worker",
+            proj_ism, list_ism_devops, "In Progress",
+            dave, [dave, dev], Priority.high,
+            due=14, start=-3, story_points=8,
+            description="Separate Deployments for API (3 replicas) and feed-worker (2 replicas). "
+                        "HPA on CPU > 70%.",
+        )
+        t_ism_devops_cdn = make_task(
+            "CDN + image optimisation pipeline for article images",
+            proj_ism, list_ism_devops, "Backlog",
+            dave, [dave], Priority.medium,
+            due=28, story_points=5,
+        )
+        t_ism_devops_logging = make_task(
+            "Centralised logging — structured JSON logs → OpenSearch",
+            proj_ism, list_ism_devops, "Backlog",
+            bob, [bob, dave], Priority.medium,
+            due=32, story_points=5,
+        )
+        t_ism_devops_secrets = make_task(
+            "Secrets management — migrate env vars to Vault / AWS SSM",
+            proj_ism, list_ism_devops, "Backlog",
+            dev, [dev], Priority.high,
+            due=22, story_points=3,
+        )
+
         all_tasks = [
             # Club
             t_club_member_api, t_club_roles, t_club_dues_api, t_club_event_api,
@@ -670,6 +887,10 @@ async def seed(force_reset: bool = False):
             t_club_member_dir, t_club_profile_page, t_club_dues_ui,
             t_club_event_calendar, t_club_admin_panel, t_club_bug_mobile_nav,
             t_club_checkin, t_club_push_events, t_club_member_card,
+            t_club_ui_ds, t_club_ui_components, t_club_ui_icons,
+            t_club_ui_event_card, t_club_ui_empty_states,
+            t_club_devops_ci, t_club_devops_docker, t_club_devops_env,
+            t_club_devops_db_backup, t_club_devops_monitor,
             # Book
             t_book_catalog_api, t_book_search, t_book_review_api,
             t_book_shelf_api, t_book_progress_api, t_book_recommend,
@@ -677,6 +898,10 @@ async def seed(force_reset: bool = False):
             t_book_browse, t_book_detail, t_book_shelf_ui, t_book_stats,
             t_book_bug_cover,
             t_book_barcode, t_book_offline, t_book_reminder,
+            t_book_ui_ds, t_book_ui_cover_card, t_book_ui_progress_ring,
+            t_book_ui_review_form, t_book_ui_dark_mode,
+            t_book_devops_ci, t_book_devops_cdn, t_book_devops_redis,
+            t_book_devops_db_index, t_book_devops_deploy,
             # Ism
             t_ism_post_api, t_ism_feed_api, t_ism_vote_api,
             t_ism_comment_api, t_ism_debate_api, t_ism_moderation,
@@ -684,6 +909,10 @@ async def seed(force_reset: bool = False):
             t_ism_feed_page, t_ism_editor, t_ism_topic_browser,
             t_ism_debate_ui, t_ism_profile, t_ism_bug_editor_crash,
             t_ism_app_feed, t_ism_app_share, t_ism_app_notif,
+            t_ism_ui_ds, t_ism_ui_article_card, t_ism_ui_debate_layout,
+            t_ism_ui_vote_animation, t_ism_ui_a11y,
+            t_ism_devops_ci, t_ism_devops_k8s, t_ism_devops_cdn,
+            t_ism_devops_logging, t_ism_devops_secrets,
         ]
         s.add_all(all_tasks)
         await s.flush()
@@ -817,6 +1046,27 @@ async def seed(force_reset: bool = False):
             (t_ism_debate_ui,       tag_ux),       (t_ism_debate_ui,       tag_feature),
             (t_ism_bug_editor_crash,tag_bug),
             (t_ism_app_feed,        tag_perf),     (t_ism_app_feed,        tag_ux),
+            # Club UI / DevOps
+            (t_club_ui_components,  tag_ux),       (t_club_ui_components,  tag_feature),
+            (t_club_ui_icons,       tag_ux),       (t_club_ui_icons,       tag_tech_debt),
+            (t_club_ui_event_card,  tag_ux),       (t_club_ui_event_card,  tag_feature),
+            (t_club_devops_docker,  tag_tech_debt),
+            (t_club_devops_db_backup, tag_security),
+            # Book UI / DevOps
+            (t_book_ui_cover_card,  tag_ux),       (t_book_ui_cover_card,  tag_feature),
+            (t_book_ui_progress_ring, tag_ux),
+            (t_book_ui_dark_mode,   tag_ux),
+            (t_book_devops_cdn,     tag_perf),
+            (t_book_devops_redis,   tag_perf),     (t_book_devops_redis,   tag_tech_debt),
+            (t_book_devops_deploy,  tag_tech_debt),
+            # Ism UI / DevOps
+            (t_ism_ui_article_card, tag_ux),       (t_ism_ui_article_card, tag_feature),
+            (t_ism_ui_debate_layout,tag_ux),       (t_ism_ui_debate_layout,tag_feature),
+            (t_ism_ui_vote_animation, tag_ux),
+            (t_ism_ui_a11y,         tag_ux),
+            (t_ism_devops_k8s,      tag_perf),     (t_ism_devops_k8s,      tag_tech_debt),
+            (t_ism_devops_logging,  tag_tech_debt),
+            (t_ism_devops_secrets,  tag_security),
         ]
         s.add_all([TaskTag(task_id=task.id, tag_id=tag.id) for task, tag in task_tag_pairs])
         await s.flush()
@@ -918,9 +1168,9 @@ async def seed(force_reset: bool = False):
         print("  Workspace : Acme Corp")
         print()
         print("  Projects & lists:")
-        print("  Club (CLB-*)  — Backend / Frontend / App")
-        print("  Book (BOK-*)  — Backend / Frontend / App")
-        print("  Ism  (ISM-*)  — Backend / Frontend / App")
+        print("  Club (CLB-*)  — Backend / Frontend / App / UI / DevOps")
+        print("  Book (BOK-*)  — Backend / Frontend / App / UI / DevOps")
+        print("  Ism  (ISM-*)  — Backend / Frontend / App / UI / DevOps")
         print()
         print(f"  Tasks : {root_count} root tasks, {sub_count} subtasks")
         print("  Epics : Member Portal, Event Management,")
