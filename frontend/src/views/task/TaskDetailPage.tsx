@@ -143,6 +143,7 @@ export default function TaskDetailPage() {
   const [activeTab, setActiveTab] = useState<DetailTab>('subtasks')
   const [statusOpen, setStatusOpen] = useState(false)
   const [priorityOpen, setPriorityOpen] = useState(false)
+  const [copiedGit, setCopiedGit] = useState<string | null>(null)
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) => tasksApi.update(taskId!, data),
@@ -993,6 +994,55 @@ export default function TaskDetailPage() {
                   </select>
                 </div>
               )}
+
+              {/* Git */}
+              {task.task_key && (() => {
+                const branchSlug = task.task_key.toLowerCase() + '/' +
+                  task.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+$/, '').slice(0, 50)
+                const gitCmd = `git checkout -b ${branchSlug}`
+                function copyGit(value: string) {
+                  navigator.clipboard.writeText(value)
+                  setCopiedGit(value)
+                  setTimeout(() => setCopiedGit(null), 1500)
+                }
+                return (
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+                        <path d="M6 9v6M18 9A9 9 0 009 18"/>
+                      </svg>
+                      Git
+                    </p>
+                    <div className="space-y-0.5">
+                      {([
+                        { label: 'Task ID', value: task.task_key },
+                        { label: 'Branch', value: branchSlug },
+                        { label: 'Checkout', value: gitCmd },
+                      ] as { label: string; value: string }[]).map(({ label, value }) => (
+                        <button
+                          key={label}
+                          onClick={() => copyGit(value)}
+                          title={`Copy ${label}`}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 group transition-colors text-left"
+                        >
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 w-14 shrink-0 leading-none">{label}</span>
+                          <span className="flex-1 font-mono text-[11px] text-slate-600 dark:text-slate-300 truncate">{value}</span>
+                          {copiedGit === value ? (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0" aria-hidden="true">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          ) : (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 dark:group-hover:text-slate-500 shrink-0 transition-colors" aria-hidden="true">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Watch */}
               <div className="px-4 py-3">
