@@ -486,6 +486,60 @@ async def export_tasks_csv(
     )
 
 
+@router.get("/projects/{project_id}/tasks/export")
+async def export_project_tasks_csv(
+    project_id: UUID,
+    current_user: User = Depends(get_current_user),
+    service: TaskService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    tasks, _ = await service.list_for_project(project_id, user_id=current_user.id)
+
+    # Build status map across all lists in the project
+    list_repo = ListRepository(session)
+    all_lists = await list_repo.list_for_project(project_id)
+    status_map: dict[str, str] = {}
+    list_name_map: dict[str, str] = {}
+    for lst in all_lists:
+        list_name_map[str(lst.id)] = lst.name
+        statuses = await list_repo.list_statuses(lst.id)
+        for s in statuses:
+            status_map[str(s.id)] = s.name
+
+    workspace_repo = WorkspaceRepository(session)
+    project_repo = ProjectRepository(session)
+    project = await project_repo.get_by_id(project_id)
+    member_map: dict[str, str] = {}
+    if project:
+        members = await workspace_repo.list_member_users(project.workspace_id)
+        member_map = {str(m.id): m.display_name for m in members}
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "task_key", "title", "list", "status", "priority", "assignees", "due_date", "created_at"])
+    for task in tasks:
+        status_name = status_map.get(str(task.status_id), "") if task.status_id else ""
+        list_name = list_name_map.get(str(task.list_id), "") if task.list_id else ""
+        assignees = ", ".join(member_map.get(str(aid), str(aid)) for aid in task.assignee_ids)
+        writer.writerow([
+            str(task.id),
+            task.task_key or "",
+            task.title,
+            list_name,
+            status_name,
+            task.priority.value if hasattr(task.priority, "value") else str(task.priority),
+            assignees,
+            task.due_date.isoformat() if task.due_date else "",
+            task.created_at.isoformat() if task.created_at else "",
+        ])
+    csv_str = output.getvalue()
+    return StreamingResponse(
+        iter([csv_str]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=project-tasks.csv"},
+    )
+
+
 @router.get("/workspaces/{workspace_id}/search", response_model=list[TaskSearchResult])
 async def search_tasks(
     workspace_id: UUID,

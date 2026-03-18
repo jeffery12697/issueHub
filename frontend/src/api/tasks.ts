@@ -108,6 +108,17 @@ export const tasksApi = {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   },
+  exportCsvForProject: async (projectId: string): Promise<void> => {
+    const r = await apiClient.get(`/projects/${projectId}/tasks/export`, { responseType: 'blob' })
+    const url = URL.createObjectURL(r.data as Blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'project-tasks.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  },
   search: (workspaceId: string, q: string) =>
     apiClient.get<TaskSearchResult[]>(`/workspaces/${workspaceId}/search`, { params: { q } }).then((r) => r.data),
   bulkUpdate: (taskIds: string[], data: { status_id?: string; priority?: string }) =>
