@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: 'My Tasks', suffix: '/my-tasks' },
   { label: 'Workload', suffix: '/workload' },
   { label: 'Analytics', suffix: '/analytics' },
+  { label: 'Dashboard', suffix: '/dashboard' },
 ] as const
 
 export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }) {

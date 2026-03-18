@@ -24,6 +24,7 @@ import EpicsPage from '@/views/project/EpicsPage'
 import EpicDetailPage from '@/views/project/EpicDetailPage'
 import EpicTimelinePage from '@/views/project/EpicTimelinePage'
 import InviteAcceptPage from '@/views/workspace/InviteAcceptPage'
+import DashboardPage from '@/views/workspace/DashboardPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { accessToken, setUser } = useAuthStore()
@@ -60,6 +61,7 @@ export default function AppRouter() {
         <Route path="/workspaces/:workspaceId/my-tasks" element={<MyTasksPage />} />
         <Route path="/workspaces/:workspaceId/analytics" element={<AnalyticsPage />} />
         <Route path="/workspaces/:workspaceId/workload" element={<WorkloadPage />} />
+        <Route path="/workspaces/:workspaceId/dashboard" element={<DashboardPage />} />
         <Route path="/projects/:projectId" element={<ProjectTasksPage />} />
         <Route path="/projects/:projectId/epics" element={<EpicsPage />} />
         <Route path="/projects/:projectId/epics/:epicId" element={<EpicDetailPage />} />
