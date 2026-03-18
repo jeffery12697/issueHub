@@ -39,6 +39,7 @@ from app.features.watchers.repository import WatcherRepository
 from app.features.status_mappings.repository import StatusMappingRepository
 from app.features.webhooks.repository import GitLinkRepository
 from app.features.webhooks.schemas import TaskGitLinkResponse
+from app.features.tags.repository import TagRepository
 from app.models.custom_field import CustomFieldDefinition, CustomFieldValue
 from app.models.epic import Epic
 from app.models.task import Task, Priority
@@ -46,6 +47,21 @@ from app.models.time_entry import TimeEntry
 from app.models.user import User
 
 router = APIRouter(tags=["tasks"])
+
+
+def get_tag_repo(session: AsyncSession = Depends(get_session)) -> TagRepository:
+    return TagRepository(session)
+
+
+async def _build_task_responses(tasks: list[Task], tag_repo: TagRepository) -> list[TaskResponse]:
+    """Build TaskResponse list with tag_ids populated from a single batch query."""
+    if not tasks:
+        return []
+    tag_map = await tag_repo.get_tag_ids_for_tasks([t.id for t in tasks])
+    return [
+        TaskResponse.model_validate(t).model_copy(update={"tag_ids": tag_map.get(t.id, [])})
+        for t in tasks
+    ]
 
 
 async def maybe_close_parent(task: Task, session: AsyncSession, actor_id: UUID) -> None:
@@ -118,6 +134,7 @@ async def list_tasks(
     priority: Priority | None = None,
     priority_not: str | None = None,
     assignee_id: UUID | None = None,
+    tag_ids: str | None = None,
     include_subtasks: bool = False,
     page: int = 1,
     page_size: int = 0,
@@ -125,6 +142,7 @@ async def list_tasks(
     sort_dir: str | None = None,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
+    tag_repo: TagRepository = Depends(get_tag_repo),
 ):
     # Parse cf[<uuid>]=value query params
     cf_filters: dict[UUID, str] = {}
@@ -151,6 +169,13 @@ async def list_tasks(
         except ValueError:
             pass
 
+    parsed_tag_ids: list[UUID] | None = None
+    if tag_ids:
+        try:
+            parsed_tag_ids = [UUID(t.strip()) for t in tag_ids.split(",") if t.strip()]
+        except ValueError:
+            pass
+
     tasks, total = await service.list_for_list(
         list_id,
         user_id=current_user.id,
@@ -160,6 +185,7 @@ async def list_tasks(
         priorities_not=priorities_not,
         assignee_id=assignee_id,
         cf_filters=cf_filters if cf_filters else None,
+        tag_ids=parsed_tag_ids,
         include_subtasks=include_subtasks,
         page=page,
         page_size=page_size,
@@ -167,7 +193,7 @@ async def list_tasks(
         sort_dir=sort_dir,
     )
     response.headers["X-Total-Count"] = str(total)
-    return [TaskResponse.model_validate(t) for t in tasks]
+    return await _build_task_responses(tasks, tag_repo)
 
 
 @router.get("/projects/{project_id}/tasks", response_model=list[TaskResponse])
@@ -178,6 +204,7 @@ async def list_project_tasks(
     priority: Priority | None = None,
     priority_not: str | None = None,
     assignee_id: UUID | None = None,
+    tag_ids: str | None = None,
     include_subtasks: bool = False,
     page: int = 1,
     page_size: int = 0,
@@ -185,11 +212,19 @@ async def list_project_tasks(
     sort_dir: str | None = None,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
+    tag_repo: TagRepository = Depends(get_tag_repo),
 ):
     priorities_not: list[Priority] | None = None
     if priority_not:
         try:
             priorities_not = [Priority(p.strip()) for p in priority_not.split(",") if p.strip()]
+        except ValueError:
+            pass
+
+    parsed_tag_ids: list[UUID] | None = None
+    if tag_ids:
+        try:
+            parsed_tag_ids = [UUID(t.strip()) for t in tag_ids.split(",") if t.strip()]
         except ValueError:
             pass
 
@@ -200,6 +235,7 @@ async def list_project_tasks(
         priority=priority,
         priorities_not=priorities_not,
         assignee_id=assignee_id,
+        tag_ids=parsed_tag_ids,
         include_subtasks=include_subtasks,
         page=page,
         page_size=page_size,
@@ -207,7 +243,7 @@ async def list_project_tasks(
         sort_dir=sort_dir,
     )
     response.headers["X-Total-Count"] = str(total)
-    return [TaskResponse.model_validate(t) for t in tasks]
+    return await _build_task_responses(tasks, tag_repo)
 
 
 @router.get("/projects/{project_id}/analytics", response_model=AnalyticsResponse)
@@ -293,9 +329,11 @@ async def get_task(
     task_id: UUID,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
+    tag_repo: TagRepository = Depends(get_tag_repo),
 ):
     task = await service.get_or_404_for_user(task_id, current_user.id)
-    return TaskResponse.model_validate(task)
+    responses = await _build_task_responses([task], tag_repo)
+    return responses[0]
 
 
 @router.get("/tasks/{task_id}/subtasks", response_model=list[TaskResponse])
@@ -303,9 +341,10 @@ async def list_subtasks(
     task_id: UUID,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
+    tag_repo: TagRepository = Depends(get_tag_repo),
 ):
     subtasks = await service.list_subtasks(task_id, user_id=current_user.id)
-    return [TaskResponse.model_validate(t) for t in subtasks]
+    return await _build_task_responses(subtasks, tag_repo)
 
 
 @router.post("/tasks/{task_id}/subtasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
@@ -429,6 +468,7 @@ async def list_my_tasks(
     priority: Priority | None = None,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
+    tag_repo: TagRepository = Depends(get_tag_repo),
 ):
     tasks = await service.list_my_tasks(
         workspace_id,
@@ -436,7 +476,7 @@ async def list_my_tasks(
         status_id=status_id,
         priority=priority,
     )
-    return [TaskResponse.model_validate(t) for t in tasks]
+    return await _build_task_responses(tasks, tag_repo)
 
 
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)

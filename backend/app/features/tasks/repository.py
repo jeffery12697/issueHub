@@ -117,6 +117,7 @@ class TaskRepository:
         priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         cf_filters: dict[UUID, str] | None = None,
+        tag_ids: list[UUID] | None = None,
         include_subtasks: bool = False,
         page: int = 1,
         page_size: int = 0,
@@ -125,6 +126,7 @@ class TaskRepository:
     ) -> tuple[list[Task], int]:
         from sqlalchemy import or_, any_
         from app.models.custom_field import CustomFieldValue
+        from app.models.tag import TaskTag
         q = (
             select(Task)
             .where(Task.list_id == list_id)
@@ -142,6 +144,15 @@ class TaskRepository:
             q = q.where(Task.priority.notin_(priorities_not))
         if assignee_id:
             q = q.where(Task.assignee_ids.any(assignee_id))
+        if tag_ids:
+            for tag_id in tag_ids:
+                q = q.where(
+                    select(TaskTag.task_id)
+                    .where(TaskTag.task_id == Task.id)
+                    .where(TaskTag.tag_id == tag_id)
+                    .correlate(Task)
+                    .exists()
+                )
         if cf_filters:
             for field_id, value in cf_filters.items():
                 q = q.where(
@@ -178,12 +189,14 @@ class TaskRepository:
         priority: Priority | None = None,
         priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
+        tag_ids: list[UUID] | None = None,
         include_subtasks: bool = False,
         page: int = 1,
         page_size: int = 0,
         sort_by: str | None = None,
         sort_dir: str | None = None,
     ) -> tuple[list[Task], int]:
+        from app.models.tag import TaskTag
         q = (
             select(Task)
             .where(Task.project_id == project_id)
@@ -202,6 +215,15 @@ class TaskRepository:
             q = q.where(Task.priority.notin_(priorities_not))
         if assignee_id:
             q = q.where(Task.assignee_ids.any(assignee_id))
+        if tag_ids:
+            for tag_id in tag_ids:
+                q = q.where(
+                    select(TaskTag.task_id)
+                    .where(TaskTag.task_id == Task.id)
+                    .where(TaskTag.tag_id == tag_id)
+                    .correlate(Task)
+                    .exists()
+                )
 
         count_result = await self.session.execute(
             select(func.count()).select_from(q.subquery())

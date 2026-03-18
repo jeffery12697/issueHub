@@ -36,6 +36,7 @@ import app.models.time_entry  # noqa
 import app.models.automation  # noqa
 import app.models.epic  # noqa
 import app.models.description_template  # noqa
+import app.models.tag  # noqa
 
 _base_url = settings.database_url.rsplit("/", 1)[0]
 TEST_DATABASE_URL = f"{_base_url}/issuehub_test"
@@ -49,10 +50,12 @@ _TRUNCATE_ORDER = [
     "audit_logs",
     "task_dependencies",
     "task_links",
+    "task_tags",
     "custom_field_values",
     "custom_field_definitions",
     "description_templates",
     "list_templates",
+    "tags",
     "tasks",
     "epics",
     "list_statuses",

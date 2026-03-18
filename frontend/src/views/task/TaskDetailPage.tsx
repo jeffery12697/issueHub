@@ -24,6 +24,7 @@ import AttachmentList from '@/components/AttachmentList'
 import { PRIORITY_COLORS, PRIORITY_DOT_COLORS, PRIORITY_CHIP } from '@/lib/priority'
 import { useEpics } from '@/api/epics'
 import { useDescriptionTemplates } from '@/api/descriptionTemplates'
+import { useWorkspaceTags, useTaskTags, useAddTagToTask, useRemoveTagFromTask } from '@/api/tags'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -143,6 +144,23 @@ export default function TaskDetailPage() {
 
   const { data: descriptionTemplates = [] } = useDescriptionTemplates(task?.workspace_id)
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
+
+  const { data: workspaceTags = [] } = useWorkspaceTags(task?.workspace_id)
+  const { data: taskTags = [] } = useTaskTags(taskId)
+  const addTagToTask = useAddTagToTask(taskId!)
+  const removeTagFromTask = useRemoveTagFromTask(taskId!)
+  const [tagPickerOpen, setTagPickerOpen] = useState(false)
+  const tagPickerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!tagPickerOpen) return
+    function handleClick(e: MouseEvent) {
+      if (tagPickerRef.current && !tagPickerRef.current.contains(e.target as Node)) {
+        setTagPickerOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [tagPickerOpen])
   const templatePickerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!templatePickerOpen) return
@@ -1132,6 +1150,58 @@ export default function TaskDetailPage() {
                   placeholder="—"
                   className="w-full border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
+              </div>
+
+              {/* Tags */}
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tags</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {taskTags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                      style={{ background: tag.color }}
+                    >
+                      {tag.name}
+                      <button
+                        onClick={() => removeTagFromTask.mutate(tag.id)}
+                        className="opacity-70 hover:opacity-100 leading-none ml-0.5"
+                        aria-label={`Remove tag ${tag.name}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {workspaceTags.length > taskTags.length && (
+                  <div className="relative" ref={tagPickerRef}>
+                    <button
+                      onClick={() => setTagPickerOpen((o) => !o)}
+                      className="text-xs text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                    >
+                      + Add tag
+                    </button>
+                    {tagPickerOpen && (
+                      <div className="absolute left-0 top-6 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1 min-w-[160px]">
+                        {workspaceTags
+                          .filter((t) => !taskTags.some((tt) => tt.id === t.id))
+                          .map((tag) => (
+                            <button
+                              key={tag.id}
+                              onClick={() => { addTagToTask.mutate(tag.id); setTagPickerOpen(false) }}
+                              className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                            >
+                              <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: tag.color }} />
+                              <span className="text-slate-700 dark:text-slate-200">{tag.name}</span>
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {workspaceTags.length === 0 && taskTags.length === 0 && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500">No tags defined</p>
+                )}
               </div>
 
               {/* Epic */}

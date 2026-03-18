@@ -173,6 +173,7 @@ class TaskResponse(BaseModel):
     task_number: int | None = None
     task_key: str | None = None
     epic_id: UUID | None = None
+    tag_ids: list[UUID] = []
 
     model_config = {"from_attributes": True}
 

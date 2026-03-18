@@ -14,6 +14,7 @@ import DeleteButton from '@/components/DeleteButton'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
 import { useEpics } from '@/api/epics'
+import { useWorkspaceTags } from '@/api/tags'
 import { toast } from '@/store/toastStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
@@ -65,6 +66,7 @@ export default function ListPage() {
   const statusNots = filterRules.filter((r) => r.field === 'status' && r.op === 'neq').map((r) => r.value)
   const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
   const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
+  const tagFilterIds = filterRules.filter((r) => r.field === 'tag' && r.op === 'eq').map((r) => r.value)
 
   const { data: pagedResult, isLoading } = useQuery({
     queryKey: ['tasks', listId, filterRules, cfFilters, page, sortBy, sortDir],
@@ -75,6 +77,7 @@ export default function ListPage() {
       status_id_not: statusNots.join(',') || undefined,
       priority: priorityEq || undefined,
       priority_not: priorityNots.join(',') || undefined,
+      tag_ids: tagFilterIds.join(',') || undefined,
       cf: cfFilters,
       include_subtasks: true,
       sort_by: sortBy,
@@ -127,6 +130,9 @@ export default function ListPage() {
 
   const { data: epics = [] } = useEpics(projectId)
   const epicMap = Object.fromEntries(epics.map((e) => [e.id, e]))
+
+  const { data: workspaceTags = [] } = useWorkspaceTags(wsId)
+  const tagMap = Object.fromEntries(workspaceTags.map((t) => [t.id, t]))
 
   // Apply quick search + hide-completed filters before grouping
   const _taskVisible = (t: Task) => {
@@ -568,6 +574,12 @@ export default function ListPage() {
                   label: p.charAt(0).toUpperCase() + p.slice(1),
                 })),
               },
+              ...(workspaceTags.length > 0 ? [{
+                id: 'tag',
+                label: 'Tag',
+                ops: ['eq'] as ['eq'],
+                options: workspaceTags.map((t) => ({ value: t.id, label: t.name })),
+              }] : []),
             ]}
             rules={filterRules}
             onRulesChange={(rules, reset) => { setFilterRules(rules); if (reset) setPage(1) }}
@@ -814,6 +826,19 @@ export default function ListPage() {
                                 Blocking
                               </span>
                             )}
+                            {task.tag_ids?.map((tagId) => {
+                              const tag = tagMap[tagId]
+                              if (!tag) return null
+                              return (
+                                <span
+                                  key={tagId}
+                                  className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold text-white shrink-0"
+                                  style={{ background: tag.color }}
+                                >
+                                  {tag.name}
+                                </span>
+                              )
+                            })}
                           </div>
                         </td>
                         <td className="px-4 py-3">

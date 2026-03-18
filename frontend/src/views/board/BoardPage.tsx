@@ -10,6 +10,7 @@ import { PRIORITY_COLORS } from '@/lib/priority'
 import HeaderActions from '@/components/HeaderActions'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { useFieldDefinitions } from '@/api/customFields'
+import { useWorkspaceTags } from '@/api/tags'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -33,6 +34,7 @@ export default function BoardPage() {
   const statusNots = filterRules.filter((r) => r.field === 'status' && r.op === 'neq').map((r) => r.value)
   const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
   const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
+  const tagFilterIds = filterRules.filter((r) => r.field === 'tag' && r.op === 'eq').map((r) => r.value)
 
   const BOARD_CAP = 100
   const { data: boardResult } = useQuery({
@@ -44,6 +46,7 @@ export default function BoardPage() {
       status_id_not: statusNots.join(',') || undefined,
       priority: priorityEq,
       priority_not: priorityNots.join(',') || undefined,
+      tag_ids: tagFilterIds.join(',') || undefined,
       cf: cfFilters,
     }),
   })
@@ -68,6 +71,8 @@ export default function BoardPage() {
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
   const { data: fieldDefs = [] } = useFieldDefinitions(listId)
+  const { data: workspaceTags = [] } = useWorkspaceTags(workspaceId)
+  const tagMap = Object.fromEntries(workspaceTags.map((t) => [t.id, t]))
 
   const currentUserId = useAuthStore((s) => s.user?.id)
   const myRole = currentUserId ? memberMap[currentUserId]?.role : undefined
@@ -137,6 +142,12 @@ export default function BoardPage() {
                 label: p.charAt(0).toUpperCase() + p.slice(1),
               })),
             },
+            ...(workspaceTags.length > 0 ? [{
+              id: 'tag',
+              label: 'Tag',
+              ops: ['eq'] as ['eq'],
+              options: workspaceTags.map((t) => ({ value: t.id, label: t.name })),
+            }] : []),
           ]}
           rules={filterRules}
           onRulesChange={(rules) => setFilterRules(rules)}
@@ -240,6 +251,7 @@ export default function BoardPage() {
                 tasks={noStatusTasks}
                 memberMap={memberMap}
                 statusMap={{}}
+                tagMap={tagMap}
                 onMoveTask={() => {}}
                 onAddTask={null}
               />
@@ -252,6 +264,7 @@ export default function BoardPage() {
                 tasks={visibleTasks.filter((t) => t.status_id === status.id)}
                 memberMap={memberMap}
                 statusMap={Object.fromEntries(statuses.map((s) => [s.id, s]))}
+                tagMap={tagMap}
                 onMoveTask={(taskId) => updateTask.mutate({ id: taskId, status_id: status.id })}
                 onAddTask={(title) => createTask.mutate({ title, status_id: status.id })}
               />
@@ -278,6 +291,7 @@ function KanbanColumn({
   tasks,
   memberMap,
   statusMap,
+  tagMap,
   onMoveTask,
   onAddTask,
 }: {
@@ -285,6 +299,7 @@ function KanbanColumn({
   tasks: Task[]
   memberMap: Record<string, Member>
   statusMap: Record<string, ListStatus>
+  tagMap: Record<string, { id: string; name: string; color: string }>
   onMoveTask: (taskId: string) => void
   onAddTask: ((title: string) => void) | null
 }) {
@@ -352,7 +367,7 @@ function KanbanColumn({
         )}
 
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} memberMap={memberMap} statusMap={statusMap} />
+          <TaskCard key={task.id} task={task} memberMap={memberMap} statusMap={statusMap} tagMap={tagMap} />
         ))}
       </div>
 
@@ -400,7 +415,7 @@ function KanbanColumn({
   )
 }
 
-function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Record<string, Member>; statusMap: Record<string, ListStatus> }) {
+function TaskCard({ task, memberMap, statusMap, tagMap }: { task: Task; memberMap: Record<string, Member>; statusMap: Record<string, ListStatus>; tagMap: Record<string, { id: string; name: string; color: string }> }) {
   const navigate = useNavigate()
   const today = new Date()
   const dueDate = task.due_date ? new Date(task.due_date) : null
@@ -440,9 +455,26 @@ function TaskCard({ task, memberMap, statusMap }: { task: Task; memberMap: Recor
           {task.task_key}
         </span>
       )}
-      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors mb-2.5">
+      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors mb-1.5">
         {task.title}
       </p>
+      {task.tag_ids?.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {task.tag_ids.map((tagId) => {
+            const tag = tagMap[tagId]
+            if (!tag) return null
+            return (
+              <span
+                key={tagId}
+                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold text-white"
+                style={{ background: tag.color }}
+              >
+                {tag.name}
+              </span>
+            )
+          })}
+        </div>
+      )}
 
       {/* Subtask count */}
       {task.subtask_count > 0 && (

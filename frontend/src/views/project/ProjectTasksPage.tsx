@@ -10,6 +10,7 @@ import DeleteButton from '@/components/DeleteButton'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
 import { useEpics } from '@/api/epics'
+import { useWorkspaceTags } from '@/api/tags'
 import { toast } from '@/store/toastStore'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
@@ -53,6 +54,7 @@ export default function ProjectTasksPage() {
   const listEq = filterRules.find((r) => r.field === 'list' && r.op === 'eq')?.value
   const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
   const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
+  const tagFilterIds = filterRules.filter((r) => r.field === 'tag' && r.op === 'eq').map((r) => r.value)
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -88,6 +90,7 @@ export default function ProjectTasksPage() {
       list_id: listEq || undefined,
       priority: priorityEq || undefined,
       priority_not: priorityNots.join(',') || undefined,
+      tag_ids: tagFilterIds.join(',') || undefined,
       include_subtasks: includeSubtasks,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -102,6 +105,9 @@ export default function ProjectTasksPage() {
   const workspaceId = project?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+
+  const { data: workspaceTags = [] } = useWorkspaceTags(workspaceId)
+  const tagMap = Object.fromEntries(workspaceTags.map((t) => [t.id, t]))
 
 
   const updateTask = useMutation({
@@ -390,6 +396,12 @@ export default function ProjectTasksPage() {
                   label: p.charAt(0).toUpperCase() + p.slice(1),
                 })),
               },
+              ...(workspaceTags.length > 0 ? [{
+                id: 'tag',
+                label: 'Tag',
+                ops: ['eq'] as ['eq'],
+                options: workspaceTags.map((t) => ({ value: t.id, label: t.name })),
+              }] : []),
             ]}
             rules={filterRules}
             onRulesChange={(rules, reset) => { setFilterRules(rules); if (reset) resetPage() }}
@@ -603,12 +615,27 @@ export default function ProjectTasksPage() {
                               {task.task_key}
                             </span>
                           )}
-                          <button
-                            onClick={() => navigate(`/tasks/${task.id}`)}
-                            className="text-left font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
-                          >
-                            {task.title}
-                          </button>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              onClick={() => navigate(`/tasks/${task.id}`)}
+                              className="text-left font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                            >
+                              {task.title}
+                            </button>
+                            {task.tag_ids?.map((tagId) => {
+                              const tag = tagMap[tagId]
+                              if (!tag) return null
+                              return (
+                                <span
+                                  key={tagId}
+                                  className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold text-white shrink-0"
+                                  style={{ background: tag.color }}
+                                >
+                                  {tag.name}
+                                </span>
+                              )
+                            })}
+                          </div>
                         </td>
 
                         {/* List badge */}
