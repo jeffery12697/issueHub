@@ -15,6 +15,7 @@ import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
 import { useTaskGitLinks } from '@/api/gitLinks'
+import { useTaskApprovals, useApproveTask, useRevokeApproval } from '@/api/approvals'
 import { useTimeEntries, useLogTime, useDeleteTimeEntry } from '@/api/timeEntries'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
@@ -116,6 +117,9 @@ export default function TaskDetailPage() {
   const addLink = useAddLink(taskId!)
   const deleteLink = useDeleteLink(taskId!)
   const { data: gitLinks = [] } = useTaskGitLinks(taskId)
+  const { data: approvals = [] } = useTaskApprovals(taskId)
+  const approveTask = useApproveTask(taskId!)
+  const revokeApproval = useRevokeApproval(taskId!)
 
   const { data: comments = [] } = useComments(taskId!)
   const createComment = useCreateComment(taskId!)
@@ -964,6 +968,61 @@ export default function TaskDetailPage() {
                 )}
               </div>
 
+              {/* Approvals */}
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                    Approvals
+                    {approvals.length > 0 && (
+                      <span className="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">
+                        {approvals.length}
+                      </span>
+                    )}
+                  </p>
+                  {(() => {
+                    const myApproval = approvals.find((a) => a.user_id === currentUser?.id)
+                    return myApproval ? (
+                      <button
+                        onClick={() => revokeApproval.mutate()}
+                        disabled={revokeApproval.isPending}
+                        className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 px-2 py-1 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Approved
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => approveTask.mutate()}
+                        disabled={approveTask.isPending}
+                        className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-2 py-1 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Approve
+                      </button>
+                    )
+                  })()}
+                </div>
+                {approvals.length === 0 ? (
+                  <p className="text-xs text-slate-400 dark:text-slate-500">No approvals yet</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {approvals.map((a) => (
+                      <div key={a.user_id} className="flex items-center gap-2">
+                        {a.avatar_url ? (
+                          <img src={a.avatar_url} alt={a.display_name} className="w-5 h-5 rounded-full shrink-0" />
+                        ) : (
+                          <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">
+                            {a.display_name[0].toUpperCase()}
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-700 dark:text-slate-300 truncate flex-1">{a.display_name}</span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Dates */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 space-y-3">
                 <div>
@@ -1295,6 +1354,8 @@ const ACTION_DOT: Record<string, string> = {
   comment_created: 'bg-sky-400',
   link_added: 'bg-teal-400',
   link_removed: 'bg-red-300',
+  task_approved: 'bg-emerald-400',
+  task_approval_revoked: 'bg-red-300',
 }
 
 function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; memberMap: Record<string, Member>; listMap: Record<string, string> }) {
@@ -1339,7 +1400,7 @@ function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; member
                   {log.changes.note ? ` — ${log.changes.note}` : ''}
                 </div>
               )}
-              {log.changes && !['link_added', 'link_removed', 'attachment_added', 'attachment_removed', 'time_logged', 'git_branch_linked'].includes(log.action) &&
+              {log.changes && !['link_added', 'link_removed', 'attachment_added', 'attachment_removed', 'time_logged', 'git_branch_linked', 'task_approved', 'task_approval_revoked'].includes(log.action) &&
                 Object.entries(log.changes)
                   .filter(([, val]) => Array.isArray(val))
                   .map(([field, val]) => (

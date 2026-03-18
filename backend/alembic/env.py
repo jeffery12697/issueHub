@@ -19,6 +19,7 @@ import app.models.audit_log  # noqa
 import app.models.task_dependency  # noqa
 import app.models.attachment  # noqa
 import app.models.task_git_link  # noqa
+import app.models.task_approval  # noqa
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
