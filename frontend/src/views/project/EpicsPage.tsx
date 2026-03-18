@@ -263,6 +263,7 @@ export default function EpicsPage() {
               <EpicCard
                 key={epic.id}
                 epic={epic}
+                projectId={projectId!}
                 editingId={editingId}
                 editName={editName}
                 onStartRename={startRename}
@@ -286,6 +287,7 @@ export default function EpicsPage() {
 
 function EpicCard({
   epic,
+  projectId,
   editingId,
   editName,
   onStartRename,
@@ -296,6 +298,7 @@ function EpicCard({
   onStatusChange,
 }: {
   epic: Epic
+  projectId: string
   editingId: string | null
   editName: string
   onStartRename: (epic: Epic) => void
@@ -330,9 +333,11 @@ function EpicCard({
                 <button type="button" onClick={onCancelRename} className="text-xs px-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">✕</button>
               </form>
             ) : (
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-base leading-snug truncate">
-                {epic.name}
-              </h3>
+              <Link to={`/projects/${projectId}/epics/${epic.id}`}>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-base leading-snug truncate hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+                  {epic.name}
+                </h3>
+              </Link>
             )}
           </div>
 

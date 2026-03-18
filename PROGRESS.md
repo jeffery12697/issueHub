@@ -42,7 +42,8 @@
   - ✅ E-02 backend: Task.epic_id FK, UpdateTaskDTO sentinel, bulk_update epic_id
   - ✅ E-05: EpicsPage overview (card grid, color bar, progress, inline rename/status/delete)
   - ✅ E-02 frontend: Epic field in TaskDetailPage sidebar, Epic column in ProjectTasksPage + ListPage, bulk "Set epic…"
-  - Next: E-03 Epic Detail View (`/projects/:id/epics/:epicId`)
+  - ✅ E-03: EpicDetailPage — inline name/desc/color/status/dates edit, progress bar, task list with remove, add-tasks search panel
+  - Next: E-04 Epic Timeline (Gantt scoped to epic)
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)

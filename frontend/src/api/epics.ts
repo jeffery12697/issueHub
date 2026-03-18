@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
+import type { Task } from './tasks'
 
 export type EpicStatus = 'not_started' | 'in_progress' | 'done'
 
@@ -41,6 +42,8 @@ export const epicsApi = {
     apiClient.patch<Epic>(`/epics/${epicId}`, data).then((r) => r.data),
   delete: (epicId: string) =>
     apiClient.delete(`/epics/${epicId}`),
+  listTasks: (epicId: string) =>
+    apiClient.get<Task[]>(`/epics/${epicId}/tasks`).then((r) => r.data),
 }
 
 export function useEpics(projectId: string | null | undefined) {
@@ -73,5 +76,13 @@ export function useDeleteEpic(projectId: string) {
   return useMutation({
     mutationFn: (epicId: string) => epicsApi.delete(epicId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['epics', projectId] }),
+  })
+}
+
+export function useEpicTasks(epicId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['epic-tasks', epicId],
+    queryFn: () => epicsApi.listTasks(epicId!),
+    enabled: !!epicId,
   })
 }

@@ -21,6 +21,7 @@ import ProjectAnalyticsPage from '@/views/project/ProjectAnalyticsPage'
 import ProjectGanttPage from '@/views/project/ProjectGanttPage'
 import ProjectSettingsPage from '@/views/project/ProjectSettingsPage'
 import EpicsPage from '@/views/project/EpicsPage'
+import EpicDetailPage from '@/views/project/EpicDetailPage'
 import InviteAcceptPage from '@/views/workspace/InviteAcceptPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,7 @@ export default function AppRouter() {
         <Route path="/workspaces/:workspaceId/workload" element={<WorkloadPage />} />
         <Route path="/projects/:projectId" element={<ProjectTasksPage />} />
         <Route path="/projects/:projectId/epics" element={<EpicsPage />} />
+        <Route path="/projects/:projectId/epics/:epicId" element={<EpicDetailPage />} />
         <Route path="/projects/:projectId/gantt" element={<ProjectGanttPage />} />
         <Route path="/projects/:projectId/analytics" element={<ProjectAnalyticsPage />} />
         <Route path="/projects/:projectId/settings" element={<ProjectSettingsPage />} />
