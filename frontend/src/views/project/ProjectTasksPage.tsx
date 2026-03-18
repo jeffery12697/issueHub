@@ -290,6 +290,12 @@ export default function ProjectTasksPage() {
             All Tasks
           </Link>
           <Link
+            to={`/projects/${projectId}/epics`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            Epics
+          </Link>
+          <Link
             to={`/projects/${projectId}/gantt`}
             className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
