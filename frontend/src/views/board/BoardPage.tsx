@@ -20,22 +20,27 @@ export default function BoardPage() {
     queryFn: () => listsApi.get(listId!),
   })
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks', listId],
-    queryFn: () => tasksApi.list(listId!),
+  const BOARD_CAP = 100
+  const { data: boardResult } = useQuery({
+    queryKey: ['tasks', listId, 'board'],
+    queryFn: () => tasksApi.listPaged(listId!, { page: 1, page_size: BOARD_CAP }),
   })
+  const tasks = boardResult?.items ?? []
+  const totalTasks = boardResult?.total ?? 0
 
   const updateTask = useMutation({
     mutationFn: ({ id, status_id }: { id: string; status_id: string }) =>
       tasksApi.update(id, { status_id }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId, 'board'] }),
   })
 
   const createTask = useMutation({
     mutationFn: ({ title, status_id }: { title: string; status_id: string }) =>
       tasksApi.create(listId!, { title, status_id }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId, 'board'] }),
   })
+
+  const isCapped = totalTasks > BOARD_CAP
 
   const workspaceId = tasks[0]?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
@@ -123,6 +128,15 @@ export default function BoardPage() {
               />
             ))}
           </div>
+        )}
+        {isCapped && (
+          <p className="mt-4 text-xs text-slate-400 dark:text-slate-500 text-center">
+            Showing first {BOARD_CAP} of {totalTasks} tasks.{' '}
+            <Link to={`/projects/${projectId}/lists/${listId}`} className="text-violet-500 hover:text-violet-700 dark:hover:text-violet-300 transition-colors">
+              Switch to List view
+            </Link>{' '}
+            to see all.
+          </p>
         )}
         </div>
       </div>
