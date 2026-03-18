@@ -193,8 +193,8 @@ export default function ProjectGanttPage() {
     return (
       <div
         className={`shrink-0 sticky left-0 z-10 flex items-center gap-2 px-4 border-r border-slate-100 dark:border-slate-800 transition-colors ${
-          isEven ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-900/60'
-        } group-hover:bg-violet-50/40 dark:group-hover:bg-violet-950/30`}
+          isEven ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-900'
+        } group-hover:bg-violet-50 dark:group-hover:bg-violet-950`}
         style={{ width: LEFT_W }}
       >
         <div className="flex-1 min-w-0">
