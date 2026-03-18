@@ -4,7 +4,9 @@ Seed the development database with realistic dummy data.
 Usage (from repo root):
     docker compose exec backend python scripts/seed.py
 
-The script is idempotent: if dev@example.com already exists it exits early.
+The script is idempotent: if dev@issuehub.app already exists it exits early.
+To re-seed from scratch, wipe first:
+    docker compose exec backend python scripts/seed.py --reset
 
 Dev account
 -----------
@@ -18,7 +20,6 @@ import sys
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
-# Make sure app package is importable when run inside container
 sys.path.insert(0, "/app")
 
 from sqlalchemy import select, text
@@ -46,7 +47,6 @@ NOW = datetime.now(timezone.utc)
 
 
 def d(days: int) -> datetime:
-    """Return a UTC datetime offset from today."""
     return NOW + timedelta(days=days)
 
 
@@ -58,30 +58,56 @@ def task_path(task_id, parent_path: str | None = None) -> Ltree:
 
 
 # ---------------------------------------------------------------------------
+# Reset helper
+# ---------------------------------------------------------------------------
+
+async def reset_db(s):
+    """Truncate all application tables in dependency order."""
+    tables = [
+        "task_tags", "task_dependencies", "comments", "audit_logs",
+        "custom_field_values", "custom_field_definitions",
+        "status_mappings", "list_statuses",
+        "tasks", "epics", "lists", "projects",
+        "team_members", "teams",
+        "workspace_members", "workspaces",
+        "tags", "users",
+    ]
+    for t in tables:
+        await s.execute(text(f'TRUNCATE TABLE "{t}" RESTART IDENTITY CASCADE'))
+    await s.commit()
+    print("✓ Database wiped.")
+
+
+# ---------------------------------------------------------------------------
 # Main seed
 # ---------------------------------------------------------------------------
 
 
-async def seed():
+async def seed(force_reset: bool = False):
     async with AsyncSessionFactory() as s:
-        # ── Guard: skip if already seeded ──────────────────────────────────
+
+        # ── Guard / reset ──────────────────────────────────────────────────
         existing = (
             await s.execute(select(User).where(User.email == "dev@issuehub.app"))
         ).scalar_one_or_none()
-        if existing:
+
+        if existing and not force_reset:
             print("✓ Database already seeded — skipping.")
             token = create_access_token(existing.id)
             print(f"\nDev token (expires in 15 min): {token}")
             return
 
+        if force_reset:
+            await reset_db(s)
+
         print("Seeding …")
 
         # ── Users ──────────────────────────────────────────────────────────
-        dev = User(email="dev@issuehub.app", display_name="Dev (You)", avatar_url=None)
+        dev   = User(email="dev@issuehub.app",   display_name="Dev (You)")
         alice = User(email="alice@issuehub.app", display_name="Alice Chen")
-        bob = User(email="bob@issuehub.app", display_name="Bob Tanaka")
+        bob   = User(email="bob@issuehub.app",   display_name="Bob Tanaka")
         carol = User(email="carol@issuehub.app", display_name="Carol Reyes")
-        dave = User(email="dave@issuehub.app", display_name="Dave Kim")
+        dave  = User(email="dave@issuehub.app",  display_name="Dave Kim")
         s.add_all([dev, alice, bob, carol, dave])
         await s.flush()
 
@@ -90,99 +116,101 @@ async def seed():
         s.add(ws)
         await s.flush()
 
-        members_data = [
+        for user, role in [
             (dev,   WorkspaceRole.owner),
             (alice, WorkspaceRole.admin),
             (bob,   WorkspaceRole.member),
             (carol, WorkspaceRole.member),
             (dave,  WorkspaceRole.member),
-        ]
-        for user, role in members_data:
+        ]:
             s.add(WorkspaceMember(workspace_id=ws.id, user_id=user.id, role=role))
         await s.flush()
 
         # ── Teams ──────────────────────────────────────────────────────────
-        eng_team = Team(workspace_id=ws.id, name="Engineering", created_by=dev.id)
-        design_team = Team(workspace_id=ws.id, name="Design", created_by=alice.id)
+        eng_team    = Team(workspace_id=ws.id, name="Engineering", created_by=dev.id)
+        design_team = Team(workspace_id=ws.id, name="Design",      created_by=alice.id)
         s.add_all([eng_team, design_team])
         await s.flush()
 
         s.add_all([
-            TeamMember(team_id=eng_team.id, user_id=dev.id,   role=TeamRole.team_admin),
-            TeamMember(team_id=eng_team.id, user_id=bob.id,   role=TeamRole.team_member),
-            TeamMember(team_id=eng_team.id, user_id=dave.id,  role=TeamRole.team_member),
+            TeamMember(team_id=eng_team.id,    user_id=dev.id,   role=TeamRole.team_admin),
+            TeamMember(team_id=eng_team.id,    user_id=bob.id,   role=TeamRole.team_member),
+            TeamMember(team_id=eng_team.id,    user_id=dave.id,  role=TeamRole.team_member),
             TeamMember(team_id=design_team.id, user_id=alice.id, role=TeamRole.team_admin),
             TeamMember(team_id=design_team.id, user_id=carol.id, role=TeamRole.team_member),
         ])
         await s.flush()
 
         # ── Tags ───────────────────────────────────────────────────────────
-        tag_bug      = Tag(workspace_id=ws.id, name="bug",      color="#ef4444")
-        tag_feature  = Tag(workspace_id=ws.id, name="feature",  color="#3b82f6")
-        tag_ux       = Tag(workspace_id=ws.id, name="ux",       color="#a855f7")
-        tag_perf     = Tag(workspace_id=ws.id, name="perf",     color="#f59e0b")
-        tag_security = Tag(workspace_id=ws.id, name="security", color="#dc2626")
+        tag_bug       = Tag(workspace_id=ws.id, name="bug",       color="#ef4444")
+        tag_feature   = Tag(workspace_id=ws.id, name="feature",   color="#3b82f6")
+        tag_ux        = Tag(workspace_id=ws.id, name="ux",        color="#a855f7")
+        tag_perf      = Tag(workspace_id=ws.id, name="perf",      color="#f59e0b")
+        tag_security  = Tag(workspace_id=ws.id, name="security",  color="#dc2626")
         tag_tech_debt = Tag(workspace_id=ws.id, name="tech-debt", color="#6b7280")
-        tag_docs     = Tag(workspace_id=ws.id, name="docs",     color="#10b981")
+        tag_docs      = Tag(workspace_id=ws.id, name="docs",      color="#10b981")
         s.add_all([tag_bug, tag_feature, tag_ux, tag_perf, tag_security, tag_tech_debt, tag_docs])
         await s.flush()
 
         # ── Projects ───────────────────────────────────────────────────────
-        proj_web = Project(
+        #
+        # Club  — community / club management platform
+        # Book  — digital bookstore & reading tracker
+        # Ism   — opinion & debate publishing platform
+        #
+        proj_club = Project(
             workspace_id=ws.id,
-            name="Web App",
-            description="Main customer-facing web application",
-            task_prefix="WEB",
+            name="Club",
+            description="Community and club management — members, events, dues",
+            task_prefix="CLB",
             next_task_number=1,
         )
-        proj_api = Project(
+        proj_book = Project(
             workspace_id=ws.id,
-            name="Backend API",
-            description="REST API powering all products",
-            task_prefix="API",
+            name="Book",
+            description="Digital bookstore and personal reading tracker",
+            task_prefix="BOK",
             next_task_number=1,
         )
-        proj_mobile = Project(
+        proj_ism = Project(
             workspace_id=ws.id,
-            name="Mobile App",
-            description="iOS & Android React Native app",
-            task_prefix="MOB",
+            name="Ism",
+            description="Opinion and debate publishing platform",
+            task_prefix="ISM",
             next_task_number=1,
         )
-        s.add_all([proj_web, proj_api, proj_mobile])
+        s.add_all([proj_club, proj_book, proj_ism])
         await s.flush()
 
-        # ── Lists + Statuses ───────────────────────────────────────────────
-        #
-        # Each project gets: Backlog, In Progress, Review, Done
-        #
-
+        # ── Lists (Backend / Frontend / App per project) ───────────────────
         def make_statuses(list_id) -> list[ListStatus]:
             return [
-                ListStatus(list_id=list_id, name="Backlog",     color="#6b7280", order_index=0.0,  category=StatusCategory.not_started),
-                ListStatus(list_id=list_id, name="In Progress", color="#3b82f6", order_index=1.0,  category=StatusCategory.active),
-                ListStatus(list_id=list_id, name="In Review",   color="#f59e0b", order_index=2.0,  category=StatusCategory.active),
-                ListStatus(list_id=list_id, name="Done",        color="#22c55e", order_index=3.0,  category=StatusCategory.done, is_complete=True),
-                ListStatus(list_id=list_id, name="Cancelled",   color="#ef4444", order_index=4.0,  category=StatusCategory.cancelled),
+                ListStatus(list_id=list_id, name="Backlog",     color="#6b7280", order_index=0.0, category=StatusCategory.not_started),
+                ListStatus(list_id=list_id, name="In Progress", color="#3b82f6", order_index=1.0, category=StatusCategory.active),
+                ListStatus(list_id=list_id, name="In Review",   color="#f59e0b", order_index=2.0, category=StatusCategory.active),
+                ListStatus(list_id=list_id, name="Done",        color="#22c55e", order_index=3.0, category=StatusCategory.done, is_complete=True),
+                ListStatus(list_id=list_id, name="Cancelled",   color="#ef4444", order_index=4.0, category=StatusCategory.cancelled),
             ]
 
-        # Web App lists
-        list_web_q1   = List(project_id=proj_web.id, name="Q1 Sprint")
-        list_web_q2   = List(project_id=proj_web.id, name="Q2 Sprint")
-        list_web_bugs = List(project_id=proj_web.id, name="Bug Tracker")
+        # Club
+        list_club_be  = List(project_id=proj_club.id, name="Backend")
+        list_club_fe  = List(project_id=proj_club.id, name="Frontend")
+        list_club_app = List(project_id=proj_club.id, name="App")
 
-        # API lists
-        list_api_core = List(project_id=proj_api.id, name="Core Services")
-        list_api_infra = List(project_id=proj_api.id, name="Infrastructure")
+        # Book
+        list_book_be  = List(project_id=proj_book.id, name="Backend")
+        list_book_fe  = List(project_id=proj_book.id, name="Frontend")
+        list_book_app = List(project_id=proj_book.id, name="App")
 
-        # Mobile lists
-        list_mob_v1 = List(project_id=proj_mobile.id, name="v1.0 Release")
-        list_mob_v2 = List(project_id=proj_mobile.id, name="v2.0 Roadmap")
+        # Ism
+        list_ism_be  = List(project_id=proj_ism.id, name="Backend")
+        list_ism_fe  = List(project_id=proj_ism.id, name="Frontend")
+        list_ism_app = List(project_id=proj_ism.id, name="App")
 
         all_lists = [
-            list_web_q1, list_web_q2, list_web_bugs,
-            list_api_core, list_api_infra,
-            list_mob_v1, list_mob_v2,
+            list_club_be, list_club_fe, list_club_app,
+            list_book_be, list_book_fe, list_book_app,
+            list_ism_be,  list_ism_fe,  list_ism_app,
         ]
         s.add_all(all_lists)
         await s.flush()
@@ -198,46 +226,72 @@ async def seed():
             return all_statuses[str(lst.id)][name]
 
         # ── Epics ──────────────────────────────────────────────────────────
-        epic_auth = Epic(
-            project_id=proj_web.id, workspace_id=ws.id,
-            name="Authentication & SSO", color="#6366f1",
+        # Club epics
+        epic_club_member = Epic(
+            project_id=proj_club.id, workspace_id=ws.id,
+            name="Member Portal", color="#6366f1",
             status=EpicStatus.in_progress,
-            start_date=d(-30), due_date=d(30),
+            start_date=d(-20), due_date=d(25),
             order_index=1.0, created_by=dev.id,
+            description="Self-service portal for members to view profile, pay dues, RSVP events.",
         )
-        epic_dashboard = Epic(
-            project_id=proj_web.id, workspace_id=ws.id,
-            name="Analytics Dashboard", color="#f59e0b",
+        epic_club_events = Epic(
+            project_id=proj_club.id, workspace_id=ws.id,
+            name="Event Management", color="#f59e0b",
             status=EpicStatus.not_started,
-            start_date=d(7), due_date=d(60),
+            start_date=d(10), due_date=d(55),
             order_index=2.0, created_by=alice.id,
+            description="Admin tools to create/manage events, sell tickets, track attendance.",
         )
-        epic_perf = Epic(
-            project_id=proj_api.id, workspace_id=ws.id,
-            name="Performance Hardening", color="#ef4444",
+
+        # Book epics
+        epic_book_catalog = Epic(
+            project_id=proj_book.id, workspace_id=ws.id,
+            name="Catalog & Discovery", color="#10b981",
             status=EpicStatus.in_progress,
-            start_date=d(-14), due_date=d(21),
-            order_index=1.0, created_by=dev.id,
-        )
-        epic_mobile_launch = Epic(
-            project_id=proj_mobile.id, workspace_id=ws.id,
-            name="v1.0 Launch Checklist", color="#22c55e",
-            status=EpicStatus.not_started,
-            start_date=d(0), due_date=d(45),
+            start_date=d(-10), due_date=d(30),
             order_index=1.0, created_by=bob.id,
+            description="Search, browse, and ISBN-lookup for the book catalog.",
         )
-        s.add_all([epic_auth, epic_dashboard, epic_perf, epic_mobile_launch])
+        epic_book_reading = Epic(
+            project_id=proj_book.id, workspace_id=ws.id,
+            name="Reading Tracker", color="#8b5cf6",
+            status=EpicStatus.not_started,
+            start_date=d(15), due_date=d(60),
+            order_index=2.0, created_by=carol.id,
+            description="Track reading progress, shelves, goals, and stats per user.",
+        )
+
+        # Ism epics
+        epic_ism_feed = Epic(
+            project_id=proj_ism.id, workspace_id=ws.id,
+            name="Core Feed", color="#ef4444",
+            status=EpicStatus.in_progress,
+            start_date=d(-15), due_date=d(20),
+            order_index=1.0, created_by=dev.id,
+            description="Personalised feed of articles ranked by recency, votes, and follows.",
+        )
+        epic_ism_debate = Epic(
+            project_id=proj_ism.id, workspace_id=ws.id,
+            name="Debate Engine", color="#f97316",
+            status=EpicStatus.not_started,
+            start_date=d(5), due_date=d(50),
+            order_index=2.0, created_by=alice.id,
+            description="Structured pro/con debate threads with voting and moderation.",
+        )
+
+        s.add_all([
+            epic_club_member, epic_club_events,
+            epic_book_catalog, epic_book_reading,
+            epic_ism_feed, epic_ism_debate,
+        ])
         await s.flush()
 
-        # ── Tasks ──────────────────────────────────────────────────────────
-        #
-        # Helper to build a root task and auto-increment project task_number
-        #
-
+        # ── Task factory ───────────────────────────────────────────────────
         task_counters: dict[str, int] = {
-            str(proj_web.id):    1,
-            str(proj_api.id):    1,
-            str(proj_mobile.id): 1,
+            str(proj_club.id): 1,
+            str(proj_book.id): 1,
+            str(proj_ism.id):  1,
         }
 
         def next_key(proj: Project) -> tuple[int, str]:
@@ -253,7 +307,7 @@ async def seed():
             reporter: User,
             assignees: list[User] | None = None,
             priority: Priority = Priority.medium,
-            due: int | None = None,           # offset in days from today
+            due: int | None = None,
             start: int | None = None,
             story_points: int | None = None,
             epic: Epic | None = None,
@@ -261,7 +315,7 @@ async def seed():
         ) -> Task:
             num, key = next_key(proj)
             tid = uuid4()
-            t = Task(
+            return Task(
                 id=tid,
                 workspace_id=ws.id,
                 project_id=proj.id,
@@ -282,208 +336,359 @@ async def seed():
                 task_number=num,
                 task_key=key,
             )
-            return t
 
-        # ------------------------------------------------------------------
-        # Web App — Q1 Sprint
-        # ------------------------------------------------------------------
-        t_login = make_task(
-            "Implement Google OAuth login flow", proj_web, list_web_q1,
-            "In Progress", dev, [dev, alice], Priority.high,
-            due=7, start=-3, story_points=5, epic=epic_auth,
-            description="Set up authlib, callback handler, JWT issuance, and frontend redirect.",
+        # ==================================================================
+        # CLUB — Backend
+        # ==================================================================
+        t_club_member_api = make_task(
+            "Member registration & profile API",
+            proj_club, list_club_be, "In Progress",
+            dev, [dev], Priority.high,
+            due=10, start=-5, story_points=5, epic=epic_club_member,
+            description="POST /members, GET /members/{id}, PATCH profile fields. "
+                        "Store avatar in S3, return signed URL.",
         )
-        t_signup = make_task(
-            "Email/password signup with verification", proj_web, list_web_q1,
-            "Backlog", alice, [bob], Priority.medium,
-            due=21, story_points=3, epic=epic_auth,
+        t_club_roles = make_task(
+            "Role-based access control (admin / member / guest)",
+            proj_club, list_club_be, "In Progress",
+            dev, [dev, bob], Priority.high,
+            due=8, start=-3, story_points=3, epic=epic_club_member,
         )
-        t_sso = make_task(
-            "SAML 2.0 SSO integration for enterprise plans", proj_web, list_web_q1,
-            "Backlog", dev, [], Priority.low,
-            due=60, story_points=8, epic=epic_auth,
+        t_club_dues_api = make_task(
+            "Dues payment API — Stripe integration",
+            proj_club, list_club_be, "Backlog",
+            bob, [bob], Priority.medium,
+            due=30, story_points=8, epic=epic_club_member,
+            description="Webhook handler for payment.succeeded / failed. "
+                        "Store payment records, update member status.",
         )
-        t_onboard = make_task(
-            "User onboarding wizard (4-step)", proj_web, list_web_q1,
-            "In Review", carol, [carol, alice], Priority.high,
-            due=5, start=-7, story_points=5,
-            description="Steps: workspace name → invite teammates → create first project → tour.",
+        t_club_event_api = make_task(
+            "Event CRUD endpoints",
+            proj_club, list_club_be, "Backlog",
+            dave, [dave], Priority.medium,
+            due=20, story_points=5, epic=epic_club_events,
         )
-        t_settings = make_task(
-            "Profile & notification settings page", proj_web, list_web_q1,
-            "Done", bob, [bob], Priority.medium,
-            due=-2, start=-14, story_points=3,
+        t_club_rsvp_api = make_task(
+            "RSVP / attendance tracking endpoint",
+            proj_club, list_club_be, "Backlog",
+            dave, [dave, dev], Priority.medium,
+            due=28, story_points=3, epic=epic_club_events,
         )
-        t_dark_mode = make_task(
-            "Dark mode support (CSS variables + toggle)", proj_web, list_web_q1,
-            "Backlog", alice, [carol], Priority.low,
-            due=45, story_points=2,
+        t_club_invite_api = make_task(
+            "Email invite system — token-based onboarding",
+            proj_club, list_club_be, "Done",
+            dev, [dev], Priority.high,
+            due=-3, start=-18, story_points=3, epic=epic_club_member,
         )
-
-        # Web App — Q2 Sprint
-        t_dash_widgets = make_task(
-            "Configurable dashboard widgets", proj_web, list_web_q2,
-            "Backlog", dev, [dev, bob], Priority.high,
-            due=30, story_points=8, epic=epic_dashboard,
-        )
-        t_dash_charts = make_task(
-            "Task completion trend chart", proj_web, list_web_q2,
-            "Backlog", alice, [alice], Priority.medium,
-            due=40, story_points=5, epic=epic_dashboard,
-        )
-        t_dash_csv = make_task(
-            "Export dashboard data as CSV/PDF", proj_web, list_web_q2,
-            "Backlog", bob, [bob], Priority.low,
-            due=55, story_points=3, epic=epic_dashboard,
-        )
-        t_notif_bell = make_task(
-            "Notification bell & inbox panel", proj_web, list_web_q2,
-            "In Progress", carol, [carol, dave], Priority.medium,
-            due=14, start=-1, story_points=5,
-        )
-        t_keyboard = make_task(
-            "Global keyboard shortcuts (⌘K command palette)", proj_web, list_web_q2,
-            "Backlog", dave, [dave], Priority.low,
-            due=50, story_points=5,
+        t_club_bug_dupe_invite = make_task(
+            "Fix: duplicate invite emails sent on retry",
+            proj_club, list_club_be, "In Review",
+            bob, [bob], Priority.urgent,
+            due=2, story_points=1,
         )
 
-        # Web App — Bug Tracker
-        t_bug_login_loop = make_task(
-            "Fix: OAuth redirect loop on Safari", proj_web, list_web_bugs,
-            "In Progress", dev, [dev], Priority.urgent,
-            due=1, story_points=2,
-            description="Users on Safari 17 hit an infinite redirect after Google callback. "
-                        "Likely SameSite cookie issue.",
+        # ==================================================================
+        # CLUB — Frontend
+        # ==================================================================
+        t_club_member_dir = make_task(
+            "Member directory page with search & filter",
+            proj_club, list_club_fe, "In Progress",
+            alice, [carol, alice], Priority.high,
+            due=12, start=-2, story_points=5, epic=epic_club_member,
         )
-        t_bug_notif_dup = make_task(
-            "Fix: Duplicate @mention notifications", proj_web, list_web_bugs,
-            "Backlog", bob, [bob], Priority.high,
+        t_club_profile_page = make_task(
+            "Member profile & edit form",
+            proj_club, list_club_fe, "Backlog",
+            carol, [carol], Priority.medium,
+            due=18, story_points=3, epic=epic_club_member,
+        )
+        t_club_dues_ui = make_task(
+            "Dues payment flow (Stripe Elements)",
+            proj_club, list_club_fe, "Backlog",
+            alice, [alice], Priority.medium,
+            due=35, story_points=5, epic=epic_club_member,
+        )
+        t_club_event_calendar = make_task(
+            "Event calendar view (month + list toggle)",
+            proj_club, list_club_fe, "Backlog",
+            carol, [carol, alice], Priority.medium,
+            due=25, story_points=5, epic=epic_club_events,
+        )
+        t_club_admin_panel = make_task(
+            "Admin panel — manage members & roles",
+            proj_club, list_club_fe, "Backlog",
+            dev, [dev, carol], Priority.low,
+            due=40, story_points=8, epic=epic_club_member,
+        )
+        t_club_bug_mobile_nav = make_task(
+            "Fix: sidebar nav hidden on tablet (< 1024px)",
+            proj_club, list_club_fe, "Backlog",
+            carol, [carol], Priority.medium,
+            due=7, story_points=1,
+        )
+
+        # ==================================================================
+        # CLUB — App
+        # ==================================================================
+        t_club_checkin = make_task(
+            "QR-code check-in screen for events",
+            proj_club, list_club_app, "Backlog",
+            bob, [bob], Priority.high,
+            due=22, story_points=5, epic=epic_club_events,
+        )
+        t_club_push_events = make_task(
+            "Push notifications for upcoming events",
+            proj_club, list_club_app, "Backlog",
+            dave, [dave], Priority.medium,
+            due=30, story_points=3, epic=epic_club_events,
+        )
+        t_club_member_card = make_task(
+            "Digital membership card with QR code",
+            proj_club, list_club_app, "In Progress",
+            bob, [bob, carol], Priority.high,
+            due=15, start=-1, story_points=3, epic=epic_club_member,
+        )
+
+        # ==================================================================
+        # BOOK — Backend
+        # ==================================================================
+        t_book_catalog_api = make_task(
+            "Book catalog API — CRUD + ISBN lookup (Open Library)",
+            proj_book, list_book_be, "In Progress",
+            dev, [dev], Priority.high,
+            due=8, start=-4, story_points=5, epic=epic_book_catalog,
+            description="GET /books?q=, GET /books/{isbn}. "
+                        "Proxy Open Library API, cache results in Redis for 24 h.",
+        )
+        t_book_search = make_task(
+            "Full-text search with pg_trgm (title, author, genre)",
+            proj_book, list_book_be, "In Progress",
+            bob, [bob], Priority.high,
+            due=10, start=-2, story_points=3, epic=epic_book_catalog,
+        )
+        t_book_review_api = make_task(
+            "Review & star-rating endpoints",
+            proj_book, list_book_be, "Backlog",
+            dave, [dave], Priority.medium,
+            due=22, story_points=3, epic=epic_book_catalog,
+        )
+        t_book_shelf_api = make_task(
+            "Reading shelf API (want / reading / finished)",
+            proj_book, list_book_be, "Backlog",
+            dev, [dev, bob], Priority.medium,
+            due=25, story_points=5, epic=epic_book_reading,
+        )
+        t_book_progress_api = make_task(
+            "Reading progress tracking (page / % / notes)",
+            proj_book, list_book_be, "Backlog",
+            bob, [bob], Priority.medium,
+            due=35, story_points=5, epic=epic_book_reading,
+        )
+        t_book_recommend = make_task(
+            "Recommendation engine — collaborative filtering (v1)",
+            proj_book, list_book_be, "Backlog",
+            dave, [dave], Priority.low,
+            due=60, story_points=13, epic=epic_book_catalog,
+        )
+        t_book_bug_isbn = make_task(
+            "Fix: ISBN-13 lookup returns 404 for valid Kindle editions",
+            proj_book, list_book_be, "In Review",
+            dev, [dev], Priority.urgent,
+            due=2, story_points=1,
+        )
+
+        # ==================================================================
+        # BOOK — Frontend
+        # ==================================================================
+        t_book_browse = make_task(
+            "Book browse page — grid + filters (genre, rating, year)",
+            proj_book, list_book_fe, "In Progress",
+            alice, [alice, carol], Priority.high,
+            due=12, start=-3, story_points=5, epic=epic_book_catalog,
+        )
+        t_book_detail = make_task(
+            "Book detail page — synopsis, reviews, buy / borrow CTAs",
+            proj_book, list_book_fe, "Backlog",
+            carol, [carol], Priority.medium,
+            due=18, story_points=5, epic=epic_book_catalog,
+        )
+        t_book_shelf_ui = make_task(
+            "My Bookshelf UI — tabbed shelves with progress rings",
+            proj_book, list_book_fe, "Backlog",
+            alice, [alice], Priority.medium,
+            due=30, story_points=8, epic=epic_book_reading,
+        )
+        t_book_stats = make_task(
+            "Reading stats dashboard (books/year, pages/day chart)",
+            proj_book, list_book_fe, "Backlog",
+            carol, [carol, alice], Priority.low,
+            due=45, story_points=5, epic=epic_book_reading,
+        )
+        t_book_bug_cover = make_task(
+            "Fix: book cover images overflow card on Safari iOS",
+            proj_book, list_book_fe, "Backlog",
+            carol, [carol], Priority.medium,
             due=5, story_points=1,
         )
-        t_bug_scroll = make_task(
-            "Fix: Board view horizontal scroll broken on mobile", proj_web, list_web_bugs,
-            "Backlog", carol, [carol], Priority.medium,
-            due=10, story_points=1,
+
+        # ==================================================================
+        # BOOK — App
+        # ==================================================================
+        t_book_barcode = make_task(
+            "Barcode scanner — scan ISBN to add book",
+            proj_book, list_book_app, "In Progress",
+            bob, [bob], Priority.high,
+            due=14, start=-2, story_points=5, epic=epic_book_catalog,
         )
-        t_bug_timezone = make_task(
-            "Fix: Due-date shown as day-1 in UTC-5 timezones", proj_web, list_web_bugs,
-            "In Review", alice, [alice, dev], Priority.high,
-            due=3, story_points=1,
+        t_book_offline = make_task(
+            "Offline reading list sync (SQLite + background sync)",
+            proj_book, list_book_app, "Backlog",
+            dave, [dave], Priority.medium,
+            due=40, story_points=8, epic=epic_book_reading,
+        )
+        t_book_reminder = make_task(
+            "Daily reading reminder push notification",
+            proj_book, list_book_app, "Backlog",
+            bob, [bob, carol], Priority.low,
+            due=35, story_points=3, epic=epic_book_reading,
         )
 
-        # ------------------------------------------------------------------
-        # Backend API — Core Services
-        # ------------------------------------------------------------------
-        t_rate_limit = make_task(
-            "Add rate limiting (100 req/min per IP)", proj_api, list_api_core,
-            "In Progress", dev, [dev], Priority.high,
-            due=7, start=-2, story_points=3, epic=epic_perf,
-            description="Use Redis sliding window. Apply to auth endpoints first, then global.",
+        # ==================================================================
+        # ISM — Backend
+        # ==================================================================
+        t_ism_post_api = make_task(
+            "Article / post CRUD API",
+            proj_ism, list_ism_be, "Done",
+            dev, [dev], Priority.high,
+            due=-5, start=-20, story_points=5, epic=epic_ism_feed,
         )
-        t_pagination = make_task(
-            "Standardise cursor-based pagination across all list endpoints", proj_api, list_api_core,
-            "Backlog", bob, [bob, dave], Priority.medium,
-            due=21, story_points=5, epic=epic_perf,
+        t_ism_feed_api = make_task(
+            "Personalised feed endpoint — ranking algorithm v1",
+            proj_ism, list_ism_be, "In Progress",
+            dev, [dev, bob], Priority.high,
+            due=8, start=-5, story_points=8, epic=epic_ism_feed,
+            description="Score = recency_weight * age_decay + vote_weight * net_votes "
+                        "+ follow_weight * (author in following). Paginated cursor.",
         )
-        t_search_index = make_task(
-            "Add pg_trgm GIN indexes on searchable columns", proj_api, list_api_core,
-            "Done", dev, [dev], Priority.medium,
-            due=-5, start=-14, story_points=2, epic=epic_perf,
+        t_ism_vote_api = make_task(
+            "Vote / reaction system (upvote, downvote, bookmark)",
+            proj_ism, list_ism_be, "In Progress",
+            bob, [bob], Priority.medium,
+            due=10, start=-2, story_points=3, epic=epic_ism_feed,
         )
-        t_audit_retention = make_task(
-            "Audit log retention policy (purge > 1 year)", proj_api, list_api_core,
-            "Backlog", alice, [alice], Priority.low,
-            due=60, story_points=2,
+        t_ism_comment_api = make_task(
+            "Threaded comment API with nested replies",
+            proj_ism, list_ism_be, "Backlog",
+            dave, [dave], Priority.medium,
+            due=20, story_points=5, epic=epic_ism_debate,
         )
-        t_webhook_retry = make_task(
-            "Webhook delivery — exponential backoff retry", proj_api, list_api_core,
-            "Backlog", dave, [dave], Priority.medium,
-            due=30, story_points=3,
+        t_ism_debate_api = make_task(
+            "Debate thread API — pro/con sides, voting per argument",
+            proj_ism, list_ism_be, "Backlog",
+            dev, [dev, dave], Priority.medium,
+            due=30, story_points=8, epic=epic_ism_debate,
         )
-        t_api_docs = make_task(
-            "Publish OpenAPI docs to /docs with auth", proj_api, list_api_core,
-            "In Review", bob, [bob], Priority.low,
-            due=14, story_points=2,
+        t_ism_moderation = make_task(
+            "Moderation queue API — flag, hide, ban",
+            proj_ism, list_ism_be, "Backlog",
+            bob, [bob], Priority.high,
+            due=25, story_points=5, epic=epic_ism_debate,
         )
-
-        # Backend API — Infrastructure
-        t_db_migrate = make_task(
-            "Zero-downtime migration strategy for Alembic", proj_api, list_api_infra,
-            "Backlog", dev, [dev], Priority.high,
-            due=20, story_points=5,
-        )
-        t_redis_cluster = make_task(
-            "Redis Cluster setup for Pub/Sub at scale", proj_api, list_api_infra,
-            "Backlog", dave, [dave], Priority.medium,
-            due=45, story_points=8,
-        )
-        t_sentry = make_task(
-            "Integrate Sentry error tracking", proj_api, list_api_infra,
-            "Done", dev, [dev], Priority.medium,
-            due=-10, start=-20, story_points=2,
-        )
-        t_ci_pipeline = make_task(
-            "GitHub Actions CI: lint + test + build on PR", proj_api, list_api_infra,
-            "In Progress", alice, [alice, bob], Priority.high,
-            due=7, start=-5, story_points=3,
+        t_ism_bug_feed_dup = make_task(
+            "Fix: duplicate articles appear in feed after vote",
+            proj_ism, list_ism_be, "In Review",
+            dev, [dev], Priority.urgent,
+            due=1, story_points=2,
         )
 
-        # ------------------------------------------------------------------
-        # Mobile App — v1.0
-        # ------------------------------------------------------------------
-        t_mob_auth = make_task(
-            "Mobile OAuth login (Google + Apple)", proj_mobile, list_mob_v1,
-            "In Progress", bob, [bob, carol], Priority.urgent,
-            due=10, start=-3, story_points=5, epic=epic_mobile_launch,
+        # ==================================================================
+        # ISM — Frontend
+        # ==================================================================
+        t_ism_feed_page = make_task(
+            "Feed / timeline page with infinite scroll",
+            proj_ism, list_ism_fe, "In Progress",
+            alice, [alice, carol], Priority.high,
+            due=10, start=-4, story_points=5, epic=epic_ism_feed,
         )
-        t_mob_push = make_task(
-            "Push notification setup (FCM + APNs)", proj_mobile, list_mob_v1,
-            "Backlog", dave, [dave], Priority.high,
-            due=20, story_points=5, epic=epic_mobile_launch,
+        t_ism_editor = make_task(
+            "Article editor — rich text (TipTap) with image upload",
+            proj_ism, list_ism_fe, "Backlog",
+            carol, [carol], Priority.high,
+            due=20, story_points=8, epic=epic_ism_feed,
         )
-        t_mob_offline = make_task(
-            "Offline mode — queue mutations and sync on reconnect", proj_mobile, list_mob_v1,
-            "Backlog", bob, [bob], Priority.medium,
-            due=35, story_points=8, epic=epic_mobile_launch,
+        t_ism_topic_browser = make_task(
+            "Topic / tag browser with trending count",
+            proj_ism, list_ism_fe, "Backlog",
+            alice, [alice], Priority.medium,
+            due=28, story_points=3, epic=epic_ism_feed,
         )
-        t_mob_deeplink = make_task(
-            "Deep link handling for task/notification URLs", proj_mobile, list_mob_v1,
-            "Backlog", carol, [carol], Priority.medium,
-            due=25, story_points=3, epic=epic_mobile_launch,
+        t_ism_debate_ui = make_task(
+            "Debate page — pro/con columns with live vote tally",
+            proj_ism, list_ism_fe, "Backlog",
+            carol, [carol, alice], Priority.medium,
+            due=38, story_points=8, epic=epic_ism_debate,
         )
-        t_mob_a11y = make_task(
-            "Accessibility audit — VoiceOver & TalkBack", proj_mobile, list_mob_v1,
-            "Backlog", alice, [alice, carol], Priority.low,
-            due=40, story_points=3, epic=epic_mobile_launch,
+        t_ism_profile = make_task(
+            "Author profile page — bio, article list, follower count",
+            proj_ism, list_ism_fe, "Backlog",
+            alice, [alice], Priority.low,
+            due=45, story_points=3, epic=epic_ism_feed,
+        )
+        t_ism_bug_editor_crash = make_task(
+            "Fix: editor crashes on paste from Google Docs",
+            proj_ism, list_ism_fe, "In Progress",
+            carol, [carol], Priority.urgent,
+            due=2, story_points=2,
         )
 
-        # Mobile App — v2.0 Roadmap
-        t_mob_widgets = make_task(
-            "Home-screen widget (today's tasks)", proj_mobile, list_mob_v2,
-            "Backlog", carol, [], Priority.low,
-            due=90, story_points=5,
+        # ==================================================================
+        # ISM — App
+        # ==================================================================
+        t_ism_app_feed = make_task(
+            "Mobile feed with pull-to-refresh and skeleton loaders",
+            proj_ism, list_ism_app, "In Progress",
+            bob, [bob, dave], Priority.high,
+            due=12, start=-3, story_points=5, epic=epic_ism_feed,
         )
-        t_mob_watch = make_task(
-            "Apple Watch companion app", proj_mobile, list_mob_v2,
-            "Backlog", dave, [], Priority.none,
-            due=120, story_points=13,
+        t_ism_app_share = make_task(
+            "Share sheet integration — share article to other apps",
+            proj_ism, list_ism_app, "Backlog",
+            dave, [dave], Priority.medium,
+            due=25, story_points=3, epic=epic_ism_feed,
+        )
+        t_ism_app_notif = make_task(
+            "Notification digest — daily top articles push",
+            proj_ism, list_ism_app, "Backlog",
+            bob, [bob], Priority.low,
+            due=40, story_points=3, epic=epic_ism_feed,
         )
 
         all_tasks = [
-            t_login, t_signup, t_sso, t_onboard, t_settings, t_dark_mode,
-            t_dash_widgets, t_dash_charts, t_dash_csv, t_notif_bell, t_keyboard,
-            t_bug_login_loop, t_bug_notif_dup, t_bug_scroll, t_bug_timezone,
-            t_rate_limit, t_pagination, t_search_index, t_audit_retention,
-            t_webhook_retry, t_api_docs,
-            t_db_migrate, t_redis_cluster, t_sentry, t_ci_pipeline,
-            t_mob_auth, t_mob_push, t_mob_offline, t_mob_deeplink, t_mob_a11y,
-            t_mob_widgets, t_mob_watch,
+            # Club
+            t_club_member_api, t_club_roles, t_club_dues_api, t_club_event_api,
+            t_club_rsvp_api, t_club_invite_api, t_club_bug_dupe_invite,
+            t_club_member_dir, t_club_profile_page, t_club_dues_ui,
+            t_club_event_calendar, t_club_admin_panel, t_club_bug_mobile_nav,
+            t_club_checkin, t_club_push_events, t_club_member_card,
+            # Book
+            t_book_catalog_api, t_book_search, t_book_review_api,
+            t_book_shelf_api, t_book_progress_api, t_book_recommend,
+            t_book_bug_isbn,
+            t_book_browse, t_book_detail, t_book_shelf_ui, t_book_stats,
+            t_book_bug_cover,
+            t_book_barcode, t_book_offline, t_book_reminder,
+            # Ism
+            t_ism_post_api, t_ism_feed_api, t_ism_vote_api,
+            t_ism_comment_api, t_ism_debate_api, t_ism_moderation,
+            t_ism_bug_feed_dup,
+            t_ism_feed_page, t_ism_editor, t_ism_topic_browser,
+            t_ism_debate_ui, t_ism_profile, t_ism_bug_editor_crash,
+            t_ism_app_feed, t_ism_app_share, t_ism_app_notif,
         ]
         s.add_all(all_tasks)
         await s.flush()
 
-        # Update project next_task_number counters
-        for proj in [proj_web, proj_api, proj_mobile]:
+        for proj in [proj_club, proj_book, proj_ism]:
             proj.next_task_number = task_counters[str(proj.id)]
         await s.flush()
 
@@ -496,12 +701,11 @@ async def seed():
             priority: Priority = Priority.medium,
             due: int | None = None,
         ) -> Task:
-            # Subtask belongs to same project/list as parent
-            proj = next(p for p in [proj_web, proj_api, proj_mobile] if p.id == parent.project_id)
+            proj = next(p for p in [proj_club, proj_book, proj_ism] if p.id == parent.project_id)
             lst  = next(l for l in all_lists if l.id == parent.list_id)
             num, key = next_key(proj)
             tid = uuid4()
-            t = Task(
+            return Task(
                 id=tid,
                 workspace_id=ws.id,
                 project_id=parent.project_id,
@@ -520,180 +724,184 @@ async def seed():
                 task_number=num,
                 task_key=key,
             )
-            return t
 
-        sub_oauth_callback = make_subtask(
-            "Handle /auth/callback route & token exchange",
-            t_login, "Done", [dev], Priority.high, due=-2,
-        )
-        sub_oauth_frontend = make_subtask(
-            "Frontend redirect after successful login",
-            t_login, "In Progress", [alice], Priority.high, due=3,
-        )
-        sub_oauth_refresh = make_subtask(
-            "Silent token refresh (rotate on expiry)",
-            t_login, "Backlog", [dev], Priority.medium, due=10,
-        )
+        # Club subtasks
+        sub_club_member_model   = make_subtask("Define Member DB model + migration",         t_club_member_api, "Done",        [dev],          Priority.high,   due=-4)
+        sub_club_member_s3      = make_subtask("S3 avatar upload + signed URL helper",       t_club_member_api, "In Progress", [dev],          Priority.medium, due=8)
+        sub_club_roles_policy   = make_subtask("Write RBAC policy decorator for FastAPI",    t_club_roles,      "In Progress", [dev],          Priority.high,   due=6)
+        sub_club_roles_tests    = make_subtask("Unit tests for role enforcement",            t_club_roles,      "Backlog",     [bob],          Priority.medium, due=10)
+        sub_club_event_model    = make_subtask("Event + Ticket DB schema",                   t_club_event_api,  "Backlog",     [dave],         Priority.medium, due=18)
+        sub_club_event_notif    = make_subtask("Trigger email on event publish",             t_club_event_api,  "Backlog",     [dave],         Priority.low,    due=22)
 
-        sub_onboard_step1 = make_subtask(
-            "Step 1: workspace name input + slug preview",
-            t_onboard, "Done", [carol], Priority.medium,
-        )
-        sub_onboard_step2 = make_subtask(
-            "Step 2: invite teammates by email",
-            t_onboard, "Done", [carol], Priority.medium,
-        )
-        sub_onboard_step3 = make_subtask(
-            "Step 3: create first project",
-            t_onboard, "In Review", [alice], Priority.medium, due=4,
-        )
+        # Book subtasks
+        sub_book_isbn_cache     = make_subtask("Redis cache layer for Open Library calls",   t_book_catalog_api, "In Progress", [dev],         Priority.high,   due=6)
+        sub_book_isbn_normalize = make_subtask("Normalise ISBN-10 / ISBN-13 input",          t_book_catalog_api, "Done",        [dev],         Priority.medium, due=-2)
+        sub_book_search_index   = make_subtask("GIN index on books.title + authors",         t_book_search,     "Done",        [bob],          Priority.high,   due=-1)
+        sub_book_search_weight  = make_subtask("Weighted ts_rank (title > author > genre)",  t_book_search,     "In Progress", [bob],          Priority.medium, due=8)
 
-        sub_widget_chart = make_subtask(
-            "Line chart component (recharts)", t_dash_widgets, "Backlog", [dev], Priority.medium, due=32,
-        )
-        sub_widget_drag = make_subtask(
-            "Drag-to-reorder widget grid", t_dash_widgets, "Backlog", [bob], Priority.medium, due=35,
-        )
-
-        sub_rate_ip = make_subtask(
-            "Per-IP rate limit middleware", t_rate_limit, "In Progress", [dev], Priority.high, due=5,
-        )
-        sub_rate_user = make_subtask(
-            "Per-user rate limit for authenticated routes", t_rate_limit, "Backlog", [dev], Priority.medium, due=9,
-        )
+        # Ism subtasks
+        sub_ism_feed_score      = make_subtask("Implement scoring function + unit tests",    t_ism_feed_api,    "In Progress", [dev],          Priority.high,   due=5)
+        sub_ism_feed_cache      = make_subtask("Cache top-50 feed per user in Redis (5 min)",t_ism_feed_api,    "Backlog",     [bob],          Priority.medium, due=10)
+        sub_ism_vote_dedup      = make_subtask("Prevent double-vote with unique constraint", t_ism_vote_api,    "Done",        [bob],          Priority.high,   due=-1)
+        sub_ism_vote_undo       = make_subtask("Allow vote retraction within 60 s",          t_ism_vote_api,    "In Progress", [bob],          Priority.medium, due=8)
 
         all_subtasks = [
-            sub_oauth_callback, sub_oauth_frontend, sub_oauth_refresh,
-            sub_onboard_step1, sub_onboard_step2, sub_onboard_step3,
-            sub_widget_chart, sub_widget_drag,
-            sub_rate_ip, sub_rate_user,
+            sub_club_member_model, sub_club_member_s3,
+            sub_club_roles_policy, sub_club_roles_tests,
+            sub_club_event_model, sub_club_event_notif,
+            sub_book_isbn_cache, sub_book_isbn_normalize,
+            sub_book_search_index, sub_book_search_weight,
+            sub_ism_feed_score, sub_ism_feed_cache,
+            sub_ism_vote_dedup, sub_ism_vote_undo,
         ]
         s.add_all(all_subtasks)
         await s.flush()
 
-        # Update project counters again after subtasks
-        for proj in [proj_web, proj_api, proj_mobile]:
+        for proj in [proj_club, proj_book, proj_ism]:
             proj.next_task_number = task_counters[str(proj.id)]
         await s.flush()
 
         # ── Task Dependencies ──────────────────────────────────────────────
         deps = [
-            TaskDependency(task_id=t_signup.id,     depends_on_id=t_login.id),      # signup blocked by login infra
-            TaskDependency(task_id=t_sso.id,        depends_on_id=t_signup.id),     # SSO blocked by email signup
-            TaskDependency(task_id=t_dash_widgets.id, depends_on_id=t_onboard.id),  # dashboard after onboarding
-            TaskDependency(task_id=t_dash_charts.id,  depends_on_id=t_dash_widgets.id),
-            TaskDependency(task_id=t_dash_csv.id,     depends_on_id=t_dash_charts.id),
-            TaskDependency(task_id=t_pagination.id,   depends_on_id=t_search_index.id),
-            TaskDependency(task_id=t_mob_push.id,     depends_on_id=t_mob_auth.id),
-            TaskDependency(task_id=t_mob_deeplink.id, depends_on_id=t_mob_auth.id),
+            # Club: dues UI needs dues API; RSVP needs event API
+            TaskDependency(task_id=t_club_dues_ui.id,      depends_on_id=t_club_dues_api.id),
+            TaskDependency(task_id=t_club_rsvp_api.id,     depends_on_id=t_club_event_api.id),
+            TaskDependency(task_id=t_club_checkin.id,      depends_on_id=t_club_rsvp_api.id),
+            TaskDependency(task_id=t_club_push_events.id,  depends_on_id=t_club_event_api.id),
+            # Book: shelf UI needs shelf API; stats needs progress API
+            TaskDependency(task_id=t_book_shelf_ui.id,     depends_on_id=t_book_shelf_api.id),
+            TaskDependency(task_id=t_book_stats.id,        depends_on_id=t_book_progress_api.id),
+            TaskDependency(task_id=t_book_offline.id,      depends_on_id=t_book_shelf_api.id),
+            TaskDependency(task_id=t_book_recommend.id,    depends_on_id=t_book_review_api.id),
+            # Ism: debate UI needs debate API; moderation needs comment + post APIs
+            TaskDependency(task_id=t_ism_debate_ui.id,     depends_on_id=t_ism_debate_api.id),
+            TaskDependency(task_id=t_ism_debate_api.id,    depends_on_id=t_ism_comment_api.id),
+            TaskDependency(task_id=t_ism_moderation.id,    depends_on_id=t_ism_post_api.id),
+            TaskDependency(task_id=t_ism_editor.id,        depends_on_id=t_ism_post_api.id),
         ]
         s.add_all(deps)
         await s.flush()
 
         # ── Tags on tasks ──────────────────────────────────────────────────
         task_tag_pairs = [
-            (t_bug_login_loop, tag_bug),   (t_bug_login_loop, tag_security),
-            (t_bug_notif_dup, tag_bug),
-            (t_bug_scroll, tag_bug),       (t_bug_scroll, tag_ux),
-            (t_bug_timezone, tag_bug),
-            (t_login, tag_feature),        (t_login, tag_security),
-            (t_sso, tag_feature),          (t_sso, tag_security),
-            (t_signup, tag_feature),
-            (t_onboard, tag_feature),      (t_onboard, tag_ux),
-            (t_dark_mode, tag_ux),
-            (t_dash_widgets, tag_feature),
-            (t_dash_charts, tag_feature),  (t_dash_charts, tag_ux),
-            (t_dash_csv, tag_feature),     (t_dash_csv, tag_docs),
-            (t_notif_bell, tag_feature),   (t_notif_bell, tag_ux),
-            (t_keyboard, tag_ux),          (t_keyboard, tag_feature),
-            (t_rate_limit, tag_perf),      (t_rate_limit, tag_security),
-            (t_pagination, tag_perf),      (t_pagination, tag_tech_debt),
-            (t_search_index, tag_perf),
-            (t_webhook_retry, tag_tech_debt),
-            (t_api_docs, tag_docs),
-            (t_db_migrate, tag_tech_debt), (t_db_migrate, tag_perf),
-            (t_redis_cluster, tag_perf),
-            (t_sentry, tag_tech_debt),
-            (t_ci_pipeline, tag_tech_debt),
-            (t_mob_auth, tag_feature),     (t_mob_auth, tag_security),
-            (t_mob_push, tag_feature),
-            (t_mob_offline, tag_feature),  (t_mob_offline, tag_perf),
-            (t_mob_a11y, tag_ux),
+            # Club
+            (t_club_roles,          tag_security),
+            (t_club_dues_api,       tag_feature),  (t_club_dues_api,       tag_security),
+            (t_club_invite_api,     tag_feature),
+            (t_club_bug_dupe_invite,tag_bug),
+            (t_club_member_api,     tag_feature),
+            (t_club_member_dir,     tag_feature),  (t_club_member_dir,     tag_ux),
+            (t_club_dues_ui,        tag_ux),
+            (t_club_event_calendar, tag_ux),       (t_club_event_calendar, tag_feature),
+            (t_club_bug_mobile_nav, tag_bug),      (t_club_bug_mobile_nav, tag_ux),
+            (t_club_checkin,        tag_feature),
+            # Book
+            (t_book_catalog_api,    tag_feature),
+            (t_book_search,         tag_perf),     (t_book_search,         tag_feature),
+            (t_book_recommend,      tag_feature),  (t_book_recommend,      tag_perf),
+            (t_book_bug_isbn,       tag_bug),
+            (t_book_browse,         tag_feature),  (t_book_browse,         tag_ux),
+            (t_book_shelf_ui,       tag_ux),       (t_book_shelf_ui,       tag_feature),
+            (t_book_stats,          tag_feature),
+            (t_book_bug_cover,      tag_bug),      (t_book_bug_cover,      tag_ux),
+            (t_book_barcode,        tag_feature),
+            (t_book_offline,        tag_perf),     (t_book_offline,        tag_tech_debt),
+            # Ism
+            (t_ism_feed_api,        tag_perf),     (t_ism_feed_api,        tag_feature),
+            (t_ism_vote_api,        tag_feature),
+            (t_ism_debate_api,      tag_feature),
+            (t_ism_moderation,      tag_security), (t_ism_moderation,      tag_feature),
+            (t_ism_bug_feed_dup,    tag_bug),      (t_ism_bug_feed_dup,    tag_perf),
+            (t_ism_feed_page,       tag_ux),       (t_ism_feed_page,       tag_feature),
+            (t_ism_editor,          tag_ux),       (t_ism_editor,          tag_feature),
+            (t_ism_debate_ui,       tag_ux),       (t_ism_debate_ui,       tag_feature),
+            (t_ism_bug_editor_crash,tag_bug),
+            (t_ism_app_feed,        tag_perf),     (t_ism_app_feed,        tag_ux),
         ]
         s.add_all([TaskTag(task_id=task.id, tag_id=tag.id) for task, tag in task_tag_pairs])
         await s.flush()
 
         # ── Comments ──────────────────────────────────────────────────────
         comments = [
-            Comment(task_id=t_login.id, author_id=alice.id,
-                    body="I've reviewed the authlib docs — we should use the async client, "
-                         "not the sync wrapper. Also need to handle the `state` param to prevent CSRF."),
-            Comment(task_id=t_login.id, author_id=dev.id,
-                    body=f"Good catch @alice. I'll add `secrets.token_urlsafe(32)` to the session. "
-                         "Assigning sub-task for the callback route now.",
+            # Club
+            Comment(task_id=t_club_member_api.id, author_id=alice.id,
+                    body="Should we allow members to set a custom slug for their profile URL? "
+                         "e.g. `/members/alice-chen` vs `/members/{uuid}`"),
+            Comment(task_id=t_club_member_api.id, author_id=dev.id,
+                    body=f"Good idea — let's add an optional `slug` column, unique index, "
+                         "auto-generated from display name. @alice can you add that to the API spec?",
                     mentions=[alice.id]),
-            Comment(task_id=t_login.id, author_id=bob.id,
-                    body="Do we need to handle token revocation on logout? "
-                         "Or just clear the cookie client-side for v1?"),
+            Comment(task_id=t_club_bug_dupe_invite.id, author_id=bob.id,
+                    body="Root cause: the retry job didn't check `invite.sent_at` before re-sending. "
+                         "Fix is a simple null-check before dispatch."),
+            Comment(task_id=t_club_bug_dupe_invite.id, author_id=dev.id,
+                    body="Also add an idempotency key to the email send call so the provider "
+                         "dedupes on their side as a safety net."),
+            Comment(task_id=t_club_dues_api.id, author_id=dave.id,
+                    body="Stripe recommends storing `payment_intent_id` and using it for "
+                         "idempotent retries. Don't charge again if intent already succeeded."),
 
-            Comment(task_id=t_bug_login_loop.id, author_id=dev.id,
-                    body="Reproduced on Safari 17.3. The `SameSite=Lax` cookie is being "
-                         "dropped on the cross-origin callback. Switching to `SameSite=None; Secure` should fix it."),
-            Comment(task_id=t_bug_login_loop.id, author_id=alice.id,
-                    body="Make sure to test on iOS Safari too — it has different cookie behavior in WKWebView."),
-
-            Comment(task_id=t_onboard.id, author_id=carol.id,
-                    body="Step 2 (invite teammates) is done and in review. "
-                         "Waiting on designs for the empty-state illustration @alice.",
+            # Book
+            Comment(task_id=t_book_catalog_api.id, author_id=bob.id,
+                    body="Open Library rate-limits at 100 req/s per IP. "
+                         "The Redis cache should keep us well under that for popular ISBNs."),
+            Comment(task_id=t_book_catalog_api.id, author_id=dev.id,
+                    body="Agreed. I'm setting TTL to 24 h for metadata and 7 days for cover images "
+                         "since those almost never change."),
+            Comment(task_id=t_book_bug_isbn.id, author_id=dev.id,
+                    body="Kindle ASINs start with `B0` — they're not valid ISBNs. "
+                         "We need to detect ASIN format and route to Amazon Product API instead."),
+            Comment(task_id=t_book_search.id, author_id=bob.id,
+                    body="ts_rank with weights `{0.1, 0.2, 0.4, 1.0}` gives D→A priority. "
+                         "Title match should definitely be weight A."),
+            Comment(task_id=t_book_browse.id, author_id=carol.id,
+                    body="Figma designs are ready for the grid view. "
+                         "Filter panel slides in from the left on mobile — @alice can you review?",
                     mentions=[alice.id]),
-            Comment(task_id=t_onboard.id, author_id=alice.id,
-                    body="Illustration is ready, sending Figma link. "
-                         "Should we use the animated SVG version or static PNG?"),
-            Comment(task_id=t_onboard.id, author_id=carol.id,
-                    body="Let's go static PNG for now to keep bundle size down. "
-                         "We can animate it in Phase 2."),
+            Comment(task_id=t_book_browse.id, author_id=alice.id,
+                    body="Reviewed — looks great. One note: the active filter pill needs a clear (×) button "
+                         "that's at least 44×44px for touch targets."),
 
-            Comment(task_id=t_rate_limit.id, author_id=dave.id,
-                    body="Redis sliding window is the right call. "
-                         "Just make sure the key TTL equals the window size to avoid memory leaks."),
-            Comment(task_id=t_rate_limit.id, author_id=dev.id,
-                    body="Will do. I'm using `EXPIRE window_key 60` after each ZADD. "
-                         "Per-user limits come in the next sub-task."),
-
-            Comment(task_id=t_ci_pipeline.id, author_id=alice.id,
-                    body="First draft is up — runs pytest and ruff on every PR. "
-                         "Build step TBD once Docker push creds are sorted."),
-            Comment(task_id=t_ci_pipeline.id, author_id=bob.id,
-                    body="LGTM on the pytest step. "
-                         "Should we add a branch protection rule to require CI passing before merge?"),
-            Comment(task_id=t_ci_pipeline.id, author_id=alice.id,
-                    body="Yes — I've added the branch protection rule to main. "
-                         "Admins can still merge without review in emergencies."),
-
-            Comment(task_id=t_mob_auth.id, author_id=bob.id,
-                    body="Apple sign-in requires a `nonce` in the ID token — "
-                         "authlib handles this automatically if you set `nonce=True`."),
-            Comment(task_id=t_mob_auth.id, author_id=carol.id,
-                    body="Google OAuth on Android also needs the SHA-1 fingerprint registered "
-                         "in Firebase — @dave can you add the dev & prod fingerprints?",
-                    mentions=[dave.id]),
+            # Ism
+            Comment(task_id=t_ism_feed_api.id, author_id=bob.id,
+                    body="For the decay function, logarithmic decay `1 / log(hours + 2)` "
+                         "tends to work better than exponential for opinion content — "
+                         "older but highly-voted pieces stay visible longer."),
+            Comment(task_id=t_ism_feed_api.id, author_id=dev.id,
+                    body="Good point. I'll make the decay constant configurable via an env var "
+                         "so we can tune without a deploy."),
+            Comment(task_id=t_ism_bug_feed_dup.id, author_id=dev.id,
+                    body="Found it — the vote endpoint re-fetches the feed slice and the cursor "
+                         "pagination overlaps by 1 item. Off-by-one in the `WHERE id > :cursor` clause."),
+            Comment(task_id=t_ism_bug_editor_crash.id, author_id=carol.id,
+                    body="TipTap's `clipboardTextSerializer` strips HTML but Google Docs paste "
+                         "sends `text/html` with `<b>` tags. Need to add a pasteHTML extension "
+                         "and sanitise with DOMPurify before insert."),
+            Comment(task_id=t_ism_bug_editor_crash.id, author_id=alice.id,
+                    body="DOMPurify is already in the bundle for the comment box — "
+                         "we can reuse the same sanitiser config. @carol I'll send the snippet.",
+                    mentions=[carol.id]),
+            Comment(task_id=t_ism_moderation.id, author_id=bob.id,
+                    body="We should soft-delete flagged content (set `hidden=true`) rather than "
+                         "hard delete so moderators can review and restore if needed."),
         ]
         s.add_all(comments)
         await s.flush()
 
-        # ── Commit everything ──────────────────────────────────────────────
+        # ── Commit ────────────────────────────────────────────────────────
         await s.commit()
 
-        # ── Print summary ──────────────────────────────────────────────────
         token = create_access_token(dev.id)
+        root_count = len(all_tasks)
+        sub_count  = len(all_subtasks)
 
         print("\n✅  Seed complete!\n")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print("  Dev account")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print(f"  Email        : dev@issuehub.app")
-        print(f"  Display name : Dev (You)")
-        print(f"  Role         : Workspace owner")
+        print("  Email        : dev@issuehub.app")
+        print("  Display name : Dev (You)")
+        print("  Role         : Workspace owner")
         print()
         print("  To get a fresh token (expires in 15 min):")
         print("  POST /api/v1/dev/token?email=dev@issuehub.app")
@@ -701,20 +909,27 @@ async def seed():
         print(f"  One-time token: {token}")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print()
-        print("  Other accounts (same endpoint, swap email):")
+        print("  Other accounts (swap email in the same endpoint):")
         print("  alice@issuehub.app  — Admin")
         print("  bob@issuehub.app    — Member (Engineering team)")
         print("  carol@issuehub.app  — Member (Design team)")
         print("  dave@issuehub.app   — Member (Engineering team)")
         print()
-        print("  Workspace  : Acme Corp")
-        print("  Projects   : Web App (WEB-*), Backend API (API-*), Mobile App (MOB-*)")
-        print(f"  Tasks      : {len(all_tasks)} root tasks, {len(all_subtasks)} subtasks")
-        print(f"  Tags       : bug, feature, ux, perf, security, tech-debt, docs")
-        print(f"  Epics      : Authentication & SSO, Analytics Dashboard,")
-        print(f"               Performance Hardening, v1.0 Launch Checklist")
+        print("  Workspace : Acme Corp")
+        print()
+        print("  Projects & lists:")
+        print("  Club (CLB-*)  — Backend / Frontend / App")
+        print("  Book (BOK-*)  — Backend / Frontend / App")
+        print("  Ism  (ISM-*)  — Backend / Frontend / App")
+        print()
+        print(f"  Tasks : {root_count} root tasks, {sub_count} subtasks")
+        print("  Epics : Member Portal, Event Management,")
+        print("          Catalog & Discovery, Reading Tracker,")
+        print("          Core Feed, Debate Engine")
+        print("  Tags  : bug, feature, ux, perf, security, tech-debt, docs")
         print()
 
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    force = "--reset" in sys.argv
+    asyncio.run(seed(force_reset=force))
