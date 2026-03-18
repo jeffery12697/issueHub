@@ -37,6 +37,8 @@ from app.features.teams.repository import TeamRepository
 from app.features.notifications.repository import NotificationRepository
 from app.features.watchers.repository import WatcherRepository
 from app.features.status_mappings.repository import StatusMappingRepository
+from app.features.webhooks.repository import GitLinkRepository
+from app.features.webhooks.schemas import TaskGitLinkResponse
 from app.models.custom_field import CustomFieldDefinition, CustomFieldValue
 from app.models.epic import Epic
 from app.models.task import Task, Priority
@@ -809,3 +811,13 @@ async def bulk_delete_tasks(
     updated = await service.bulk_delete(task_ids=body.task_ids, actor_id=current_user.id)
     await session.commit()
     return BulkOperationResponse(updated=updated)
+
+
+@router.get("/tasks/{task_id}/git-links", response_model=list[TaskGitLinkResponse])
+async def list_task_git_links(
+    task_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    repo = GitLinkRepository(session)
+    return await repo.list_for_task(task_id)

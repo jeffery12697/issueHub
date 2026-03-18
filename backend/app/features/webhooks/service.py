@@ -7,6 +7,7 @@ from uuid import UUID
 from app.features.tasks.repository import TaskRepository
 from app.features.lists.repository import ListRepository
 from app.features.audit.repository import AuditRepository
+from app.features.webhooks.repository import GitLinkRepository
 from app.features.webhooks.schemas import WebhookResult
 
 # Matches task keys like PROJ-0042, BACKEND-1, TSK-00007 (1–6 digits)
@@ -24,10 +25,12 @@ class WebhookService:
         task_repo: TaskRepository,
         list_repo: ListRepository,
         audit_repo: AuditRepository,
+        git_link_repo: GitLinkRepository,
     ):
         self.task_repo = task_repo
         self.list_repo = list_repo
         self.audit_repo = audit_repo
+        self.git_link_repo = git_link_repo
 
     async def handle_pr_opened(
         self,
@@ -35,6 +38,8 @@ class WebhookService:
         branch: str,
         repo: str,
         pr_number: int | None,
+        pr_title: str | None = None,
+        pr_url: str | None = None,
     ) -> WebhookResult:
         task_keys = extract_task_keys(branch)
         linked: list[str] = []
@@ -46,6 +51,15 @@ class WebhookService:
             if not task:
                 errors.append(key)
                 continue
+            await self.git_link_repo.upsert_open(
+                task_id=task.id,
+                platform=platform,
+                repo=repo,
+                pr_number=pr_number,
+                pr_title=pr_title,
+                pr_url=pr_url,
+                branch=branch,
+            )
             await self.audit_repo.log(
                 task.id,
                 actor_id=None,
@@ -79,6 +93,8 @@ class WebhookService:
         repo: str,
         merge_sha: str | None,
         pr_number: int | None,
+        pr_title: str | None = None,
+        pr_url: str | None = None,
     ) -> WebhookResult:
         task_keys = extract_task_keys(branch)
         closed: list[str] = []
@@ -109,6 +125,16 @@ class WebhookService:
 
             task.status_id = complete_status.id
             await self.task_repo.session.flush()
+
+            await self.git_link_repo.mark_merged(
+                task_id=task.id,
+                platform=platform,
+                repo=repo,
+                pr_number=pr_number,
+                pr_title=pr_title,
+                pr_url=pr_url,
+                branch=branch,
+            )
 
             await self.audit_repo.log(
                 task.id,

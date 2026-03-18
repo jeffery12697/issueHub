@@ -16,6 +16,7 @@ from app.core.database import get_session
 from app.features.audit.repository import AuditRepository
 from app.features.lists.repository import ListRepository
 from app.features.tasks.repository import TaskRepository
+from app.features.webhooks.repository import GitLinkRepository
 from app.features.webhooks.schemas import GitHubPRPayload, GitLabMRPayload, WebhookResult
 from app.features.webhooks.service import WebhookService
 
@@ -71,6 +72,7 @@ async def git_webhook(
         task_repo=TaskRepository(session),
         list_repo=ListRepository(session),
         audit_repo=AuditRepository(session),
+        git_link_repo=GitLinkRepository(session),
     )
 
     result: WebhookResult
@@ -85,6 +87,8 @@ async def git_webhook(
                 branch=branch,
                 repo=repo,
                 pr_number=pr.pull_request.number,
+                pr_title=pr.pull_request.title,
+                pr_url=pr.pull_request.html_url,
             )
         elif pr.action == "closed" and pr.pull_request.merged:
             result = await svc.handle_pr_merged(
@@ -93,6 +97,8 @@ async def git_webhook(
                 repo=repo,
                 merge_sha=pr.pull_request.merge_commit_sha,
                 pr_number=pr.pull_request.number,
+                pr_title=pr.pull_request.title,
+                pr_url=pr.pull_request.html_url,
             )
         else:
             # Other PR actions (synchronize, labeled, etc.) — no-op
@@ -117,6 +123,8 @@ async def git_webhook(
                 branch=branch,
                 repo=repo,
                 pr_number=mr.object_attributes.iid,
+                pr_title=mr.object_attributes.title,
+                pr_url=mr.object_attributes.url,
             )
         elif mr.object_attributes.action == "merge":
             result = await svc.handle_pr_merged(
@@ -125,6 +133,8 @@ async def git_webhook(
                 repo=repo,
                 merge_sha=mr.object_attributes.merge_commit_sha,
                 pr_number=mr.object_attributes.iid,
+                pr_title=mr.object_attributes.title,
+                pr_url=mr.object_attributes.url,
             )
         else:
             result = WebhookResult(

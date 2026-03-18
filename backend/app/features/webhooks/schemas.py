@@ -2,7 +2,8 @@
 Pydantic schemas for GitHub Pull Request and GitLab Merge Request webhook payloads.
 Only the fields we actually use are declared; everything else is ignored.
 """
-from typing import Literal
+from datetime import datetime
+from uuid import UUID
 from pydantic import BaseModel
 
 
@@ -17,6 +18,8 @@ class GitHubPullRequest(BaseModel):
     head: GitHubHeadBranch
     merge_commit_sha: str | None = None
     number: int | None = None
+    title: str | None = None
+    html_url: str | None = None
 
 
 class GitHubRepository(BaseModel):
@@ -36,6 +39,8 @@ class GitLabMRAttributes(BaseModel):
     source_branch: str
     merge_commit_sha: str | None = None
     iid: int | None = None  # MR number within the project
+    title: str | None = None
+    url: str | None = None
 
 
 class GitLabProject(BaseModel):
@@ -59,3 +64,21 @@ class WebhookResult(BaseModel):
     linked: list[str]
     skipped: list[str]
     errors: list[str]
+
+
+# ── Git link response ─────────────────────────────────────────────────────────
+
+class TaskGitLinkResponse(BaseModel):
+    id: UUID
+    task_id: UUID
+    platform: str
+    repo: str
+    pr_number: int | None
+    pr_title: str | None
+    pr_url: str | None
+    branch: str
+    status: str
+    linked_at: datetime
+    merged_at: datetime | None
+
+    model_config = {"from_attributes": True}

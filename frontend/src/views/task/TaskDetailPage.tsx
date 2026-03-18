@@ -14,6 +14,7 @@ import { useUIStore } from '@/store/uiStore'
 import { useTaskSocket } from '@/hooks/useTaskSocket'
 import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import { useTaskLinks, useAddLink, useDeleteLink } from '@/api/links'
+import { useTaskGitLinks } from '@/api/gitLinks'
 import { useTimeEntries, useLogTime, useDeleteTimeEntry } from '@/api/timeEntries'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
@@ -114,6 +115,7 @@ export default function TaskDetailPage() {
   const { data: links = [] } = useTaskLinks(taskId)
   const addLink = useAddLink(taskId!)
   const deleteLink = useDeleteLink(taskId!)
+  const { data: gitLinks = [] } = useTaskGitLinks(taskId)
 
   const { data: comments = [] } = useComments(taskId!)
   const createComment = useCreateComment(taskId!)
@@ -1091,11 +1093,68 @@ export default function TaskDetailPage() {
                         <path d="M6 9v6M18 9A9 9 0 009 18"/>
                       </svg>
                       Git
+                      {gitLinks.length > 0 && (
+                        <span className="ml-1 text-[9px] font-bold bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400 px-1.5 py-0.5 rounded-full">
+                          {gitLinks.length}
+                        </span>
+                      )}
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className={`ml-auto transition-transform ${gitExpanded ? 'rotate-180' : ''}`} aria-hidden="true">
                         <path d="M6 9l6 6 6-6"/>
                       </svg>
                     </button>
                     {gitExpanded && <div className="px-4 pb-3 space-y-0.5">
+                      {/* Linked PRs / MRs */}
+                      {gitLinks.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+                            {gitLinks[0].platform === 'gitlab' ? 'Merge Requests' : 'Pull Requests'}
+                          </p>
+                          <div className="space-y-1.5">
+                            {gitLinks.map((gl) => (
+                              <div
+                                key={gl.id}
+                                className="flex items-start gap-2 px-2 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60"
+                              >
+                                {/* Platform icon */}
+                                {gl.platform === 'github' ? (
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-label="GitHub">
+                                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                                  </svg>
+                                ) : (
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500 dark:text-orange-400 shrink-0 mt-0.5" aria-label="GitLab">
+                                    <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 01-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 014.82 2a.43.43 0 01.58 0 .42.42 0 01.11.18l2.44 7.49h8.1l2.44-7.49a.42.42 0 01.11-.18.43.43 0 01.58 0 .42.42 0 01.11.18l2.44 7.51 1.22 3.78a.84.84 0 01-.3.94z"/>
+                                  </svg>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  {gl.pr_url ? (
+                                    <a
+                                      href={gl.pr_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] font-medium text-violet-600 dark:text-violet-400 hover:underline leading-snug line-clamp-2"
+                                    >
+                                      {gl.pr_title ?? `#${gl.pr_number}`}
+                                    </a>
+                                  ) : (
+                                    <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 leading-snug line-clamp-2">
+                                      {gl.pr_title ?? `#${gl.pr_number}`}
+                                    </span>
+                                  )}
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate mt-0.5">{gl.branch}</p>
+                                </div>
+                                <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                                  gl.status === 'merged'
+                                    ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400'
+                                    : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                                }`}>
+                                  {gl.status}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Copy rows */}
                       {([
                         { label: 'Task ID', value: task.task_key },
                         { label: 'Branch', value: branchSlug },
