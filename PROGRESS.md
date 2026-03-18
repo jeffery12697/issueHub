@@ -43,7 +43,8 @@
   - ✅ E-05: EpicsPage overview (card grid, color bar, progress, inline rename/status/delete)
   - ✅ E-02 frontend: Epic field in TaskDetailPage sidebar, Epic column in ProjectTasksPage + ListPage, bulk "Set epic…"
   - ✅ E-03: EpicDetailPage — inline name/desc/color/status/dates edit, progress bar, task list with remove, add-tasks search panel
-  - Next: E-04 Epic Timeline (Gantt scoped to epic)
+  - ✅ E-04: EpicTimelinePage — Gantt scoped to epic tasks + epic span row, epic accent color for bars, Overview/Timeline tabs
+  - Phase 17 complete ✅
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)

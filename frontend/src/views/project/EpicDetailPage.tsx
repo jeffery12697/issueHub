@@ -251,6 +251,21 @@ export default function EpicDetailPage() {
         />
         <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[180px]">{epic.name}</span>
 
+        <nav className="flex items-center gap-1 ml-2">
+          <Link
+            to={`/projects/${projectId}/epics/${epicId}`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
+          >
+            Overview
+          </Link>
+          <Link
+            to={`/projects/${projectId}/epics/${epicId}/timeline`}
+            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            Timeline
+          </Link>
+        </nav>
+
         <div className="ml-auto flex items-center gap-3">
           <Link
             to={`/projects/${projectId}/settings`}
