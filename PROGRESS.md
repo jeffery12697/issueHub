@@ -41,6 +41,7 @@
 ## Currently Working On
 - Phase 18: R-01, R-02, R-03 — Reporting
   - ✅ R-03: CSV export — filters respected, full columns (reporter, start_date, story_points, time_tracked, epic, custom fields), UTF-8 BOM, dynamic filename `{prefix}-tasks-{date}.csv`, "Preparing export…" toast
+  - ✅ R-01: Custom dashboard — completion rate (SVG donut), overdue count, member workload (bar chart), admin edit mode (add/remove/reorder/visibility), per-widget project filter, DB-persisted
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)

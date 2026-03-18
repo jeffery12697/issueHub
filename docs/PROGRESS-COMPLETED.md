@@ -584,3 +584,14 @@ _Completed: 2026-03-17_
 - [x] `frontend/src/api/tasks.ts` — `exportCsv` / `exportCsvForProject` accept filter params, use server-provided filename from `Content-Disposition` header
 - [x] `frontend/src/views/list/ListPage.tsx` — export button passes current filter state, shows "Preparing export…" toast
 - [x] `frontend/src/views/project/ProjectTasksPage.tsx` — export button passes current filter state, shows "Preparing export…" toast
+
+### R-01: Custom Dashboard with Widgets
+- [x] `backend/app/models/dashboard_widget.py` — new `DashboardWidget` model: workspace_id, widget_type enum (completion_rate/overdue_count/member_workload), config JSONB, order_index, visible_to_members
+- [x] `backend/alembic/versions/0026_add_dashboard_widgets.py` — migration creating dashboard_widgets table + widgettype enum
+- [x] `backend/app/features/dashboard/` — full feature module: schemas, repository (CRUD + 3 data query methods), service, router
+- [x] `backend/app/main.py` — registered dashboard router
+- [x] `backend/tests/test_dashboard.py` — 10 tests: CRUD, access control (admin vs member visibility), widget data shapes
+- [x] `frontend/src/api/dashboard.ts` — typed API client + TanStack Query hooks (list, create, update, delete, reorder, per-widget data)
+- [x] `frontend/src/views/workspace/DashboardPage.tsx` — dashboard page with dnd-kit reorder, admin edit mode (add/remove/reorder/toggle visibility), per-widget project filter dropdown, SVG donut for completion rate, horizontal bar chart for workload
+- [x] `frontend/src/components/WorkspaceHeader.tsx` — added "Dashboard" nav tab
+- [x] `frontend/src/router/index.tsx` — added `/workspaces/:workspaceId/dashboard` route
