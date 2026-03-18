@@ -42,6 +42,9 @@
 - (nothing — ready for next task)
 
 ## Recently Completed (outside phases, continued)
+- Multi-tag support: workspace-level tags (name + color), admin/owner CRUD, any member assign/remove, tag chips in List/Project/Board views, tag filter (AND logic) in all three, Tags tab in Workspace Settings, 14 backend tests (migration 0031, commit f307c2f)
+
+## Recently Completed (outside phases, continued)
 - Linked PR/MR details in task git section: task_git_links table (migration 0027), webhook captures pr_title/pr_url, GET /tasks/{id}/git-links, TaskDetailPage shows PR cards with platform icon, title link, status badge (open/merged), count badge on Git header (commit 2737c08)
 
 ## Recently Completed (outside phases, continued)
