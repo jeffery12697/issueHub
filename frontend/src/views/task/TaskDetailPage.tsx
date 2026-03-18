@@ -145,6 +145,7 @@ export default function TaskDetailPage() {
   const [priorityOpen, setPriorityOpen] = useState(false)
   const [copiedGit, setCopiedGit] = useState<string | null>(null)
   const [gitExpanded, setGitExpanded] = useState(false)
+  const [moveExpanded, setMoveExpanded] = useState(false)
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) => tasksApi.update(taskId!, data),
@@ -1003,18 +1004,30 @@ export default function TaskDetailPage() {
 
               {/* Move to List */}
               {workspaceLists.length > 1 && (
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Move to List</p>
-                  <select
-                    value=""
-                    onChange={(e) => { if (e.target.value) moveTask.mutate(e.target.value) }}
-                    className="w-full border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                <div className="border-b border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => setMoveExpanded((o) => !o)}
+                    className="w-full px-4 py-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
-                    <option value="">Move to…</option>
-                    {workspaceLists.filter((l) => l.id !== task.list_id).map((l) => (
-                      <option key={l.id} value={l.id}>{l.name}</option>
-                    ))}
-                  </select>
+                    Move to List
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className={`ml-auto transition-transform ${moveExpanded ? 'rotate-180' : ''}`} aria-hidden="true">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </button>
+                  {moveExpanded && (
+                    <div className="px-4 pb-3">
+                      <select
+                        value=""
+                        onChange={(e) => { if (e.target.value) { moveTask.mutate(e.target.value); setMoveExpanded(false) } }}
+                        className="w-full border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      >
+                        <option value="">Move to…</option>
+                        {workspaceLists.filter((l) => l.id !== task.list_id).map((l) => (
+                          <option key={l.id} value={l.id}>{l.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
 
