@@ -44,8 +44,10 @@ export type CreateTaskData = {
   list_id?: string
 }
 
-export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id'>> & {
+export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id' | 'status_id' | 'due_date'>> & {
   reviewer_id?: string | null
+  status_id?: string | null
+  due_date?: string | null
 }
 
 export const tasksApi = {

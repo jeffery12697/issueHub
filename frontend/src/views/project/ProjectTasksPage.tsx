@@ -108,6 +108,13 @@ export default function ProjectTasksPage() {
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
 
 
+  const updateTask = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof tasksApi.update>[1] }) =>
+      tasksApi.update(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['project-tasks', projectId] }),
+    onError: () => toast.error('Update failed'),
+  })
+
   const bulkUpdate = useMutation({
     mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string } }) =>
       tasksApi.bulkUpdate(taskIds, data),
@@ -634,27 +641,47 @@ export default function ProjectTasksPage() {
 
                         {/* Status */}
                         <td className="px-4 py-3">
-                          {status ? (
-                            <span
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                              style={{ backgroundColor: status.color + '20', color: status.color }}
+                          <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            {status ? (
+                              <span
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none"
+                                style={{ backgroundColor: status.color + '20', color: status.color }}
+                              >
+                                {status.name}
+                              </span>
+                            ) : (
+                              <span className="text-slate-300 dark:text-slate-600 text-sm px-2.5 py-1 pointer-events-none">—</span>
+                            )}
+                            <select
+                              value={task.status_id ?? ''}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { status_id: e.target.value || null } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
                             >
-                              {status.name}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
-                          )}
+                              <option value="">No Status</option>
+                              {(listDetails.find((l) => l.id === task.list_id)?.statuses ?? []).map((s) => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                              ))}
+                            </select>
+                          </div>
                         </td>
 
                         {/* Priority */}
                         <td className="px-4 py-3">
-                          <span className="flex items-center gap-2 text-sm font-medium capitalize text-slate-600 dark:text-slate-400">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-                              style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
-                            />
-                            {task.priority === 'none' ? '—' : task.priority}
-                          </span>
+                          <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            <span className="flex items-center gap-2 text-sm font-medium capitalize pointer-events-none">
+                              <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }} />
+                              <span className="text-slate-600 dark:text-slate-400">{task.priority === 'none' ? '—' : task.priority}</span>
+                            </span>
+                            <select
+                              value={task.priority}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { priority: e.target.value as Priority } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                            >
+                              {PRIORITIES.map((p) => (
+                                <option key={p} value={p}>{p === 'none' ? '— None' : p}</option>
+                              ))}
+                            </select>
+                          </div>
                         </td>
 
                         {/* Assignees */}
@@ -673,10 +700,17 @@ export default function ProjectTasksPage() {
 
                         {/* Due date */}
                         <td className="px-4 py-3">
-                          <DueDateBadge
-                            dueDate={task.due_date}
-                            statusComplete={status?.is_complete}
-                          />
+                          <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            <span className="pointer-events-none">
+                              <DueDateBadge dueDate={task.due_date} statusComplete={status?.is_complete} />
+                            </span>
+                            <input
+                              type="date"
+                              value={task.due_date ? task.due_date.slice(0, 10) : ''}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { due_date: e.target.value || null } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                            />
+                          </div>
                         </td>
                       </tr>
                     )

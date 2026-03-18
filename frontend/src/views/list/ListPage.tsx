@@ -221,6 +221,13 @@ export default function ListPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
   })
 
+  const updateTask = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof tasksApi.update>[1] }) =>
+      tasksApi.update(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', listId] }),
+    onError: () => toast.error('Update failed'),
+  })
+
   const bulkUpdate = useMutation({
     mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string } }) =>
       tasksApi.bulkUpdate(taskIds, data),
@@ -779,27 +786,47 @@ export default function ListPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          {task.status_id && statusMap[task.status_id] ? (
-                            <span
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                              style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
+                          <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            {task.status_id && statusMap[task.status_id] ? (
+                              <span
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none"
+                                style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
+                              >
+                                {statusMap[task.status_id].name}
+                              </span>
+                            ) : (
+                              <span className="text-slate-300 dark:text-slate-600 text-sm px-2.5 py-1 pointer-events-none">—</span>
+                            )}
+                            <select
+                              value={task.status_id ?? ''}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { status_id: e.target.value || null } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
                             >
-                              {statusMap[task.status_id].name}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
-                          )}
+                              <option value="">No Status</option>
+                              {(list?.statuses ?? []).map((s) => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                              ))}
+                            </select>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="flex items-center gap-2 text-sm font-medium capitalize">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-                              style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }}
-                            />
-                            <span className={task.priority === 'none' ? 'text-slate-400 dark:text-slate-500' : PRIORITY_COLORS[task.priority].text}>
-                              {task.priority === 'none' ? '—' : task.priority}
+                          <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            <span className="flex items-center gap-2 text-sm font-medium capitalize pointer-events-none">
+                              <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }} />
+                              <span className={task.priority === 'none' ? 'text-slate-400 dark:text-slate-500' : PRIORITY_COLORS[task.priority].text}>
+                                {task.priority === 'none' ? '—' : task.priority}
+                              </span>
                             </span>
-                          </span>
+                            <select
+                              value={task.priority}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { priority: e.target.value as Priority } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                            >
+                              {PRIORITIES.map((p) => (
+                                <option key={p} value={p}>{p === 'none' ? '— None' : p}</option>
+                              ))}
+                            </select>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <AvatarStack ids={task.assignee_ids} memberMap={memberMap} />
@@ -812,7 +839,17 @@ export default function ListPage() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
+                          <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            <span className="pointer-events-none">
+                              <DueDateBadge dueDate={task.due_date} statusComplete={task.status_id ? statusMap[task.status_id]?.is_complete : false} />
+                            </span>
+                            <input
+                              type="date"
+                              value={task.due_date ? task.due_date.slice(0, 10) : ''}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { due_date: e.target.value || null } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                            />
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <DeleteButton
