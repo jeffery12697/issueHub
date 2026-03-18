@@ -44,7 +44,7 @@ export default function ProjectPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkspaceHeader workspaceId={workspaceId!} />
 
-      <main className="max-w-4xl mx-auto py-10 px-6">
+      <main className="max-w-4xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Projects</h2>

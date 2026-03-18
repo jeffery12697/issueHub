@@ -231,7 +231,7 @@ export default function TaskDetailPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
 
       {/* Sticky Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3 sticky top-0 z-20 shadow-sm">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-2 sm:gap-3 sticky top-0 z-20 shadow-sm">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors shrink-0 text-sm font-medium"
@@ -322,7 +322,7 @@ export default function TaskDetailPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto py-8 px-6">
+      <main className="max-w-6xl mx-auto py-8 px-4 sm:px-6">
         <div className="flex gap-8 items-start">
 
           {/* LEFT — main content */}
@@ -1139,7 +1139,7 @@ function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 h-14 shadow-sm" />
-      <div className="max-w-6xl mx-auto py-8 px-6">
+      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6">
         <div className="flex gap-8">
           <div className="flex-1 space-y-5">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-6 space-y-4">

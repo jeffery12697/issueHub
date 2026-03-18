@@ -87,7 +87,7 @@ export default function BoardPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-3 shrink-0">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3 shrink-0">
         <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1">
           ← Home
         </Link>
@@ -121,7 +121,7 @@ export default function BoardPage() {
       </header>
 
       {/* Filter bar */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-3 space-y-2">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-3 space-y-2">
         <FilterBar
           fields={[
             {

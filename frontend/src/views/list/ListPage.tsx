@@ -309,7 +309,7 @@ export default function ListPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-3">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3">
         <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
         {workspace && (
           <>
@@ -362,7 +362,7 @@ export default function ListPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto py-8 px-6">
+      <main className="max-w-5xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {totalCount} task{totalCount === 1 ? '' : 's'}

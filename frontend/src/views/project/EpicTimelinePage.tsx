@@ -214,73 +214,89 @@ export default function EpicTimelinePage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
 
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-4 shrink-0">
-        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
-        {workspace && (
-          <>
-            <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
-            <Link
-              to={`/workspaces/${workspace.id}`}
-              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[110px] transition-colors"
-            >
-              {workspace.name}
-            </Link>
-          </>
-        )}
-        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
-        <Link
-          to={`/projects/${projectId}`}
-          className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[110px] transition-colors"
-        >
-          {project?.name}
-        </Link>
-        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
-        <Link
-          to={`/projects/${projectId}/epics`}
-          className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md shrink-0 transition-colors"
-        >
-          Epics
-        </Link>
-        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
-        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: accentColor }} />
-        <Link
-          to={`/projects/${projectId}/epics/${epicId}`}
-          className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px] hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
-        >
-          {epic?.name ?? '…'}
-        </Link>
-
-        <nav className="flex items-center gap-1 ml-2">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shrink-0">
+        <div className="px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
+          <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
+          {workspace && (
+            <>
+              <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
+              <Link
+                to={`/workspaces/${workspace.id}`}
+                className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[70px] sm:max-w-[110px] transition-colors"
+              >
+                {workspace.name}
+              </Link>
+            </>
+          )}
+          <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
+          <Link
+            to={`/projects/${projectId}`}
+            className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[70px] sm:max-w-[110px] transition-colors"
+          >
+            {project?.name}
+          </Link>
+          <span className="text-slate-200 dark:text-slate-700 hidden sm:block shrink-0">/</span>
+          <span className="w-2.5 h-2.5 rounded-full shrink-0 hidden sm:block" style={{ background: accentColor }} />
           <Link
             to={`/projects/${projectId}/epics/${epicId}`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[100px] sm:max-w-[150px] hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+          >
+            {epic?.name ?? '…'}
+          </Link>
+
+          {/* Nav inline — desktop only */}
+          <nav className="hidden sm:flex items-center gap-1 ml-2" aria-label="Epic navigation">
+            <Link
+              to={`/projects/${projectId}/epics/${epicId}`}
+              className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              Overview
+            </Link>
+            <Link
+              to={`/projects/${projectId}/epics/${epicId}/timeline`}
+              className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
+            >
+              Timeline
+            </Link>
+          </nav>
+
+          <div className="ml-auto flex items-center gap-2 shrink-0">
+            <Link
+              to={`/projects/${projectId}/settings`}
+              className="p-2 rounded-md text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              title="Project settings"
+              aria-label="Project settings"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </Link>
+            <HeaderActions />
+          </div>
+        </div>
+
+        {/* Nav second row — mobile only */}
+        <nav
+          className="sm:hidden flex items-center gap-1 px-3 pb-2 overflow-x-auto border-t border-slate-100 dark:border-slate-800"
+          aria-label="Epic navigation"
+        >
+          <Link
+            to={`/projects/${projectId}/epics/${epicId}`}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap"
           >
             Overview
           </Link>
           <Link
             to={`/projects/${projectId}/epics/${epicId}/timeline`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300 whitespace-nowrap"
           >
             Timeline
           </Link>
         </nav>
-
-        <div className="ml-auto flex items-center gap-3">
-          <Link
-            to={`/projects/${projectId}/settings`}
-            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            Settings
-          </Link>
-          <HeaderActions />
-        </div>
       </header>
 
       {/* Toolbar */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-3 flex items-center gap-3 shrink-0">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-3 flex items-center gap-3 shrink-0">
         {/* Zoom */}
         <div className="flex items-center gap-1">
           {(['day', 'week', 'month'] as ZoomLevel[]).map((z) => (

@@ -34,7 +34,7 @@ export default function ListSettingsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
         <Link
           to={`/projects/${projectId}/lists/${listId}`}
           className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
@@ -48,7 +48,7 @@ export default function ListSettingsPage() {
         <div className="ml-auto"><HeaderActions /></div>
       </header>
 
-      <main className="max-w-3xl mx-auto py-8 px-6">
+      <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         <div className="flex items-center gap-2 mb-6">
           <button
             onClick={() => setActiveTab('statuses')}

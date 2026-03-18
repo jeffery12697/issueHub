@@ -30,7 +30,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center justify-between">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-violet-600 rounded-md flex items-center justify-center shrink-0">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -44,7 +44,7 @@ export default function WorkspacePage() {
         <HeaderActions />
       </header>
 
-      <main className="max-w-3xl mx-auto py-12 px-6">
+      <main className="max-w-3xl mx-auto py-8 sm:py-12 px-4 sm:px-6">
         {/* Greeting */}
         <div className="mb-10">
           <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-1">{greeting}</p>

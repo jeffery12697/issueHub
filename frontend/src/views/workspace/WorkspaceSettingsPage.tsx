@@ -75,7 +75,7 @@ export default function WorkspaceSettingsPage() {
   if (members.length > 0 && !canManageSettings) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
           <Link
             to={`/workspaces/${workspaceId}`}
             className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
@@ -87,7 +87,7 @@ export default function WorkspaceSettingsPage() {
           <span className="text-slate-300 dark:text-slate-600">/</span>
           <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Settings</span>
         </header>
-        <main className="max-w-3xl mx-auto py-20 px-6 text-center">
+        <main className="max-w-3xl mx-auto py-12 sm:py-20 px-4 sm:px-6 text-center">
           <p className="text-slate-700 dark:text-slate-300 font-semibold text-lg mb-2">Access denied</p>
           <p className="text-slate-400 dark:text-slate-500 text-sm">Only workspace owners and admins can manage settings.</p>
         </main>
@@ -97,7 +97,7 @@ export default function WorkspaceSettingsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-14 flex items-center gap-3">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
         <Link
           to={`/workspaces/${workspaceId}`}
           className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
@@ -111,7 +111,7 @@ export default function WorkspaceSettingsPage() {
         <div className="ml-auto"><HeaderActions /></div>
       </header>
 
-      <main className="max-w-3xl mx-auto py-10 px-6">
+      <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         {/* Tab bar */}
         <div className="flex items-center gap-2 mb-6">
           {(['members', 'teams', 'templates'] as ActiveTab[]).map((tab) => (

@@ -1,8 +1,7 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { projectsApi, useProjectAnalytics } from '@/api/projects'
-import { workspacesApi } from '@/api/workspaces'
-import HeaderActions from '@/components/HeaderActions'
+import ProjectHeader from '@/components/ProjectHeader'
 
 export default function ProjectAnalyticsPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -11,12 +10,6 @@ export default function ProjectAnalyticsPage() {
     queryKey: ['project', projectId],
     queryFn: () => projectsApi.get(projectId!),
     enabled: !!projectId,
-  })
-
-  const { data: workspace } = useQuery({
-    queryKey: ['workspace', project?.workspace_id],
-    queryFn: () => workspacesApi.get(project!.workspace_id),
-    enabled: !!project?.workspace_id,
   })
 
   const { data: analytics, isLoading } = useProjectAnalytics(projectId)
@@ -28,62 +21,9 @@ export default function ProjectAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 h-16 flex items-center gap-4">
-        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
-        {workspace && (
-          <>
-            <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
-            <Link
-              to={`/workspaces/${workspace.id}`}
-              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950 px-2 py-0.5 rounded-md truncate max-w-[140px] transition-colors"
-            >
-              {workspace.name}
-            </Link>
-          </>
-        )}
-        <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
-        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">{project?.name}</span>
-        <nav className="flex items-center gap-1 ml-2">
-          <Link
-            to={`/projects/${projectId}`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            All Tasks
-          </Link>
-          <Link
-            to={`/projects/${projectId}/epics`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            Epics
-          </Link>
-          <Link
-            to={`/projects/${projectId}/gantt`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            Timeline
-          </Link>
-          <Link
-            to={`/projects/${projectId}/analytics`}
-            className="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300"
-          >
-            Analytics
-          </Link>
-        </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <Link
-            to={`/projects/${projectId}/settings`}
-            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            Settings
-          </Link>
-          <HeaderActions />
-        </div>
-      </header>
+      <ProjectHeader projectId={projectId!} activeTab="analytics" />
 
-      <main className="max-w-3xl mx-auto py-10 px-6">
+      <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
           <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
@@ -93,7 +33,7 @@ export default function ProjectAnalyticsPage() {
 
         {isLoading ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl h-24 animate-pulse" />
               ))}
@@ -102,7 +42,7 @@ export default function ProjectAnalyticsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <StatCard
                 label="Total Tasks"
                 value={total}
