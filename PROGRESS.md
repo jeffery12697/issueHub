@@ -46,6 +46,7 @@
 - Global search improvements: search by task key (PROJ-42), show project › list in results, visible on all pages, searches comments
 - pg_trgm GIN indexes on tasks.title, tasks.task_key, comments.body for fast ILIKE search at scale
 - Design quality pass: normalize (emoji → SVG, priority token dedup), arrange (redundant headings, spacing rhythm), colorize (priority text, overdue badge)
+- Impeccable audit → normalize → harden: design token compliance, SVG icon system, avatar dedup, ARIA dialog/menu/focus patterns, keyboard drag-and-drop, responsive padding
 - Bulk move tasks between lists (list page + project page), restricted to same-project lists
 - Status mapping (S-04): cross-list status resolution (explicit rule → name match → null) on move and bulk move
 - Status sort order: drag-to-reorder in List Settings and workspace list template editor; order_index persisted and restored on template apply
