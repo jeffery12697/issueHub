@@ -132,9 +132,13 @@ export default function FilterBar({
       {rules.length > 0 && (
         <button
           onClick={() => onRulesChange([], true)}
-          className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50"
+          aria-label="Clear all filters"
+          className="h-8 flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50 dark:hover:bg-red-950"
         >
-          ✕ Clear all
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+          Clear all
         </button>
       )}
     </div>

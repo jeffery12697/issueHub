@@ -4,20 +4,7 @@ import { useWorkload } from '@/api/workspaces'
 import WorkspaceHeader from '@/components/WorkspaceHeader'
 import type { Priority } from '@/api/tasks'
 import { PRIORITY_DOT_COLORS } from '@/lib/priority'
-
-// Muted palette keeps member avatars legible without adding color noise
-const AVATAR_COLORS: [string, string][] = [
-  ['bg-violet-100', 'text-violet-700'],
-  ['bg-sky-100',    'text-sky-700'],
-  ['bg-emerald-100','text-emerald-700'],
-  ['bg-amber-100',  'text-amber-700'],
-  ['bg-rose-100',   'text-rose-700'],
-  ['bg-indigo-100', 'text-indigo-700'],
-]
-
-function avatarColor(name: string): [string, string] {
-  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
-}
+import { avatarColor } from '@/lib/avatar'
 
 type WorkloadMember = {
   user_id: string
@@ -112,7 +99,9 @@ function MemberCard({ member }: { member: WorkloadMember }) {
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${loadColor}`}>
           {taskLoad}{spLoad ? ` · ${spLoad}` : ''}
         </span>
-        <span className="text-slate-300 dark:text-slate-600 text-xs ml-1">{expanded ? '▲' : '▼'}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 dark:text-slate-600 ml-1 shrink-0 transition-transform" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }} aria-hidden="true">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </button>
 
       {expanded && (

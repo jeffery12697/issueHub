@@ -4,21 +4,7 @@ import { Link } from 'react-router-dom'
 import { workspacesApi, type Workspace } from '@/api/workspaces'
 import { useAuthStore } from '@/store/authStore'
 import HeaderActions from '@/components/HeaderActions'
-
-// Muted palette — distinguishable without saturated color noise
-const AVATAR_COLORS: [string, string][] = [
-  ['bg-violet-100', 'text-violet-700'],
-  ['bg-sky-100',    'text-sky-700'],
-  ['bg-emerald-100','text-emerald-700'],
-  ['bg-amber-100',  'text-amber-700'],
-  ['bg-rose-100',   'text-rose-700'],
-  ['bg-indigo-100', 'text-indigo-700'],
-]
-
-function avatarColor(name: string) {
-  const idx = name.charCodeAt(0) % AVATAR_COLORS.length
-  return AVATAR_COLORS[idx]
-}
+import { avatarColor } from '@/lib/avatar'
 
 export default function WorkspacePage() {
   const { user } = useAuthStore()
@@ -62,7 +48,7 @@ export default function WorkspacePage() {
         {/* Greeting */}
         <div className="mb-10">
           <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-1">{greeting}</p>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {user?.display_name ? `${user.display_name}` : 'Welcome back'}
           </h1>
           <p className="text-base text-slate-500 dark:text-slate-400 mt-1.5">

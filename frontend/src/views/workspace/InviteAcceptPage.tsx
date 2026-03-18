@@ -51,7 +51,11 @@ export default function InviteAcceptPage() {
   if (accepted) {
     return (
       <PageShell>
-        <div className="text-green-600 text-4xl mb-3">✓</div>
+        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
         <p className="text-slate-800 dark:text-slate-200 font-semibold text-lg mb-1">You're in!</p>
         <p className="text-slate-400 dark:text-slate-500 text-sm">Redirecting you to the workspace…</p>
       </PageShell>
@@ -60,7 +64,12 @@ export default function InviteAcceptPage() {
 
   return (
     <PageShell>
-      <div className="text-3xl mb-4">✉️</div>
+      <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-violet-400" aria-hidden="true">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <polyline points="22,6 12,13 2,6" />
+        </svg>
+      </div>
       <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Workspace invitation</h1>
       <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
         You've been invited to join a workspace as <strong className="text-slate-700 dark:text-slate-300 capitalize">{invite.role}</strong>.
@@ -115,8 +124,15 @@ function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm px-10 py-12 max-w-md w-full text-center">
-        <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center justify-center gap-2">
-          <span>&#9680;</span> IssueHub
+        <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center justify-center gap-2.5">
+          <div className="w-7 h-7 bg-violet-600 rounded-md flex items-center justify-center shrink-0" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="4" width="12" height="1.5" rx="0.75" fill="white" />
+              <rect x="2" y="7.25" width="9" height="1.5" rx="0.75" fill="white" />
+              <rect x="2" y="10.5" width="6" height="1.5" rx="0.75" fill="white" />
+            </svg>
+          </div>
+          IssueHub
         </div>
         {children}
       </div>

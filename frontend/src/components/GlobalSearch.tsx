@@ -75,7 +75,9 @@ export default function GlobalSearch() {
   return (
     <div ref={containerRef} className="relative">
       <div className="flex items-center gap-1.5 h-8 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 bg-white dark:bg-slate-800 focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-400 transition-all w-32 sm:w-48">
-        <span className="text-slate-400 text-xs select-none" aria-hidden="true">🔍</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 shrink-0" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input
           type="text"
           value={inputValue}
