@@ -10,13 +10,18 @@ from app.features.audit.repository import AuditRepository
 from app.features.webhooks.repository import GitLinkRepository
 from app.features.webhooks.schemas import WebhookResult
 
-# Matches task keys like PROJ-0042, BACKEND-1, TSK-00007 (1–6 digits)
+# Matches task keys like PROJ-0042, BACKEND-1, TSK-00007 (1–6 digits), case-insensitive
 # No word boundaries — underscore is a word char so \b fails on JEFF-0006_desc style branches
-_TASK_KEY_RE = re.compile(r"([A-Z]+-\d{1,6})")
+_TASK_KEY_RE = re.compile(r"([A-Z]+-\d{1,6})", re.IGNORECASE)
 
 
 def extract_task_keys(text: str) -> list[str]:
-    return list(dict.fromkeys(_TASK_KEY_RE.findall(text)))  # unique, order-preserved
+    # Normalize to stored format: uppercase prefix + 5-digit zero-padded number (e.g. jeff-0008 → JEFF-00008)
+    normalized = []
+    for raw in _TASK_KEY_RE.findall(text):
+        prefix, num = raw.rsplit("-", 1)
+        normalized.append(f"{prefix.upper()}-{int(num):05d}")
+    return list(dict.fromkeys(normalized))  # unique, order-preserved
 
 
 class WebhookService:
