@@ -880,6 +880,41 @@ async def seed(force_reset: bool = False):
             due=22, story_points=3,
         )
 
+        # ── Cross-list feature tasks ───────────────────────────────────────
+        #
+        # These parent tasks live in the Backend list (the blocking layer).
+        # Their subtasks are spread across Backend, Frontend, App, and UI lists
+        # because each discipline owns a distinct piece of the same feature.
+        #
+        # Rationale: the feature task anchors in Backend because nothing else
+        # can start until the API contract is settled. The parent's completion
+        # is gated on ALL subtasks finishing, regardless of which list they live in.
+        #
+
+        # Club — "Event check-in flow" (parent in Backend; subs in BE / FE / App / UI)
+        t_club_checkin_flow = make_task(
+            "Event check-in flow — end-to-end",
+            proj_club, list_club_be, "In Progress",
+            dev, [dev], Priority.high,
+            due=18, start=-1, story_points=13, epic=epic_club_events,
+            description="Full check-in experience: QR token generation (backend), "
+                        "attendee management page (frontend), QR scanner screen (app), "
+                        "and success/error states (UI). "
+                        "Parent lives in Backend — the API contract must be finalised "
+                        "before any other list can start their piece.",
+        )
+
+        # Book — "Borrow / reserve a book" (parent in Backend; subs in BE / FE / App)
+        t_book_borrow_flow = make_task(
+            "Borrow / reserve a book — end-to-end",
+            proj_book, list_book_be, "Backlog",
+            bob, [bob], Priority.high,
+            due=35, story_points=13, epic=epic_book_catalog,
+            description="Reserve API + hold queue (backend), reservation UI + confirmation "
+                        "page (frontend), one-tap reserve from barcode scan (app). "
+                        "Parent lives in Backend as the API drives all other pieces.",
+        )
+
         all_tasks = [
             # Club
             t_club_member_api, t_club_roles, t_club_dues_api, t_club_event_api,
@@ -913,6 +948,8 @@ async def seed(force_reset: bool = False):
             t_ism_ui_vote_animation, t_ism_ui_a11y,
             t_ism_devops_ci, t_ism_devops_k8s, t_ism_devops_cdn,
             t_ism_devops_logging, t_ism_devops_secrets,
+            # Cross-list feature tasks (parent in Backend; subtasks span multiple lists)
+            t_club_checkin_flow, t_book_borrow_flow,
         ]
         s.add_all(all_tasks)
         await s.flush()
@@ -929,16 +966,17 @@ async def seed(force_reset: bool = False):
             assignees: list[User] | None = None,
             priority: Priority = Priority.medium,
             due: int | None = None,
+            list_override: List | None = None,  # place subtask in a different list than parent
         ) -> Task:
             proj = next(p for p in [proj_club, proj_book, proj_ism] if p.id == parent.project_id)
-            lst  = next(l for l in all_lists if l.id == parent.list_id)
+            lst  = list_override if list_override else next(l for l in all_lists if l.id == parent.list_id)
             num, key = next_key(proj)
             tid = uuid4()
             return Task(
                 id=tid,
                 workspace_id=ws.id,
                 project_id=parent.project_id,
-                list_id=parent.list_id,
+                list_id=lst.id,
                 parent_task_id=parent.id,
                 status_id=st(lst, status_name).id,
                 reporter_id=parent.reporter_id,
@@ -968,6 +1006,45 @@ async def seed(force_reset: bool = False):
         sub_book_search_index   = make_subtask("GIN index on books.title + authors",         t_book_search,     "Done",        [bob],          Priority.high,   due=-1)
         sub_book_search_weight  = make_subtask("Weighted ts_rank (title > author > genre)",  t_book_search,     "In Progress", [bob],          Priority.medium, due=8)
 
+        # Club — cross-list subtasks for "Event check-in flow"
+        sub_checkin_api   = make_subtask(
+            "QR token generation + POST /events/{id}/checkin endpoint",
+            t_club_checkin_flow, "In Progress", [dev], Priority.high, due=10,
+            # stays in Backend (parent's list — the API layer)
+        )
+        sub_checkin_fe    = make_subtask(
+            "Check-in management page — attendee list + manual override",
+            t_club_checkin_flow, "Backlog", [carol], Priority.high, due=14,
+            list_override=list_club_fe,   # lives in Frontend
+        )
+        sub_checkin_app   = make_subtask(
+            "QR scanner screen — camera permission + decode + confirm toast",
+            t_club_checkin_flow, "Backlog", [bob], Priority.high, due=16,
+            list_override=list_club_app,  # lives in App
+        )
+        sub_checkin_ui    = make_subtask(
+            "Check-in success / failure states — animations + error copy",
+            t_club_checkin_flow, "Backlog", [alice], Priority.medium, due=17,
+            list_override=list_club_ui,   # lives in UI
+        )
+
+        # Book — cross-list subtasks for "Borrow / reserve a book"
+        sub_borrow_api    = make_subtask(
+            "POST /books/{id}/reserve + availability check + hold queue",
+            t_book_borrow_flow, "Backlog", [bob], Priority.high, due=28,
+            # stays in Backend
+        )
+        sub_borrow_fe     = make_subtask(
+            "Reserve button + confirmation modal on book detail page",
+            t_book_borrow_flow, "Backlog", [carol], Priority.high, due=30,
+            list_override=list_book_fe,   # lives in Frontend
+        )
+        sub_borrow_app    = make_subtask(
+            "One-tap reserve from barcode scan result screen",
+            t_book_borrow_flow, "Backlog", [dave], Priority.medium, due=32,
+            list_override=list_book_app,  # lives in App
+        )
+
         # Ism subtasks
         sub_ism_feed_score      = make_subtask("Implement scoring function + unit tests",    t_ism_feed_api,    "In Progress", [dev],          Priority.high,   due=5)
         sub_ism_feed_cache      = make_subtask("Cache top-50 feed per user in Redis (5 min)",t_ism_feed_api,    "Backlog",     [bob],          Priority.medium, due=10)
@@ -975,11 +1052,15 @@ async def seed(force_reset: bool = False):
         sub_ism_vote_undo       = make_subtask("Allow vote retraction within 60 s",          t_ism_vote_api,    "In Progress", [bob],          Priority.medium, due=8)
 
         all_subtasks = [
-            sub_club_member_model, sub_club_member_s3,
+            sub_club_member_model, sub_club_member_s3,  # noqa: F821 — defined above
             sub_club_roles_policy, sub_club_roles_tests,
             sub_club_event_model, sub_club_event_notif,
+            # cross-list: Club check-in flow (BE → FE → App → UI)
+            sub_checkin_api, sub_checkin_fe, sub_checkin_app, sub_checkin_ui,
             sub_book_isbn_cache, sub_book_isbn_normalize,
             sub_book_search_index, sub_book_search_weight,
+            # cross-list: Book borrow flow (BE → FE → App)
+            sub_borrow_api, sub_borrow_fe, sub_borrow_app,
             sub_ism_feed_score, sub_ism_feed_cache,
             sub_ism_vote_dedup, sub_ism_vote_undo,
         ]
@@ -1173,6 +1254,7 @@ async def seed(force_reset: bool = False):
         print("  Ism  (ISM-*)  — Backend / Frontend / App / UI / DevOps")
         print()
         print(f"  Tasks : {root_count} root tasks, {sub_count} subtasks")
+        print("          (incl. 2 cross-list feature tasks: CLB check-in flow, BOK borrow flow)")
         print("  Epics : Member Portal, Event Management,")
         print("          Catalog & Discovery, Reading Tracker,")
         print("          Core Feed, Debate Engine")
