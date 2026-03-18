@@ -76,6 +76,7 @@ class TaskRepository:
             start_date=dto.start_date,
             story_points=dto.story_points,
             parent_task_id=dto.parent_task_id,
+            epic_id=dto.epic_id,
             order_index=order_index,
             depth=depth,
             path=Ltree("placeholder"),
@@ -260,6 +261,8 @@ class TaskRepository:
             task.start_date = dto.start_date
         if dto.story_points is not None:
             task.story_points = dto.story_points
+        if dto.epic_id is not _UNSET:
+            task.epic_id = dto.epic_id  # None clears it, UUID sets it
         await self.session.flush()
         return task
 

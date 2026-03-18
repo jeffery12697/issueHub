@@ -34,6 +34,7 @@ import app.models.team  # noqa
 import app.models.watcher  # noqa
 import app.models.time_entry  # noqa
 import app.models.automation  # noqa
+import app.models.epic  # noqa
 
 _base_url = settings.database_url.rsplit("/", 1)[0]
 TEST_DATABASE_URL = f"{_base_url}/issuehub_test"
@@ -51,6 +52,7 @@ _TRUNCATE_ORDER = [
     "custom_field_definitions",
     "list_templates",
     "tasks",
+    "epics",
     "list_statuses",
     "lists",
     "projects",

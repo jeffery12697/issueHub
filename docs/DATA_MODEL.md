@@ -4,8 +4,10 @@
 ```
 Workspace (1) ──< Project (N)
 Project   (1) ──< List (N)
+Project   (1) ──< Epic (N)   [feature grouping for PMs]
 List      (1) ──< Task (N)
 Task      (1) ──< Task (N)  [self-referential subtasks]
+Task      (N) ──> Epic (1)  [nullable — feature ownership]
 ```
 
 ## Core Tables
@@ -48,6 +50,26 @@ Task      (1) ──< Task (N)  [self-referential subtasks]
 | is_archived | BOOL DEFAULT false | |
 | created_at | TIMESTAMPTZ | |
 | updated_at | TIMESTAMPTZ | |
+
+### Epic
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| project_id | UUID FK → Project | |
+| workspace_id | UUID FK | denormalized for query perf |
+| name | TEXT NOT NULL | |
+| description | TEXT | |
+| color | VARCHAR(7) | hex, for timeline display |
+| status | ENUM | not_started / in_progress / done |
+| start_date | TIMESTAMPTZ | nullable |
+| due_date | TIMESTAMPTZ | nullable |
+| order_index | FLOAT | for manual sort in overview |
+| created_by | UUID FK → User | |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
+
+> Task gains a nullable `epic_id UUID FK → Epic` column.
+> Deleting an Epic sets `task.epic_id = NULL` (ON DELETE SET NULL).
 
 ### TaskDependency
 | Column | Type | Notes |

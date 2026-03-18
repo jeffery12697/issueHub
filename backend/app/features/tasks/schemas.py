@@ -27,6 +27,7 @@ class CreateTaskDTO:
     start_date: datetime | None = None
     story_points: int | None = None
     parent_task_id: UUID | None = None
+    epic_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ class UpdateTaskDTO:
     due_date: datetime | None = None
     start_date: datetime | None = None
     story_points: int | None = None
+    epic_id: object = None  # _UNSET=not provided, None=clear, UUID=set
 
     def __post_init__(self):
         # Can't set default to _UNSET in frozen dataclass easily; caller must pass _UNSET explicitly
@@ -59,6 +61,7 @@ class CreateTaskRequest(BaseModel):
     story_points: int | None = None
     status_id: UUID | None = None
     list_id: UUID | None = None  # optional override for subtask list assignment
+    epic_id: UUID | None = None
 
     def to_dto(
         self,
@@ -82,6 +85,7 @@ class CreateTaskRequest(BaseModel):
             project_id=project_id,
             reporter_id=reporter_id,
             parent_task_id=parent_task_id,
+            epic_id=self.epic_id,
         )
 
 
@@ -95,6 +99,7 @@ class UpdateTaskRequest(BaseModel):
     due_date: datetime | None = None
     start_date: datetime | None = None
     story_points: int | None = None
+    epic_id: UUID | None = None
 
     def to_dto(self) -> "UpdateTaskDTO":
         return UpdateTaskDTO(
@@ -107,6 +112,7 @@ class UpdateTaskRequest(BaseModel):
             due_date=self.due_date,
             start_date=self.start_date,
             story_points=self.story_points,
+            epic_id=self.epic_id if 'epic_id' in self.model_fields_set else _UNSET,
         )
 
 
@@ -164,6 +170,7 @@ class TaskResponse(BaseModel):
     subtask_count: int = 0
     task_number: int | None = None
     task_key: str | None = None
+    epic_id: UUID | None = None
 
     model_config = {"from_attributes": True}
 

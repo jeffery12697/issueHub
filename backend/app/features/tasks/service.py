@@ -359,7 +359,7 @@ def _diff(task: Task, dto: UpdateTaskDTO) -> dict:
     """Return {field: [old, new]} for changed fields."""
     from app.features.tasks.schemas import _UNSET
     changes = {}
-    fields = ["title", "description", "priority", "status_id", "reviewer_id", "due_date"]
+    fields = ["title", "description", "priority", "status_id", "reviewer_id", "due_date", "epic_id"]
     for field in fields:
         new_val = getattr(dto, field)
         if new_val is _UNSET:

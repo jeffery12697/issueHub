@@ -57,6 +57,7 @@ issueHub/
 | `docs/stories/AUTOMATION.md` | AU-01 ~ AU-04: Trigger-action rules, overdue notify, auto-close subtasks, Git integration |
 | `docs/stories/NOTIFICATIONS.md` | N-01 ~ N-03: Task watchers, notification frequency, @mention |
 | `docs/stories/FILTERS.md` | F-01 ~ F-03: Global search, saved views, group-by |
+| `docs/stories/EPICS.md` | E-01 ~ E-05: Epic CRUD, task assignment, detail view, timeline, overview |
 
 ## Design / Frontend
 

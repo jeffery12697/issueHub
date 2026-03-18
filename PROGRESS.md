@@ -37,7 +37,11 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 17: TBD
+- Phase 17: E-01 ~ E-05 — Epics (feature grouping for PMs)
+  - Epic sits alongside List within a Project (not a replacement)
+  - Task gets nullable `epic_id` FK — List = functional ownership, Epic = feature ownership
+  - Stories: E-01 CRUD, E-02 assign tasks, E-03 detail view, E-04 timeline/Gantt, E-05 overview
+  - See `docs/stories/EPICS.md`
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)
@@ -49,6 +53,10 @@
 - Status sort order: drag-to-reorder in List Settings and workspace list template editor; order_index persisted and restored on template apply
 - Column sorting for List and Project task views: Title, Priority, Due Date (backend sort_by/sort_dir params + clickable column headers)
 - Quick search filter + Hide completed toggle on List and Project task views
+- Board view capped at 100 tasks (was unbounded); added "Switch to List view" notice when total > 100
+- Board view full filter bar: status/priority server-side filters, custom field filters, search, hide completed (matching List page)
+- Inline single-click editing for status, priority, and due date in List and Project table views (invisible overlay pattern)
+- Project page CSV export button (exports task_key + list column in addition to base fields)
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`
