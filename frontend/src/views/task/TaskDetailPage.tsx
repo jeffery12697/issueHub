@@ -287,6 +287,28 @@ export default function TaskDetailPage() {
               ↑ Promote
             </button>
           )}
+          {watchStatus?.watching ? (
+            <button
+              onClick={() => unwatchTask.mutate()}
+              className="flex items-center gap-1.5 text-xs font-medium text-violet-600 bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+              Watching
+            </button>
+          ) : (
+            <button
+              onClick={() => watchTask.mutate()}
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-700 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Watch
+            </button>
+          )}
           <DeleteButton
             variant="button"
             message={`Delete "${task.title}"? All subtasks and comments will be removed.`}
@@ -1051,31 +1073,6 @@ export default function TaskDetailPage() {
                 )
               })()}
 
-              {/* Watch */}
-              <div className="px-4 py-3">
-                {watchStatus?.watching ? (
-                  <button
-                    onClick={() => unwatchTask.mutate()}
-                    className="w-full flex items-center justify-center gap-2 text-xs font-medium text-violet-600 bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                    </svg>
-                    Watching
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => watchTask.mutate()}
-                    className="w-full flex items-center justify-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-700 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    Watch
-                  </button>
-                )}
-              </div>
 
             </div>
           </div>
