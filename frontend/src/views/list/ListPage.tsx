@@ -50,6 +50,8 @@ export default function ListPage() {
   const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(1)
+  const [sortBy, setSortBy] = useState<string | undefined>(undefined)
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [groupBy, setGroupBy] = useState<GroupBy>('none')
   const [showViewsPanel, setShowViewsPanel] = useState(false)
   const [newViewName, setNewViewName] = useState('')
@@ -62,7 +64,7 @@ export default function ListPage() {
   const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
 
   const { data: pagedResult, isLoading } = useQuery({
-    queryKey: ['tasks', listId, filterRules, cfFilters, page],
+    queryKey: ['tasks', listId, filterRules, cfFilters, page, sortBy, sortDir],
     queryFn: () => tasksApi.listPaged(listId!, {
       page,
       page_size: PAGE_SIZE,
@@ -72,6 +74,8 @@ export default function ListPage() {
       priority_not: priorityNots.join(',') || undefined,
       cf: cfFilters,
       include_subtasks: true,
+      sort_by: sortBy,
+      sort_dir: sortDir,
     }),
   })
 
@@ -639,12 +643,12 @@ export default function ListPage() {
                       className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                     />
                   </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</th>
+                  <SortTh col="title" label="Title" sortBy={sortBy} sortDir={sortDir} onSort={(c, d) => { setSortBy(c); setSortDir(d); setPage(1) }} />
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
+                  <SortTh col="priority" label="Priority" sortBy={sortBy} sortDir={sortDir} onSort={(c, d) => { setSortBy(c); setSortDir(d); setPage(1) }} />
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Assignees</th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reviewer</th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Due Date</th>
+                  <SortTh col="due_date" label="Due Date" sortBy={sortBy} sortDir={sortDir} onSort={(c, d) => { setSortBy(c); setSortDir(d); setPage(1) }} />
                   <th className="px-4 py-3.5"></th>
                 </tr>
               </thead>
@@ -870,6 +874,32 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
     )
   }
   return <span className="text-xs text-slate-500">{label}</span>
+}
+
+function SortTh({
+  col, label, sortBy, sortDir, onSort,
+}: {
+  col: string
+  label: string
+  sortBy: string | undefined
+  sortDir: 'asc' | 'desc'
+  onSort: (col: string, dir: 'asc' | 'desc') => void
+}) {
+  const active = sortBy === col
+  const next = active && sortDir === 'asc' ? 'desc' : 'asc'
+  return (
+    <th
+      className="text-left px-4 py-3.5 text-xs font-semibold uppercase tracking-wider cursor-pointer select-none group"
+      onClick={() => onSort(col, next)}
+    >
+      <span className={`flex items-center gap-1 ${active ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'}`}>
+        {label}
+        <span className={`transition-opacity ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`}>
+          {active && sortDir === 'desc' ? '↓' : '↑'}
+        </span>
+      </span>
+    </th>
+  )
 }
 
 function AvatarStack({ ids, memberMap }: { ids: string[]; memberMap: Record<string, Member> }) {

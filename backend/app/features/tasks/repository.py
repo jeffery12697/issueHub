@@ -1,12 +1,38 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, update, func
+from sqlalchemy import select, update, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy_utils.types.ltree import Ltree
 
 from app.models.task import Task, Priority
 from app.features.tasks.schemas import CreateTaskDTO, UpdateTaskDTO
+
+
+_PRIORITY_ORDER = case(
+    (Task.priority == "urgent", 0),
+    (Task.priority == "high", 1),
+    (Task.priority == "medium", 2),
+    (Task.priority == "low", 3),
+    else_=4,
+)
+
+
+def _order_clause(sort_by: str | None, sort_dir: str | None):
+    """Return an ORDER BY clause list based on sort_by / sort_dir."""
+    desc = (sort_dir or "asc").lower() == "desc"
+    if sort_by == "title":
+        col = Task.title
+    elif sort_by == "priority":
+        col = _PRIORITY_ORDER
+        return [col.desc() if desc else col.asc(), Task.order_index]
+    elif sort_by == "due_date":
+        return [Task.due_date.desc().nulls_last() if desc else Task.due_date.asc().nulls_last()]
+    elif sort_by == "created_at":
+        col = Task.created_at
+    else:
+        return [Task.order_index]
+    return [col.desc() if desc else col.asc()]
 
 
 def _try_float(v: str) -> float | None:
@@ -93,6 +119,8 @@ class TaskRepository:
         include_subtasks: bool = False,
         page: int = 1,
         page_size: int = 0,
+        sort_by: str | None = None,
+        sort_dir: str | None = None,
     ) -> tuple[list[Task], int]:
         from sqlalchemy import or_, any_
         from app.models.custom_field import CustomFieldValue
@@ -135,7 +163,7 @@ class TaskRepository:
         )
         total = count_result.scalar_one()
 
-        q = q.order_by(Task.order_index)
+        q = q.order_by(*_order_clause(sort_by, sort_dir))
         if page_size > 0:
             q = q.offset((page - 1) * page_size).limit(page_size)
         result = await self.session.execute(q)
@@ -152,6 +180,8 @@ class TaskRepository:
         include_subtasks: bool = False,
         page: int = 1,
         page_size: int = 0,
+        sort_by: str | None = None,
+        sort_dir: str | None = None,
     ) -> tuple[list[Task], int]:
         q = (
             select(Task)
@@ -177,7 +207,7 @@ class TaskRepository:
         )
         total = count_result.scalar_one()
 
-        q = q.order_by(Task.list_id, Task.order_index)
+        q = q.order_by(Task.list_id, *_order_clause(sort_by, sort_dir))
         if page_size > 0:
             q = q.offset((page - 1) * page_size).limit(page_size)
         result = await self.session.execute(q)

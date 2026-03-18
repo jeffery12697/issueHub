@@ -114,6 +114,8 @@ async def list_tasks(
     include_subtasks: bool = False,
     page: int = 1,
     page_size: int = 0,
+    sort_by: str | None = None,
+    sort_dir: str | None = None,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
@@ -154,6 +156,8 @@ async def list_tasks(
         include_subtasks=include_subtasks,
         page=page,
         page_size=page_size,
+        sort_by=sort_by,
+        sort_dir=sort_dir,
     )
     response.headers["X-Total-Count"] = str(total)
     return [TaskResponse.model_validate(t) for t in tasks]
@@ -170,6 +174,8 @@ async def list_project_tasks(
     include_subtasks: bool = False,
     page: int = 1,
     page_size: int = 0,
+    sort_by: str | None = None,
+    sort_dir: str | None = None,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
 ):
@@ -190,6 +196,8 @@ async def list_project_tasks(
         include_subtasks=include_subtasks,
         page=page,
         page_size=page_size,
+        sort_by=sort_by,
+        sort_dir=sort_dir,
     )
     response.headers["X-Total-Count"] = str(total)
     return [TaskResponse.model_validate(t) for t in tasks]
