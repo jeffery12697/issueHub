@@ -144,6 +144,7 @@ export default function TaskDetailPage() {
   const [statusOpen, setStatusOpen] = useState(false)
   const [priorityOpen, setPriorityOpen] = useState(false)
   const [copiedGit, setCopiedGit] = useState<string | null>(null)
+  const [gitExpanded, setGitExpanded] = useState(false)
 
   const updateTask = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) => tasksApi.update(taskId!, data),
@@ -1006,15 +1007,21 @@ export default function TaskDetailPage() {
                   setTimeout(() => setCopiedGit(null), 1500)
                 }
                 return (
-                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <div className="border-b border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => setGitExpanded((o) => !o)}
+                      className="w-full px-4 py-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
                         <path d="M6 9v6M18 9A9 9 0 009 18"/>
                       </svg>
                       Git
-                    </p>
-                    <div className="space-y-0.5">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className={`ml-auto transition-transform ${gitExpanded ? 'rotate-180' : ''}`} aria-hidden="true">
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </button>
+                    {gitExpanded && <div className="px-4 pb-3 space-y-0.5">
                       {([
                         { label: 'Task ID', value: task.task_key },
                         { label: 'Branch', value: branchSlug },
@@ -1039,7 +1046,7 @@ export default function TaskDetailPage() {
                           )}
                         </button>
                       ))}
-                    </div>
+                    </div>}
                   </div>
                 )
               })()}
