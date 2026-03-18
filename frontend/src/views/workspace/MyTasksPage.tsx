@@ -29,7 +29,7 @@ export default function MyTasksPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkspaceHeader workspaceId={workspaceId!} />
 
-      <main className="max-w-3xl mx-auto py-10 px-6">
+      <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         {/* Page title */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">My Tasks</h1>

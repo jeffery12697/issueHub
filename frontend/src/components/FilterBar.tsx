@@ -74,6 +74,7 @@ export default function FilterBar({
             <select
               value={rule.field}
               onChange={(e) => updateRule(rule.id, { field: e.target.value })}
+              aria-label="Filter field"
               className="text-xs font-semibold text-violet-700 bg-transparent border-none outline-none cursor-pointer px-2.5 h-full"
             >
               {fields.map((f) => (
@@ -84,13 +85,14 @@ export default function FilterBar({
             {(() => {
               const ops = fieldConfig?.ops ?? ['eq', 'neq']
               return ops.length === 1 ? (
-                <span className="text-xs text-violet-500 px-2 h-full flex items-center">
+                <span className="text-xs text-violet-500 px-2 h-full flex items-center" aria-hidden="true">
                   {ops[0] === 'eq' ? 'is' : 'is not'}
                 </span>
               ) : (
                 <select
                   value={rule.op}
                   onChange={(e) => updateRule(rule.id, { op: e.target.value as FilterOperator })}
+                  aria-label="Filter operator"
                   className="text-xs text-violet-500 bg-transparent border-none outline-none cursor-pointer px-2 h-full"
                 >
                   {ops.includes('eq') && <option value="eq">is</option>}
@@ -102,6 +104,7 @@ export default function FilterBar({
             <select
               value={rule.value}
               onChange={(e) => updateRule(rule.id, { value: e.target.value })}
+              aria-label={`${fieldConfig?.label ?? 'Filter'} value`}
               className="text-xs font-semibold text-violet-700 bg-transparent border-none outline-none cursor-pointer px-2 h-full"
             >
               {(fieldConfig?.options ?? []).map((o) => (

@@ -5,6 +5,7 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -12,6 +13,7 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
   useSortable,
   arrayMove,
 } from '@dnd-kit/sortable'
@@ -66,7 +68,10 @@ export default function DashboardPage() {
 
   const reorder = useReorderWidgets(workspaceId!)
 
-  const sensors = useSensors(useSensor(PointerSensor))
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
@@ -272,10 +277,11 @@ function WidgetCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           {editMode && (
-            <div
+            <button
+              type="button"
               {...dragHandleProps}
-              className="shrink-0 text-slate-300 dark:text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing"
-              aria-label="Drag to reorder"
+              aria-label="Drag to reorder widget"
+              className="shrink-0 text-slate-300 dark:text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-violet-500 rounded p-0.5 transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <circle cx="9" cy="6" r="1" fill="currentColor" stroke="none" />
@@ -285,7 +291,7 @@ function WidgetCard({
                 <circle cx="9" cy="18" r="1" fill="currentColor" stroke="none" />
                 <circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" />
               </svg>
-            </div>
+            </button>
           )}
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
             {WIDGET_LABELS[widget.widget_type]}

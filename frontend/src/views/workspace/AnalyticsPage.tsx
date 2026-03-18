@@ -30,7 +30,7 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkspaceHeader workspaceId={workspaceId!} />
 
-      <main className="max-w-3xl mx-auto py-10 px-6">
+      <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         {/* Page header */}
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
           <div>

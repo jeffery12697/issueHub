@@ -22,6 +22,8 @@ function relativeTime(iso: string): string {
 export default function NotificationBell() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const firstItemRef = useRef<HTMLButtonElement>(null)
   const navigate = useNavigate()
 
   const { data: unreadData } = useUnreadCount()
@@ -31,6 +33,13 @@ export default function NotificationBell() {
 
   const unreadCount = unreadData?.count ?? 0
   const recent = notifications.slice(0, 20)
+
+  // Move focus into dropdown when it opens
+  useEffect(() => {
+    if (open) {
+      firstItemRef.current?.focus()
+    }
+  }, [open])
 
   // Close on outside click
   useEffect(() => {
@@ -43,11 +52,14 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handle)
   }, [])
 
-  // Close on Escape key
+  // Close on Escape key — restore focus to trigger
   useEffect(() => {
     if (!open) return
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        requestAnimationFrame(() => triggerRef.current?.focus())
+      }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
@@ -64,17 +76,19 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={ref}>
       <button
+        ref={triggerRef}
         onClick={() => setOpen(o => !o)}
+        aria-label={unreadCount > 0 ? `Notifications — ${unreadCount} unread` : 'Notifications'}
+        aria-haspopup="dialog"
+        aria-expanded={open}
         className="relative p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        aria-label="Notifications"
       >
-        {/* Bell icon */}
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none" aria-hidden="true">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -104,9 +118,10 @@ export default function NotificationBell() {
                 No notifications yet
               </div>
             ) : (
-              recent.map(notif => (
+              recent.map((notif, idx) => (
                 <button
                   key={notif.id}
+                  ref={idx === 0 ? firstItemRef : undefined}
                   onClick={() => handleNotificationClick(notif)}
                   className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0 ${
                     notif.is_read ? 'opacity-60' : ''
@@ -116,6 +131,7 @@ export default function NotificationBell() {
                     className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
                       notif.is_read ? 'bg-slate-200 dark:bg-slate-700' : 'bg-violet-500'
                     }`}
+                    aria-hidden="true"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug line-clamp-3">{notif.body}</p>
