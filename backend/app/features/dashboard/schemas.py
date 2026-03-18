@@ -20,7 +20,7 @@ class CreateWidgetRequest(BaseModel):
         return CreateWidgetDTO(
             workspace_id=workspace_id,
             widget_type=self.widget_type,
-            config=self.config.model_dump(),
+            config=self.config.model_dump(mode='json'),
             order_index=self.order_index,
             visible_to_members=self.visible_to_members,
         )

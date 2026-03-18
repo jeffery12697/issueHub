@@ -89,7 +89,7 @@ async def update_widget(
     session: AsyncSession = Depends(get_session),
 ):
     await _require_admin(workspace_id, current_user, session)
-    config_dict = body.config.model_dump() if body.config is not None else None
+    config_dict = body.config.model_dump(mode='json') if body.config is not None else None
     widget = await service.update_widget(
         widget_id,
         workspace_id,
