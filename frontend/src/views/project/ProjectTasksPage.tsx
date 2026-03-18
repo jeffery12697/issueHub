@@ -43,6 +43,8 @@ export default function ProjectTasksPage() {
   const [sortBy, setSortBy] = useState<string | undefined>(undefined)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [groupBy, setGroupBy] = useState<GroupBy>('none')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [hideCompleted, setHideCompleted] = useState(false)
   const [showViewsPanel, setShowViewsPanel] = useState(false)
   const [newViewName, setNewViewName] = useState('')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -144,12 +146,19 @@ export default function ProjectTasksPage() {
     ? (listDetails.find((l) => l.id === singleSelectedListId)?.statuses ?? [])
     : []
 
+  const _taskVisible = (t: Task) => {
+    if (hideCompleted && t.status_id && statusMap[t.status_id]?.is_complete) return false
+    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    return true
+  }
+  const visibleTasks = tasks.filter(_taskVisible)
+
   type DisplayGroup = { groupKey: string | null; groupLabel: string; groupColor: string; tasks: Task[]; showHeader: boolean }
 
   // Build display groups
   const displayGroups = ((): DisplayGroup[] => {
     if (groupBy === 'none') {
-      return [{ groupKey: null, groupLabel: '', groupColor: '', tasks, showHeader: false }]
+      return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: visibleTasks, showHeader: false }]
     }
 
     if (groupBy === 'status') {
@@ -162,11 +171,11 @@ export default function ProjectTasksPage() {
       }
       const result: DisplayGroup[] = []
       for (const s of orderedStatuses) {
-        const groupTasks = tasks.filter((t) => t.status_id === s.id)
+        const groupTasks = visibleTasks.filter((t) => t.status_id === s.id)
         if (groupTasks.length === 0) continue
         result.push({ groupKey: s.id, groupLabel: s.name, groupColor: s.color, tasks: groupTasks, showHeader: true })
       }
-      const noStatus = tasks.filter((t) => !t.status_id)
+      const noStatus = visibleTasks.filter((t) => !t.status_id)
       if (noStatus.length > 0) {
         result.push({ groupKey: null, groupLabel: 'No Status', groupColor: '#cbd5e1', tasks: noStatus, showHeader: true })
       }
@@ -175,10 +184,10 @@ export default function ProjectTasksPage() {
 
     if (groupBy === 'assignee') {
       const seenIds = new Set<string>()
-      tasks.forEach((t) => t.assignee_ids.forEach((id) => seenIds.add(id)))
+      visibleTasks.forEach((t) => t.assignee_ids.forEach((id) => seenIds.add(id)))
       const result: DisplayGroup[] = []
       for (const uid of seenIds) {
-        const groupTasks = tasks.filter((t) => t.assignee_ids.includes(uid))
+        const groupTasks = visibleTasks.filter((t) => t.assignee_ids.includes(uid))
         if (groupTasks.length === 0) continue
         result.push({
           groupKey: uid,
@@ -188,7 +197,7 @@ export default function ProjectTasksPage() {
           showHeader: true,
         })
       }
-      const unassigned = tasks.filter((t) => t.assignee_ids.length === 0)
+      const unassigned = visibleTasks.filter((t) => t.assignee_ids.length === 0)
       if (unassigned.length > 0) {
         result.push({ groupKey: null, groupLabel: 'Unassigned', groupColor: '#cbd5e1', tasks: unassigned, showHeader: true })
       }
@@ -199,7 +208,7 @@ export default function ProjectTasksPage() {
       const PRIORITY_ORDER: Priority[] = ['urgent', 'high', 'medium', 'low', 'none']
       const result: DisplayGroup[] = []
       for (const p of PRIORITY_ORDER) {
-        const groupTasks = tasks.filter((t) => t.priority === p)
+        const groupTasks = visibleTasks.filter((t) => t.priority === p)
         if (groupTasks.length === 0) continue
         result.push({
           groupKey: p,
@@ -212,7 +221,7 @@ export default function ProjectTasksPage() {
       return result
     }
 
-    return [{ groupKey: null, groupLabel: '', groupColor: '', tasks, showHeader: false }]
+    return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: visibleTasks, showHeader: false }]
   })()
 
   const { data: savedViews = [] } = useQuery({
@@ -484,6 +493,44 @@ export default function ProjectTasksPage() {
           </div>
         )}
 
+        {/* Search + hide-completed toolbar */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="relative flex-1 max-w-xs">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks…"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setHideCompleted((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              hideCompleted
+                ? 'bg-violet-50 dark:bg-violet-950 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+            }`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Hide completed
+          </button>
+          {(searchQuery || hideCompleted) && (
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              {visibleTasks.length} of {tasks.length}
+            </span>
+          )}
+        </div>
+
         {/* Table */}
         {isLoading ? (
           <p className="text-slate-400 dark:text-slate-500 text-sm">Loading...</p>
@@ -503,9 +550,9 @@ export default function ProjectTasksPage() {
                     <input
                       type="checkbox"
                       className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
-                      checked={tasks.length > 0 && tasks.every((t) => selectedIds.has(t.id))}
+                      checked={visibleTasks.length > 0 && visibleTasks.every((t) => selectedIds.has(t.id))}
                       onChange={(e) => {
-                        if (e.target.checked) setSelectedIds(new Set(tasks.map((t) => t.id)))
+                        if (e.target.checked) setSelectedIds(new Set(visibleTasks.map((t) => t.id)))
                         else setSelectedIds(new Set())
                       }}
                     />

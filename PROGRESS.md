@@ -44,6 +44,11 @@
 - Global search improvements: search by task key (PROJ-42), show project › list in results, visible on all pages, searches comments
 - pg_trgm GIN indexes on tasks.title, tasks.task_key, comments.body for fast ILIKE search at scale
 - Design quality pass: normalize (emoji → SVG, priority token dedup), arrange (redundant headings, spacing rhythm), colorize (priority text, overdue badge)
+- Bulk move tasks between lists (list page + project page), restricted to same-project lists
+- Status mapping (S-04): cross-list status resolution (explicit rule → name match → null) on move and bulk move
+- Status sort order: drag-to-reorder in List Settings and workspace list template editor; order_index persisted and restored on template apply
+- Column sorting for List and Project task views: Title, Priority, Due Date (backend sort_by/sort_dir params + clickable column headers)
+- Quick search filter + Hide completed toggle on List and Project task views
 
 ## Notes
 - Every mutating backend endpoint must call `await session.commit()` — see `docs/BACKEND.md`

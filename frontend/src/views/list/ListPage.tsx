@@ -53,6 +53,8 @@ export default function ListPage() {
   const [sortBy, setSortBy] = useState<string | undefined>(undefined)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [groupBy, setGroupBy] = useState<GroupBy>('none')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [hideCompleted, setHideCompleted] = useState(false)
   const [showViewsPanel, setShowViewsPanel] = useState(false)
   const [newViewName, setNewViewName] = useState('')
   const PAGE_SIZE = 50
@@ -120,18 +122,29 @@ export default function ListPage() {
   const { data: membersEarly = [] } = useWorkspaceMembers(wsId)
   const memberMap = Object.fromEntries(membersEarly.map((m) => [m.user_id, m]))
 
+  const statusMapEarly = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
+
+  // Apply quick search + hide-completed filters before grouping
+  const _taskVisible = (t: Task) => {
+    if (hideCompleted && t.status_id && statusMapEarly[t.status_id]?.is_complete) return false
+    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    return true
+  }
+  const visibleTasks = allTasks.filter(_taskVisible)
+  const filteredSortedTasks = sortedTasks.filter(_taskVisible)
+
   // Build display groups: flat when none, grouped with headers otherwise
   type DisplayGroup = { groupKey: string | null; groupLabel: string; groupColor: string; tasks: Task[]; showHeader: boolean }
   const displayGroups = ((): DisplayGroup[] => {
     if (groupBy === 'none') {
-      return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: sortedTasks, showHeader: false }]
+      return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: filteredSortedTasks, showHeader: false }]
     }
 
     if (groupBy === 'status') {
       const statuses = list?.statuses ?? []
       const result: DisplayGroup[] = []
       for (const s of statuses) {
-        const groupTasks = allTasks.filter((t) => t.status_id === s.id)
+        const groupTasks = visibleTasks.filter((t) => t.status_id === s.id)
         if (groupTasks.length === 0) continue
         const subs: Record<string, Task[]> = {}
         groupTasks.filter((t) => t.parent_task_id).forEach((t) => { (subs[t.parent_task_id!] ??= []).push(t) })
@@ -144,7 +157,7 @@ export default function ListPage() {
         groupTasks.filter((t) => t.parent_task_id && !topLevelIds.has(t.parent_task_id!)).forEach((t) => ordered.push(t))
         result.push({ groupKey: s.id, groupLabel: s.name, groupColor: s.color, tasks: ordered, showHeader: true })
       }
-      const noStatus = allTasks.filter((t) => !t.status_id)
+      const noStatus = visibleTasks.filter((t) => !t.status_id)
       if (noStatus.length > 0) {
         result.push({ groupKey: null, groupLabel: 'No Status', groupColor: '#cbd5e1', tasks: noStatus, showHeader: true })
       }
@@ -154,9 +167,9 @@ export default function ListPage() {
     if (groupBy === 'assignee') {
       const result: DisplayGroup[] = []
       const seenIds = new Set<string>()
-      allTasks.forEach((t) => t.assignee_ids.forEach((id) => seenIds.add(id)))
+      visibleTasks.forEach((t) => t.assignee_ids.forEach((id) => seenIds.add(id)))
       for (const uid of seenIds) {
-        const groupTasks = allTasks.filter((t) => t.assignee_ids.includes(uid))
+        const groupTasks = visibleTasks.filter((t) => t.assignee_ids.includes(uid))
         if (groupTasks.length === 0) continue
         const member = memberMap[uid]
         result.push({
@@ -167,7 +180,7 @@ export default function ListPage() {
           showHeader: true,
         })
       }
-      const unassigned = allTasks.filter((t) => t.assignee_ids.length === 0)
+      const unassigned = visibleTasks.filter((t) => t.assignee_ids.length === 0)
       if (unassigned.length > 0) {
         result.push({ groupKey: null, groupLabel: 'Unassigned', groupColor: '#cbd5e1', tasks: unassigned, showHeader: true })
       }
@@ -178,7 +191,7 @@ export default function ListPage() {
       const PRIORITY_ORDER: Priority[] = ['urgent', 'high', 'medium', 'low', 'none']
       const result: DisplayGroup[] = []
       for (const p of PRIORITY_ORDER) {
-        const groupTasks = allTasks.filter((t) => t.priority === p)
+        const groupTasks = visibleTasks.filter((t) => t.priority === p)
         if (groupTasks.length === 0) continue
         result.push({
           groupKey: p,
@@ -191,7 +204,7 @@ export default function ListPage() {
       return result
     }
 
-    return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: sortedTasks, showHeader: false }]
+    return [{ groupKey: null, groupLabel: '', groupColor: '', tasks: filteredSortedTasks, showHeader: false }]
   })()
 
   const createTask = useMutation({
@@ -581,6 +594,43 @@ export default function ListPage() {
           />
         </div>
 
+        <div className="flex items-center gap-2 mb-3">
+          <div className="relative flex-1 max-w-xs">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks…"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setHideCompleted((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              hideCompleted
+                ? 'bg-violet-50 dark:bg-violet-950 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+            }`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Hide completed
+          </button>
+          {(searchQuery || hideCompleted) && (
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              {visibleTasks.length} of {allTasks.length}
+            </span>
+          )}
+        </div>
+
         {creating && (
           <form
             className="mb-4 flex gap-2"
@@ -632,10 +682,10 @@ export default function ListPage() {
                   <th className="px-4 py-3.5 w-10">
                     <input
                       type="checkbox"
-                      checked={allTasks.length > 0 && selectedIds.size === allTasks.length}
+                      checked={visibleTasks.length > 0 && visibleTasks.every((t) => selectedIds.has(t.id))}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedIds(new Set(allTasks.map((t) => t.id)))
+                          setSelectedIds(new Set(visibleTasks.map((t) => t.id)))
                         } else {
                           setSelectedIds(new Set())
                         }
