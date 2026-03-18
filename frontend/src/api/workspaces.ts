@@ -70,8 +70,8 @@ export const workspacesApi = {
     apiClient.get<WorkspaceInvite>(`/workspaces/invites/${token}`).then((r) => r.data),
   acceptInvite: (token: string) =>
     apiClient.post(`/workspaces/invites/${token}/accept`),
-  getAnalytics: (workspaceId: string) =>
-    apiClient.get<AnalyticsResponse>(`/workspaces/${workspaceId}/analytics`).then((r) => r.data),
+  getAnalytics: (workspaceId: string, projectId?: string) =>
+    apiClient.get<AnalyticsResponse>(`/workspaces/${workspaceId}/analytics`, { params: projectId ? { project_id: projectId } : undefined }).then((r) => r.data),
   getWorkload: (workspaceId: string) =>
     apiClient.get<MemberWorkloadResponse[]>(`/workspaces/${workspaceId}/workload`).then((r) => r.data),
 }
@@ -125,10 +125,10 @@ export function useAcceptInvite() {
   })
 }
 
-export function useAnalytics(workspaceId: string | undefined) {
+export function useAnalytics(workspaceId: string | undefined, projectId?: string) {
   return useQuery({
-    queryKey: ['analytics', workspaceId],
-    queryFn: () => workspacesApi.getAnalytics(workspaceId!),
+    queryKey: ['analytics', workspaceId, projectId],
+    queryFn: () => workspacesApi.getAnalytics(workspaceId!, projectId),
     enabled: !!workspaceId,
   })
 }

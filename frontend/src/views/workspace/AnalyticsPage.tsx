@@ -1,27 +1,54 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAnalytics } from '@/api/workspaces'
+import { projectsApi, type Project } from '@/api/projects'
 import WorkspaceHeader from '@/components/WorkspaceHeader'
 
 export default function AnalyticsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
-  const { data: analytics, isLoading } = useAnalytics(workspaceId)
+  const [projectId, setProjectId] = useState<string>('')
+
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['projects', workspaceId],
+    queryFn: () => projectsApi.list(workspaceId!),
+    enabled: !!workspaceId,
+  })
+
+  const { data: analytics, isLoading } = useAnalytics(workspaceId, projectId || undefined)
 
   const total = analytics?.total_tasks ?? 0
   const overdue = analytics?.overdue_tasks ?? 0
   const totalSP = analytics?.total_story_points ?? 0
   const statusCount = (analytics?.tasks_by_status ?? []).length
 
+  const scopeLabel = projectId
+    ? (projects.find((p) => p.id === projectId)?.name ?? 'Project')
+    : 'workspace'
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkspaceHeader workspaceId={workspaceId!} />
 
       <main className="max-w-3xl mx-auto py-10 px-6">
-        {/* Page title */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-            {isLoading ? 'Loading…' : `Overview of all tasks in this workspace`}
-          </p>
+        {/* Page header */}
+        <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+              {isLoading ? 'Loading…' : `Overview of all tasks in this ${scopeLabel}`}
+            </p>
+          </div>
+          <select
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            className="border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 shrink-0"
+          >
+            <option value="">All projects</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
         </div>
 
         {isLoading ? (

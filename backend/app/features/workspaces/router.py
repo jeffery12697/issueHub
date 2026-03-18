@@ -231,6 +231,7 @@ async def accept_invite(
 @router.get("/{workspace_id}/analytics", response_model=AnalyticsResponse)
 async def get_analytics(
     workspace_id: UUID,
+    project_id: UUID | None = None,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
@@ -246,7 +247,11 @@ async def get_analytics(
     task_repo = TaskRepository(session)
     list_repo = ListRepository(session)
 
-    data = await task_repo.analytics_for_workspace(workspace_id)
+    data = (
+        await task_repo.analytics_for_project(project_id)
+        if project_id
+        else await task_repo.analytics_for_workspace(workspace_id)
+    )
 
     # Resolve status names
     status_ids = [row["status_id"] for row in data["by_status"] if row["status_id"] is not None]
