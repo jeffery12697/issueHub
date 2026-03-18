@@ -576,3 +576,11 @@ _Completed: 2026-03-17_
 ### Colorize — Strategic Color
 - [x] `ListPage.tsx` — priority label text now uses `PRIORITY_COLORS[priority].text` (was flat `text-slate-600`); dot and text carry same color signal
 - [x] `MyTasksPage.tsx` — Overdue group count badge uses `bg-red-50 text-red-500` (was neutral slate); reinforces red section header urgency
+
+## Phase 18 — Reporting (R-01, R-02, R-03)
+
+### R-03: CSV Export
+- [x] `backend/app/features/tasks/router.py` — rewrote both export endpoints: accept filter params (status, priority, assignee, cf[]), full columns (task_key, title, list, status, priority, assignees, reporter, start_date, due_date, story_points, time_tracked_min, epic, custom fields), UTF-8 BOM, dynamic filename `{prefix}-tasks-{YYYY-MM-DD}.csv`; helper functions `_time_map` and `_cf_data` for efficient batch queries
+- [x] `frontend/src/api/tasks.ts` — `exportCsv` / `exportCsvForProject` accept filter params, use server-provided filename from `Content-Disposition` header
+- [x] `frontend/src/views/list/ListPage.tsx` — export button passes current filter state, shows "Preparing export…" toast
+- [x] `frontend/src/views/project/ProjectTasksPage.tsx` — export button passes current filter state, shows "Preparing export…" toast

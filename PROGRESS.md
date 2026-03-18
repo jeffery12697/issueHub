@@ -39,14 +39,8 @@
 | TM-02 | Complex UI | Timeline / Gantt view — large frontend build, no backend blocker but deprioritised |
 
 ## Currently Working On
-- Phase 17: E-01 ~ E-05 — Epics (feature grouping for PMs)
-  - ✅ E-01: Backend Epic CRUD (model, migration, router, service, repo, tests)
-  - ✅ E-02 backend: Task.epic_id FK, UpdateTaskDTO sentinel, bulk_update epic_id
-  - ✅ E-05: EpicsPage overview (card grid, color bar, progress, inline rename/status/delete)
-  - ✅ E-02 frontend: Epic field in TaskDetailPage sidebar, Epic column in ProjectTasksPage + ListPage, bulk "Set epic…"
-  - ✅ E-03: EpicDetailPage — inline name/desc/color/status/dates edit, progress bar, task list with remove, add-tasks search panel
-  - ✅ E-04: EpicTimelinePage — Gantt scoped to epic tasks + epic span row, epic accent color for bars, Overview/Timeline tabs
-  - Phase 17 complete ✅
+- Phase 18: R-01, R-02, R-03 — Reporting
+  - ✅ R-03: CSV export — filters respected, full columns (reporter, start_date, story_points, time_tracked, epic, custom fields), UTF-8 BOM, dynamic filename `{prefix}-tasks-{date}.csv`, "Preparing export…" toast
 
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)
