@@ -370,7 +370,17 @@ export default function ListPage() {
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => tasksApi.exportCsv(listId!)}
+              onClick={async () => {
+                toast.info('Preparing export…')
+                const params: Record<string, string | undefined> = {
+                  status_id: statusEq || undefined,
+                  status_id_not: statusNots.join(',') || undefined,
+                  priority: priorityEq || undefined,
+                  priority_not: priorityNots.join(',') || undefined,
+                  include_subtasks: 'true',
+                }
+                await tasksApi.exportCsv(listId!, params)
+              }}
               className="border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm px-4 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium flex items-center gap-1.5"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

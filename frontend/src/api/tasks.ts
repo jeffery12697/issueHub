@@ -99,23 +99,29 @@ export const tasksApi = {
     apiClient.post<Task>(`/tasks/${taskId}/subtasks`, data).then((r) => r.data),
   myTasks: (workspaceId: string, params?: { status_id?: string; priority?: Priority }) =>
     apiClient.get<Task[]>(`/workspaces/${workspaceId}/me/tasks`, { params }).then((r) => r.data),
-  exportCsv: async (listId: string): Promise<void> => {
-    const r = await apiClient.get(`/lists/${listId}/tasks/export`, { responseType: 'blob' })
+  exportCsv: async (listId: string, params?: Record<string, string | undefined>): Promise<void> => {
+    const r = await apiClient.get(`/lists/${listId}/tasks/export`, { responseType: 'blob', params })
+    const cd = (r.headers['content-disposition'] as string | undefined) ?? ''
+    const match = cd.match(/filename="?([^"]+)"?/)
+    const filename = match ? match[1] : 'tasks-export.csv'
     const url = URL.createObjectURL(r.data as Blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'tasks.csv'
+    a.download = filename
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   },
-  exportCsvForProject: async (projectId: string): Promise<void> => {
-    const r = await apiClient.get(`/projects/${projectId}/tasks/export`, { responseType: 'blob' })
+  exportCsvForProject: async (projectId: string, params?: Record<string, string | undefined>): Promise<void> => {
+    const r = await apiClient.get(`/projects/${projectId}/tasks/export`, { responseType: 'blob', params })
+    const cd = (r.headers['content-disposition'] as string | undefined) ?? ''
+    const match = cd.match(/filename="?([^"]+)"?/)
+    const filename = match ? match[1] : 'project-tasks-export.csv'
     const url = URL.createObjectURL(r.data as Blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'project-tasks.csv'
+    a.download = filename
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

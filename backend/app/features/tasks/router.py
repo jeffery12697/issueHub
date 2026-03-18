@@ -1,9 +1,11 @@
 import csv
 import io
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
 from fastapi.responses import StreamingResponse
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
@@ -35,7 +37,10 @@ from app.features.teams.repository import TeamRepository
 from app.features.notifications.repository import NotificationRepository
 from app.features.watchers.repository import WatcherRepository
 from app.features.status_mappings.repository import StatusMappingRepository
+from app.models.custom_field import CustomFieldDefinition, CustomFieldValue
+from app.models.epic import Epic
 from app.models.task import Task, Priority
+from app.models.time_entry import TimeEntry
 from app.models.user import User
 
 router = APIRouter(tags=["tasks"])
@@ -443,59 +448,214 @@ async def delete_task(
     await session.commit()
 
 
+async def _time_map(session: AsyncSession, task_ids: list[UUID]) -> dict[str, int]:
+    """Return {task_id_str: total_minutes} for all given task IDs."""
+    if not task_ids:
+        return {}
+    rows = await session.execute(
+        select(TimeEntry.task_id, func.sum(TimeEntry.duration_minutes).label("total"))
+        .where(TimeEntry.task_id.in_(task_ids))
+        .group_by(TimeEntry.task_id)
+    )
+    return {str(r.task_id): r.total for r in rows}
+
+
+async def _cf_data(session: AsyncSession, list_ids: list[UUID], task_ids: list[UUID]):
+    """Return (field_defs ordered, {task_id_str: {field_id_str: display_value}})."""
+    if not list_ids or not task_ids:
+        return [], {}
+
+    defs_result = await session.execute(
+        select(CustomFieldDefinition)
+        .where(CustomFieldDefinition.list_id.in_(list_ids))
+        .where(CustomFieldDefinition.deleted_at.is_(None))
+        .order_by(CustomFieldDefinition.order_index)
+    )
+    field_defs = defs_result.scalars().all()
+
+    if not field_defs:
+        return [], {}
+
+    field_ids = [f.id for f in field_defs]
+    vals_result = await session.execute(
+        select(CustomFieldValue)
+        .where(CustomFieldValue.task_id.in_(task_ids))
+        .where(CustomFieldValue.field_id.in_(field_ids))
+    )
+    values = vals_result.scalars().all()
+
+    task_cf: dict[str, dict[str, str]] = {}
+    for v in values:
+        tid = str(v.task_id)
+        fid = str(v.field_id)
+        if v.value_text is not None:
+            display = v.value_text
+        elif v.value_number is not None:
+            display = str(v.value_number)
+        elif v.value_boolean is not None:
+            display = "true" if v.value_boolean else "false"
+        elif v.value_date is not None:
+            display = v.value_date.date().isoformat()
+        elif v.value_json is not None:
+            display = v.value_json.get("selected", "") if isinstance(v.value_json, dict) else ""
+        else:
+            display = ""
+        task_cf.setdefault(tid, {})[fid] = display
+
+    return list(field_defs), task_cf
+
+
+def _csv_response(rows: list[list], filename: str) -> StreamingResponse:
+    output = io.StringIO()
+    output.write("\ufeff")  # UTF-8 BOM for Excel compatibility
+    writer = csv.writer(output)
+    for row in rows:
+        writer.writerow(row)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv; charset=utf-8-sig",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/lists/{list_id}/tasks/export")
 async def export_tasks_csv(
+    request: Request,
     list_id: UUID,
+    status_id: UUID | None = None,
+    status_id_not: str | None = None,
+    priority: Priority | None = None,
+    priority_not: str | None = None,
+    assignee_id: UUID | None = None,
+    include_subtasks: bool = True,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
-    tasks, _ = await service.list_for_list(list_id, user_id=current_user.id)
+    # Parse cf[] filters
+    cf_filters: dict[UUID, str] = {}
+    for key, value in request.query_params.items():
+        if key.startswith("cf[") and key.endswith("]"):
+            try:
+                cf_filters[UUID(key[3:-1])] = value
+            except ValueError:
+                pass
+
+    status_ids_not: list[UUID] | None = None
+    if status_id_not:
+        try:
+            status_ids_not = [UUID(s.strip()) for s in status_id_not.split(",") if s.strip()]
+        except ValueError:
+            pass
+
+    priorities_not: list[Priority] | None = None
+    if priority_not:
+        try:
+            priorities_not = [Priority(p.strip()) for p in priority_not.split(",") if p.strip()]
+        except ValueError:
+            pass
+
+    tasks, _ = await service.list_for_list(
+        list_id,
+        user_id=current_user.id,
+        status_id=status_id,
+        status_ids_not=status_ids_not,
+        priority=priority,
+        priorities_not=priorities_not,
+        assignee_id=assignee_id,
+        cf_filters=cf_filters if cf_filters else None,
+        include_subtasks=include_subtasks,
+        page=1,
+        page_size=0,
+    )
 
     list_repo = ListRepository(session)
+    lst = await list_repo.get_by_id(list_id)
     statuses = await list_repo.list_statuses(list_id)
     status_map = {str(s.id): s.name for s in statuses}
 
-    # Resolve workspace_id from first task (or list)
     workspace_repo = WorkspaceRepository(session)
-    workspace_id = tasks[0].workspace_id if tasks else None
+    workspace_id = tasks[0].workspace_id if tasks else (lst.workspace_id if lst else None)
     member_map: dict[str, str] = {}
     if workspace_id:
         members = await workspace_repo.list_member_users(workspace_id)
         member_map = {str(m.id): m.display_name for m in members}
 
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["id", "title", "status", "priority", "assignees", "created_at"])
+    task_ids = [t.id for t in tasks]
+    time_map = await _time_map(session, task_ids)
+
+    # Epic names
+    epic_ids = list({t.epic_id for t in tasks if t.epic_id})
+    epic_name_map: dict[str, str] = {}
+    if epic_ids:
+        epic_rows = await session.execute(select(Epic).where(Epic.id.in_(epic_ids)))
+        for e in epic_rows.scalars():
+            epic_name_map[str(e.id)] = e.name
+
+    field_defs, task_cf = await _cf_data(session, [list_id], task_ids)
+    cf_headers = [f.name for f in field_defs]
+    cf_field_ids = [str(f.id) for f in field_defs]
+
+    list_name = lst.name if lst else ""
+    filename = f"{list_name.lower().replace(' ', '-')}-tasks-{date.today().isoformat()}.csv"
+
+    header = ["task_key", "title", "list", "status", "priority", "assignees", "reporter",
+              "start_date", "due_date", "story_points", "time_tracked_min", "epic"] + cf_headers
+    rows = [header]
     for task in tasks:
         status_name = status_map.get(str(task.status_id), "") if task.status_id else ""
         assignees = ", ".join(member_map.get(str(aid), str(aid)) for aid in task.assignee_ids)
-        writer.writerow([
-            str(task.id),
+        reporter = member_map.get(str(task.reporter_id), str(task.reporter_id))
+        cf_vals = [task_cf.get(str(task.id), {}).get(fid, "") for fid in cf_field_ids]
+        rows.append([
+            task.task_key or "",
             task.title,
+            list_name,
             status_name,
             task.priority.value if hasattr(task.priority, "value") else str(task.priority),
             assignees,
-            task.created_at.isoformat() if task.created_at else "",
+            reporter,
+            task.start_date.date().isoformat() if task.start_date else "",
+            task.due_date.date().isoformat() if task.due_date else "",
+            task.story_points if task.story_points is not None else "",
+            time_map.get(str(task.id), 0) or "",
+            epic_name_map.get(str(task.epic_id), "") if task.epic_id else "",
+            *cf_vals,
         ])
-    csv_str = output.getvalue()
-    return StreamingResponse(
-        iter([csv_str]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=tasks.csv"},
-    )
+    return _csv_response(rows, filename)
 
 
 @router.get("/projects/{project_id}/tasks/export")
 async def export_project_tasks_csv(
     project_id: UUID,
+    list_id: UUID | None = None,
+    priority: Priority | None = None,
+    priority_not: str | None = None,
+    assignee_id: UUID | None = None,
+    include_subtasks: bool = True,
     current_user: User = Depends(get_current_user),
     service: TaskService = Depends(get_service),
     session: AsyncSession = Depends(get_session),
 ):
-    tasks, _ = await service.list_for_project(project_id, user_id=current_user.id)
+    priorities_not: list[Priority] | None = None
+    if priority_not:
+        try:
+            priorities_not = [Priority(p.strip()) for p in priority_not.split(",") if p.strip()]
+        except ValueError:
+            pass
 
-    # Build status map across all lists in the project
+    tasks, _ = await service.list_for_project(
+        project_id,
+        user_id=current_user.id,
+        list_id=list_id,
+        priority=priority,
+        priorities_not=priorities_not,
+        assignee_id=assignee_id,
+        include_subtasks=include_subtasks,
+        page=1,
+        page_size=0,
+    )
+
     list_repo = ListRepository(session)
     all_lists = await list_repo.list_for_project(project_id)
     status_map: dict[str, str] = {}
@@ -514,30 +674,50 @@ async def export_project_tasks_csv(
         members = await workspace_repo.list_member_users(project.workspace_id)
         member_map = {str(m.id): m.display_name for m in members}
 
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["id", "task_key", "title", "list", "status", "priority", "assignees", "due_date", "created_at"])
+    task_ids = [t.id for t in tasks]
+    time_map = await _time_map(session, task_ids)
+
+    # Epic names
+    epic_ids = list({t.epic_id for t in tasks if t.epic_id})
+    epic_name_map: dict[str, str] = {}
+    if epic_ids:
+        epic_rows = await session.execute(select(Epic).where(Epic.id.in_(epic_ids)))
+        for e in epic_rows.scalars():
+            epic_name_map[str(e.id)] = e.name
+
+    list_ids = [lst.id for lst in all_lists]
+    field_defs, task_cf = await _cf_data(session, list_ids, task_ids)
+    cf_headers = [f.name for f in field_defs]
+    cf_field_ids = [str(f.id) for f in field_defs]
+
+    prefix = project.task_prefix.lower() if project else "tasks"
+    filename = f"{prefix}-tasks-{date.today().isoformat()}.csv"
+
+    header = ["task_key", "title", "list", "status", "priority", "assignees", "reporter",
+              "start_date", "due_date", "story_points", "time_tracked_min", "epic"] + cf_headers
+    rows = [header]
     for task in tasks:
         status_name = status_map.get(str(task.status_id), "") if task.status_id else ""
         list_name = list_name_map.get(str(task.list_id), "") if task.list_id else ""
         assignees = ", ".join(member_map.get(str(aid), str(aid)) for aid in task.assignee_ids)
-        writer.writerow([
-            str(task.id),
+        reporter = member_map.get(str(task.reporter_id), str(task.reporter_id))
+        cf_vals = [task_cf.get(str(task.id), {}).get(fid, "") for fid in cf_field_ids]
+        rows.append([
             task.task_key or "",
             task.title,
             list_name,
             status_name,
             task.priority.value if hasattr(task.priority, "value") else str(task.priority),
             assignees,
-            task.due_date.isoformat() if task.due_date else "",
-            task.created_at.isoformat() if task.created_at else "",
+            reporter,
+            task.start_date.date().isoformat() if task.start_date else "",
+            task.due_date.date().isoformat() if task.due_date else "",
+            task.story_points if task.story_points is not None else "",
+            time_map.get(str(task.id), 0) or "",
+            epic_name_map.get(str(task.epic_id), "") if task.epic_id else "",
+            *cf_vals,
         ])
-    csv_str = output.getvalue()
-    return StreamingResponse(
-        iter([csv_str]),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=project-tasks.csv"},
-    )
+    return _csv_response(rows, filename)
 
 
 @router.get("/workspaces/{workspace_id}/search", response_model=list[TaskSearchResult])
