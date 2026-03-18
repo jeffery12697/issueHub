@@ -72,6 +72,16 @@ services:
       - /app/node_modules
     depends_on:
       - backend
+
+  proxy:
+    image: caddy:2-alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - frontend
+      - backend
 volumes:
   postgres_data:
   minio_data:
