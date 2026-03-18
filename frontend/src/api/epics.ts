@@ -43,7 +43,7 @@ export const epicsApi = {
     apiClient.delete(`/epics/${epicId}`),
 }
 
-export function useEpics(projectId: string | undefined) {
+export function useEpics(projectId: string | null | undefined) {
   return useQuery({
     queryKey: ['epics', projectId],
     queryFn: () => epicsApi.list(projectId!),

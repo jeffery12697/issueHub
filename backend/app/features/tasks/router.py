@@ -596,6 +596,8 @@ async def bulk_update_tasks(
         status_id=body.status_id,
         priority=body.priority.value if body.priority else None,
         actor_id=current_user.id,
+        set_epic='epic_id' in body.model_fields_set,
+        epic_id=body.epic_id,
     )
     await session.commit()
     return BulkOperationResponse(updated=updated)

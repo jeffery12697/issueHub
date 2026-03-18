@@ -13,6 +13,7 @@ import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { savedViewsApi } from '@/api/savedViews'
+import { useEpics } from '@/api/epics'
 import { toast } from '@/store/toastStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
@@ -124,6 +125,9 @@ export default function ListPage() {
 
   const statusMapEarly = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
 
+  const { data: epics = [] } = useEpics(projectId)
+  const epicMap = Object.fromEntries(epics.map((e) => [e.id, e]))
+
   // Apply quick search + hide-completed filters before grouping
   const _taskVisible = (t: Task) => {
     if (hideCompleted && t.status_id && statusMapEarly[t.status_id]?.is_complete) return false
@@ -229,7 +233,7 @@ export default function ListPage() {
   })
 
   const bulkUpdate = useMutation({
-    mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string } }) =>
+    mutationFn: ({ taskIds, data }: { taskIds: string[]; data: { status_id?: string; priority?: string; epic_id?: string | null } }) =>
       tasksApi.bulkUpdate(taskIds, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks', listId] })
@@ -513,6 +517,22 @@ export default function ListPage() {
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
             </select>
+            {epics.length > 0 && (
+              <select
+                className="h-7 text-xs border border-violet-300 dark:border-violet-700 rounded-md px-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                defaultValue=""
+                onChange={(e) => {
+                  bulkUpdate.mutate({ taskIds: Array.from(selectedIds), data: { epic_id: e.target.value || null } })
+                  e.target.value = ''
+                }}
+              >
+                <option value="" disabled>Set epic…</option>
+                <option value="">No epic</option>
+                {epics.map((e) => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+              </select>
+            )}
             <DeleteButton
               variant="button"
               label="Delete"
@@ -706,6 +726,7 @@ export default function ListPage() {
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Assignees</th>
                   <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reviewer</th>
                   <SortTh col="due_date" label="Due Date" sortBy={sortBy} sortDir={sortDir} onSort={(c, d) => { setSortBy(c); setSortDir(d); setPage(1) }} />
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Epic</th>
                   <th className="px-4 py-3.5"></th>
                 </tr>
               </thead>
@@ -715,7 +736,7 @@ export default function ListPage() {
                   if (showHeader) {
                     rows.push(
                       <tr key={`hdr-${groupKey ?? 'none'}`} className="bg-slate-50/80 dark:bg-slate-800/80">
-                        <td colSpan={8} className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <td colSpan={9} className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
                             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{groupLabel}</span>
@@ -849,6 +870,30 @@ export default function ListPage() {
                               onChange={(e) => updateTask.mutate({ id: task.id, data: { due_date: e.target.value || null } })}
                               className="absolute inset-0 opacity-0 cursor-pointer w-full"
                             />
+                          </div>
+                        </td>
+                        {/* Epic */}
+                        <td className="px-4 py-3">
+                          <div className="relative inline-flex items-center min-w-[80px] cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
+                            {task.epic_id && epicMap[task.epic_id] ? (
+                              <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 pointer-events-none">
+                                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: epicMap[task.epic_id].color }} />
+                                <span className="truncate max-w-[100px]">{epicMap[task.epic_id].name}</span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-300 dark:text-slate-600 text-sm pointer-events-none">—</span>
+                            )}
+                            <select
+                              value={task.epic_id ?? ''}
+                              onChange={(e) => updateTask.mutate({ id: task.id, data: { epic_id: e.target.value || null } })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                              aria-label="Set epic"
+                            >
+                              <option value="">No epic</option>
+                              {epics.map((e) => (
+                                <option key={e.id} value={e.id}>{e.name}</option>
+                              ))}
+                            </select>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">

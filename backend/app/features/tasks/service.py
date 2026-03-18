@@ -304,14 +304,14 @@ class TaskService:
         await self._require_workspace_member(workspace_id, actor_id)
         return await self.repo.search(workspace_id, q)
 
-    async def bulk_update(self, task_ids: list[UUID], status_id: UUID | None, priority: str | None, actor_id: UUID) -> int:
+    async def bulk_update(self, task_ids: list[UUID], status_id: UUID | None, priority: str | None, actor_id: UUID, set_epic: bool = False, epic_id: UUID | None = None) -> int:
         if not task_ids:
             raise HTTPException(422, "task_ids cannot be empty")
         task = await self.repo.get_by_id(task_ids[0])
         if not task:
             raise HTTPException(404, "Task not found")
         await self._require_workspace_member(task.workspace_id, actor_id)
-        return await self.repo.bulk_update(task_ids, status_id, priority)
+        return await self.repo.bulk_update(task_ids, status_id, priority, set_epic=set_epic, epic_id=epic_id)
 
     async def bulk_move(self, task_ids: list[UUID], list_id: UUID, actor_id: UUID) -> int:
         if not task_ids:

@@ -126,11 +126,13 @@ class BulkUpdateRequest(BaseModel):
     task_ids: list[UUID]
     status_id: UUID | None = None
     priority: Priority | None = None
+    epic_id: UUID | None = None
 
     @model_validator(mode='after')
     def at_least_one_field(self) -> 'BulkUpdateRequest':
-        if self.status_id is None and self.priority is None:
-            raise ValueError("At least one of status_id or priority must be set")
+        has_epic = 'epic_id' in self.model_fields_set
+        if self.status_id is None and self.priority is None and not has_epic:
+            raise ValueError("At least one of status_id, priority, or epic_id must be set")
         return self
 
 

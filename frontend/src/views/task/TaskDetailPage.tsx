@@ -20,6 +20,7 @@ import DeleteButton from '@/components/DeleteButton'
 import RichTextEditor from '@/components/RichTextEditor'
 import AttachmentList from '@/components/AttachmentList'
 import { PRIORITY_COLORS, PRIORITY_DOT_COLORS, PRIORITY_CHIP } from '@/lib/priority'
+import { useEpics } from '@/api/epics'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -59,6 +60,8 @@ export default function TaskDetailPage() {
     queryFn: () => workspacesApi.get(project!.workspace_id),
     enabled: !!project?.workspace_id,
   })
+
+  const { data: epics = [] } = useEpics(task?.project_id ?? null)
 
   const { data: blockedBy = [] } = useQuery({
     queryKey: ['blocked-by', taskId],
@@ -1000,6 +1003,42 @@ export default function TaskDetailPage() {
                   placeholder="—"
                   className="w-full border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
+              </div>
+
+              {/* Epic */}
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Epic</p>
+                <div className="relative">
+                  {task.epic_id && epics.find((e) => e.id === task.epic_id) ? (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200">
+                      <span
+                        className="inline-block w-2 h-2 rounded-full shrink-0"
+                        style={{ background: epics.find((e) => e.id === task.epic_id)?.color ?? '#8b5cf6' }}
+                      />
+                      <span className="truncate">{epics.find((e) => e.id === task.epic_id)?.name}</span>
+                      <button
+                        onClick={() => updateTask.mutate({ epic_id: null })}
+                        className="ml-auto text-slate-300 dark:text-slate-600 hover:text-red-400 transition-colors shrink-0"
+                        aria-label="Remove epic"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                  )}
+                  <select
+                    value={task.epic_id ?? ''}
+                    onChange={(e) => updateTask.mutate({ epic_id: e.target.value || null })}
+                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                    aria-label="Set epic"
+                  >
+                    <option value="">No epic</option>
+                    {epics.map((e) => (
+                      <option key={e.id} value={e.id}>{e.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Move to List */}

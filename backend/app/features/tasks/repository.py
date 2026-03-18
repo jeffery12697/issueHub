@@ -322,12 +322,14 @@ class TaskRepository:
         )
         return list(result.scalars().all())
 
-    async def bulk_update(self, task_ids: list[UUID], status_id: UUID | None, priority: str | None) -> int:
+    async def bulk_update(self, task_ids: list[UUID], status_id: UUID | None, priority: str | None, set_epic: bool = False, epic_id: UUID | None = None) -> int:
         values: dict = {}
         if status_id is not None:
             values["status_id"] = status_id
         if priority is not None:
             values["priority"] = priority
+        if set_epic:
+            values["epic_id"] = epic_id
         if not values:
             return 0
         result = await self.session.execute(

@@ -42,12 +42,14 @@ export type CreateTaskData = {
   story_points?: number | null
   status_id?: string
   list_id?: string
+  epic_id?: string
 }
 
 export type UpdateTaskData = Partial<Omit<CreateTaskData, 'reviewer_id' | 'status_id' | 'due_date'>> & {
   reviewer_id?: string | null
   status_id?: string | null
   due_date?: string | null
+  epic_id?: string | null
 }
 
 export const tasksApi = {
@@ -121,7 +123,7 @@ export const tasksApi = {
   },
   search: (workspaceId: string, q: string) =>
     apiClient.get<TaskSearchResult[]>(`/workspaces/${workspaceId}/search`, { params: { q } }).then((r) => r.data),
-  bulkUpdate: (taskIds: string[], data: { status_id?: string; priority?: string }) =>
+  bulkUpdate: (taskIds: string[], data: { status_id?: string; priority?: string; epic_id?: string | null }) =>
     apiClient.post<{ updated: number }>('/tasks/bulk-update', { task_ids: taskIds, ...data }).then((r) => r.data),
   bulkDelete: (taskIds: string[]) =>
     apiClient.post<{ updated: number }>('/tasks/bulk-delete', { task_ids: taskIds }).then((r) => r.data),
