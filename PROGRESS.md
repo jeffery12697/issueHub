@@ -41,6 +41,12 @@
 ## Currently Working On
 - (nothing — ready for next task)
 
+## Recently Completed (outside phases, continued)
+- Linked PR/MR details in task git section: task_git_links table (migration 0027), webhook captures pr_title/pr_url, GET /tasks/{id}/git-links, TaskDetailPage shows PR cards with platform icon, title link, status badge (open/merged), count badge on Git header (commit 2737c08)
+
+## Recently Completed (outside phases, continued)
+- `/impeccable:adapt` mobile/tablet responsive pass: new ProjectHeader component (two-row mobile layout), all page headers px-4 sm:px-6, all mains responsive py/px, EpicDetailPage/EpicTimelinePage two-row inline mobile headers with breadcrumb truncation, stat grid cols-1 sm:cols-2 fix (commit 7ef48bd)
+
 ## Recently Completed (outside phases)
 - Group by status toggle for List view and Project view (frontend-only, no backend changes)
 - Global search improvements: search by task key (PROJ-42), show project › list in results, visible on all pages, searches comments

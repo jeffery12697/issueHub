@@ -25,6 +25,12 @@ import {
   useListTemplates, useCreateTemplate, useDeleteTemplate, useUpdateTemplate,
   type ListTemplate, type TemplateStatus, type TemplateField,
 } from '@/api/listTemplates'
+import {
+  useDescriptionTemplates, useCreateDescriptionTemplate,
+  useUpdateDescriptionTemplate, useDeleteDescriptionTemplate,
+  type DescriptionTemplate,
+} from '@/api/descriptionTemplates'
+import RichTextEditor from '@/components/RichTextEditor'
 
 const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
   Basic: [
@@ -44,7 +50,7 @@ const PRESET_STATUSES: Record<string, TemplateStatus[]> = {
 
 const FIELD_TYPES: TemplateField['field_type'][] = ['text', 'number', 'date', 'dropdown', 'checkbox', 'url']
 
-type ActiveTab = 'members' | 'templates' | 'teams'
+type ActiveTab = 'members' | 'templates' | 'desc-templates' | 'teams'
 
 export default function WorkspaceSettingsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -71,6 +77,12 @@ export default function WorkspaceSettingsPage() {
   const [showNewTemplate, setShowNewTemplate] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [templatePreset, setTemplatePreset] = useState('Basic')
+
+  // Description templates
+  const { data: descTemplates = [] } = useDescriptionTemplates(canManageSettings ? workspaceId : undefined)
+  const createDescTemplate = useCreateDescriptionTemplate(workspaceId!)
+  const updateDescTemplate = useUpdateDescriptionTemplate(workspaceId!)
+  const deleteDescTemplate = useDeleteDescriptionTemplate(workspaceId!)
 
   if (members.length > 0 && !canManageSettings) {
     return (
@@ -114,17 +126,22 @@ export default function WorkspaceSettingsPage() {
       <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
         {/* Tab bar */}
         <div className="flex items-center gap-2 mb-6">
-          {(['members', 'teams', 'templates'] as ActiveTab[]).map((tab) => (
+          {([
+            { key: 'members', label: 'Members' },
+            { key: 'teams', label: 'Teams' },
+            { key: 'templates', label: 'List Templates' },
+            { key: 'desc-templates', label: 'Description Templates' },
+          ] as { key: ActiveTab; label: string }[]).map(({ key, label }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize ${
-                activeTab === tab
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeTab === key
                   ? 'bg-violet-600 text-white'
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
-              {tab}
+              {label}
             </button>
           ))}
         </div>
@@ -216,6 +233,17 @@ export default function WorkspaceSettingsPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* Description Templates tab */}
+        {activeTab === 'desc-templates' && workspaceId && (
+          <DescriptionTemplatesTab
+            workspaceId={workspaceId}
+            templates={descTemplates}
+            onCreate={(data) => createDescTemplate.mutate(data)}
+            onUpdate={(templateId, data) => updateDescTemplate.mutate({ templateId, data })}
+            onDelete={(templateId) => deleteDescTemplate.mutate(templateId)}
+          />
         )}
 
         {/* Teams tab */}
@@ -1005,6 +1033,190 @@ function TemplateCard({
               className="bg-violet-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
             >
               Save fields
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Description Templates Tab ─────────────────────────────────────────────────
+
+function DescriptionTemplatesTab({
+  workspaceId,
+  templates,
+  onCreate,
+  onUpdate,
+  onDelete,
+}: {
+  workspaceId: string
+  templates: DescriptionTemplate[]
+  onCreate: (data: { name: string; content: string }) => void
+  onUpdate: (templateId: string, data: { name?: string; content?: string }) => void
+  onDelete: (templateId: string) => void
+}) {
+  const [showNew, setShowNew] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newContent, setNewContent] = useState('')
+
+  function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newName.trim()) return
+    onCreate({ name: newName.trim(), content: newContent })
+    setNewName('')
+    setNewContent('')
+    setShowNew(false)
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Description Templates</h2>
+        <button
+          onClick={() => setShowNew(true)}
+          className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+        >
+          + New template
+        </button>
+      </div>
+
+      {showNew && (
+        <form
+          className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm space-y-3"
+          onSubmit={handleCreate}
+        >
+          <input
+            autoFocus
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Template name"
+            className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
+          />
+          <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+            <RichTextEditor
+              value={newContent}
+              onChange={setNewContent}
+              placeholder="Template content…"
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => { setShowNew(false); setNewName(''); setNewContent('') }}
+              className="text-sm px-3 py-2 text-slate-500 hover:text-slate-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors"
+            >
+              Create
+            </button>
+          </div>
+        </form>
+      )}
+
+      {templates.length === 0 ? (
+        <p className="text-slate-400 dark:text-slate-500 text-sm">No description templates yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {templates.map((t) => (
+            <DescriptionTemplateCard
+              key={t.id}
+              template={t}
+              onUpdate={(data) => onUpdate(t.id, data)}
+              onDelete={() => onDelete(t.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DescriptionTemplateCard({
+  template,
+  onUpdate,
+  onDelete,
+}: {
+  template: DescriptionTemplate
+  onUpdate: (data: { name?: string; content?: string }) => void
+  onDelete: () => void
+}) {
+  const [editingName, setEditingName] = useState(false)
+  const [nameValue, setNameValue] = useState(template.name)
+  const [showContentEditor, setShowContentEditor] = useState(false)
+  const [contentValue, setContentValue] = useState(template.content)
+
+  function handleNameBlur() {
+    setEditingName(false)
+    if (nameValue.trim() && nameValue.trim() !== template.name) {
+      onUpdate({ name: nameValue.trim() })
+    }
+  }
+
+  function handleSaveContent() {
+    onUpdate({ content: contentValue })
+    setShowContentEditor(false)
+  }
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        {editingName ? (
+          <input
+            autoFocus
+            value={nameValue}
+            onChange={(e) => setNameValue(e.target.value)}
+            onBlur={handleNameBlur}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+            className="flex-1 border border-violet-400 rounded-lg px-2 py-1 text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800"
+          />
+        ) : (
+          <button
+            className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-violet-700 dark:hover:text-violet-400 transition-colors text-left"
+            onClick={() => { setEditingName(true); setNameValue(template.name) }}
+          >
+            {template.name}
+          </button>
+        )}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => { setShowContentEditor((v) => !v); setContentValue(template.content) }}
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors font-medium"
+          >
+            {showContentEditor ? 'Hide content' : 'Edit content'}
+          </button>
+          <DeleteButton
+            variant="text"
+            message={`Delete template "${template.name}"? This cannot be undone.`}
+            onConfirm={onDelete}
+          />
+        </div>
+      </div>
+
+      {!showContentEditor && template.content && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+          {template.content.replace(/<[^>]+>/g, ' ').trim().slice(0, 120)}
+        </p>
+      )}
+
+      {showContentEditor && (
+        <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2">
+          <RichTextEditor
+            key={template.id}
+            value={contentValue}
+            onChange={setContentValue}
+            placeholder="Template content…"
+          />
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleSaveContent}
+              className="bg-violet-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            >
+              Save
             </button>
           </div>
         </div>

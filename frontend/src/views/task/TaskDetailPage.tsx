@@ -23,6 +23,7 @@ import RichTextEditor from '@/components/RichTextEditor'
 import AttachmentList from '@/components/AttachmentList'
 import { PRIORITY_COLORS, PRIORITY_DOT_COLORS, PRIORITY_CHIP } from '@/lib/priority'
 import { useEpics } from '@/api/epics'
+import { useDescriptionTemplates } from '@/api/descriptionTemplates'
 
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -139,6 +140,20 @@ export default function TaskDetailPage() {
   const [logMinutes, setLogMinutes] = useState('')
   const [logNote, setLogNote] = useState('')
   const [addingTime, setAddingTime] = useState(false)
+
+  const { data: descriptionTemplates = [] } = useDescriptionTemplates(task?.workspace_id)
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
+  const templatePickerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!templatePickerOpen) return
+    function handleClick(e: MouseEvent) {
+      if (templatePickerRef.current && !templatePickerRef.current.contains(e.target as Node)) {
+        setTemplatePickerOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [templatePickerOpen])
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState('')
@@ -362,6 +377,39 @@ export default function TaskDetailPage() {
                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </h1>
+              )}
+              {descriptionTemplates.length > 0 && (
+                <div ref={templatePickerRef} className="relative mb-2 flex justify-end">
+                  <button
+                    onClick={() => setTemplatePickerOpen((v) => !v)}
+                    className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center gap-1 font-medium"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                    </svg>
+                    Use template
+                  </button>
+                  {templatePickerOpen && (
+                    <div className="absolute top-6 right-0 z-20 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1">
+                      <p className="text-xs text-slate-400 dark:text-slate-500 px-3 pt-2 pb-1 font-medium uppercase tracking-wide">
+                        Description Templates
+                      </p>
+                      {descriptionTemplates.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            updateTask.mutate({ description: t.content || null })
+                            setTemplatePickerOpen(false)
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          {t.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
               <RichTextEditor
                 key={task.id}

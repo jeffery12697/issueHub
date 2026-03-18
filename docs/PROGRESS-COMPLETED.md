@@ -595,3 +595,16 @@ _Completed: 2026-03-17_
 - [x] `frontend/src/views/workspace/DashboardPage.tsx` — dashboard page with dnd-kit reorder, admin edit mode (add/remove/reorder/toggle visibility), per-widget project filter dropdown, SVG donut for completion rate, horizontal bar chart for workload
 - [x] `frontend/src/components/WorkspaceHeader.tsx` — added "Dashboard" nav tab
 - [x] `frontend/src/router/index.tsx` — added `/workspaces/:workspaceId/dashboard` route
+
+## Description Templates (outside phases)
+
+### Description Templates feature
+- [x] `backend/app/models/description_template.py` — new `DescriptionTemplate` model: workspace_id, name, content (HTML), created_by, timestamps
+- [x] `backend/alembic/versions/0030_add_description_templates.py` — migration creating description_templates table
+- [x] `backend/app/features/description_templates/` — full feature module: schemas (DTOs + Pydantic), repository (CRUD), service (access control: list=member, write=owner/admin), router (GET/POST/PATCH/DELETE under /workspaces/{id}/description-templates)
+- [x] `backend/app/main.py` — registered description_templates router
+- [x] `backend/tests/conftest.py` — added model import + description_templates to truncate list
+- [x] `backend/tests/test_description_templates.py` — 10 tests: CRUD, admin-only write, member read, unauthenticated, 404
+- [x] `frontend/src/api/descriptionTemplates.ts` — typed API client + TanStack Query hooks (list, create, update, delete)
+- [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — new "Description Templates" tab (owner/admin only): list, create with RichTextEditor, inline edit name + content, delete
+- [x] `frontend/src/views/task/TaskDetailPage.tsx` — "Use template" dropdown button above description editor; lists workspace templates by name; selecting one replaces task description via updateTask mutation
