@@ -8,6 +8,10 @@ import { useListSocket } from '@/hooks/useTaskSocket'
 import { useAuthStore } from '@/store/authStore'
 import { PRIORITY_COLORS } from '@/lib/priority'
 import HeaderActions from '@/components/HeaderActions'
+import FilterBar, { type FilterRule } from '@/components/FilterBar'
+import { useFieldDefinitions } from '@/api/customFields'
+
+const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
 export default function BoardPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
@@ -20,10 +24,28 @@ export default function BoardPage() {
     queryFn: () => listsApi.get(listId!),
   })
 
+  const [filterRules, setFilterRules] = useState<FilterRule[]>([])
+  const [cfFilters, setCfFilters] = useState<Record<string, string>>({})
+  const [searchQuery, setSearchQuery] = useState('')
+  const [hideCompleted, setHideCompleted] = useState(false)
+
+  const statusEq = filterRules.find((r) => r.field === 'status' && r.op === 'eq')?.value
+  const statusNots = filterRules.filter((r) => r.field === 'status' && r.op === 'neq').map((r) => r.value)
+  const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
+  const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
+
   const BOARD_CAP = 100
   const { data: boardResult } = useQuery({
-    queryKey: ['tasks', listId, 'board'],
-    queryFn: () => tasksApi.listPaged(listId!, { page: 1, page_size: BOARD_CAP }),
+    queryKey: ['tasks', listId, 'board', filterRules, cfFilters],
+    queryFn: () => tasksApi.listPaged(listId!, {
+      page: 1,
+      page_size: BOARD_CAP,
+      status_id: statusEq || undefined,
+      status_id_not: statusNots.join(',') || undefined,
+      priority: priorityEq,
+      priority_not: priorityNots.join(',') || undefined,
+      cf: cfFilters,
+    }),
   })
   const tasks = boardResult?.items ?? []
   const totalTasks = boardResult?.total ?? 0
@@ -45,13 +67,22 @@ export default function BoardPage() {
   const workspaceId = tasks[0]?.workspace_id
   const { data: members = [] } = useWorkspaceMembers(workspaceId)
   const memberMap = Object.fromEntries(members.map((m) => [m.user_id, m]))
+  const { data: fieldDefs = [] } = useFieldDefinitions(listId)
 
   const currentUserId = useAuthStore((s) => s.user?.id)
   const myRole = currentUserId ? memberMap[currentUserId]?.role : undefined
   const canManageSettings = myRole === 'owner' || myRole === 'admin'
 
   const statuses = list?.statuses ?? []
-  const noStatusTasks = tasks.filter((t) => !t.status_id)
+  const statusMap = Object.fromEntries(statuses.map((s) => [s.id, s]))
+
+  const visibleTasks = tasks.filter((t) => {
+    if (hideCompleted && t.status_id && statusMap[t.status_id]?.is_complete) return false
+    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    return true
+  })
+
+  const noStatusTasks = visibleTasks.filter((t) => !t.status_id)
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
@@ -89,6 +120,104 @@ export default function BoardPage() {
         </div>
       </header>
 
+      {/* Filter bar */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-3 space-y-2">
+        <FilterBar
+          fields={[
+            {
+              id: 'status',
+              label: 'Status',
+              options: statuses.map((s) => ({ value: s.id, label: s.name })),
+            },
+            {
+              id: 'priority',
+              label: 'Priority',
+              options: PRIORITIES.filter((p) => p !== 'none').map((p) => ({
+                value: p,
+                label: p.charAt(0).toUpperCase() + p.slice(1),
+              })),
+            },
+          ]}
+          rules={filterRules}
+          onRulesChange={(rules) => setFilterRules(rules)}
+          extra={
+            fieldDefs.length > 0 ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                {fieldDefs.map((field) => {
+                  const val = cfFilters[field.id] ?? ''
+                  const set = (v: string) => setCfFilters((prev) => { const next = { ...prev }; if (v) next[field.id] = v; else delete next[field.id]; return next })
+                  if (field.field_type === 'dropdown' || field.field_type === 'checkbox') {
+                    return (
+                      <div key={field.id} className="relative">
+                        <select
+                          value={val}
+                          onChange={(e) => set(e.target.value)}
+                          className={`h-8 appearance-none pl-3 pr-7 rounded-full text-xs font-medium border cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${val ? 'border-violet-400 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                        >
+                          <option value="">{field.name}: All</option>
+                          {field.field_type === 'checkbox' ? (
+                            <><option value="true">Yes</option><option value="false">No</option></>
+                          ) : (
+                            (field.options_json ?? []).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)
+                          )}
+                        </select>
+                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-60">▾</span>
+                      </div>
+                    )
+                  }
+                  return (
+                    <input
+                      key={field.id}
+                      type={field.field_type === 'number' ? 'number' : field.field_type === 'date' ? 'date' : 'text'}
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      placeholder={field.name}
+                      className={`h-8 border rounded-full px-3 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 w-32 transition-colors ${val ? 'border-violet-400 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                    />
+                  )
+                })}
+              </div>
+            ) : undefined
+          }
+        />
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks…"
+              className="pl-8 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setHideCompleted((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              hideCompleted
+                ? 'bg-violet-50 dark:bg-violet-950 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+            }`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Hide completed
+          </button>
+          {(searchQuery || hideCompleted) && (
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              {visibleTasks.length} of {tasks.length}
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* Board */}
       <div className="flex-1 overflow-x-auto flex justify-center">
         <div className="p-6 min-w-max">
@@ -120,7 +249,7 @@ export default function BoardPage() {
               <KanbanColumn
                 key={status.id}
                 status={status}
-                tasks={tasks.filter((t) => t.status_id === status.id)}
+                tasks={visibleTasks.filter((t) => t.status_id === status.id)}
                 memberMap={memberMap}
                 statusMap={Object.fromEntries(statuses.map((s) => [s.id, s]))}
                 onMoveTask={(taskId) => updateTask.mutate({ id: taskId, status_id: status.id })}
