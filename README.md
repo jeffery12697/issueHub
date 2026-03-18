@@ -37,6 +37,7 @@ A full-featured project management and issue tracking system inspired by Linear,
 - 6 field types: text, number, date, dropdown, checkbox, URL
 - Role-based field visibility and editability
 - List templates with preset statuses and custom fields
+- Description templates — workspace-level rich-text templates admins define, users apply to any task description in one click
 
 ### Time & Planning
 - Due dates and start dates with overdue / due-today highlighting
@@ -239,7 +240,8 @@ All endpoints are prefixed with `/api/v1`. Full interactive docs at `/docs`.
 | Tasks | `GET/POST /lists/{id}/tasks`, `GET/PATCH/DELETE /tasks/{id}`, subtasks, move, promote, bulk ops, export |
 | Task detail | Dependencies, links, comments, attachments, time entries, watchers, audit log |
 | Teams | `GET/POST/DELETE /workspaces/{id}/teams`, team members |
-| Templates | `GET/POST/PATCH/DELETE /workspaces/{id}/list-templates` |
+| List Templates | `GET/POST/PATCH/DELETE /workspaces/{id}/list-templates` |
+| Description Templates | `GET/POST/PATCH/DELETE /workspaces/{id}/description-templates` |
 | Invites | `POST /workspaces/{id}/invites`, `POST /invites/{token}/accept` |
 | Notifications | `GET /notifications`, mark read, unread count, preferences |
 | Webhooks | `POST /webhooks/github`, `POST /webhooks/gitlab` |
