@@ -181,18 +181,22 @@ export default function ProjectTasksPage() {
     }
 
     if (groupBy === 'status') {
-      const seenIds = new Set<string>()
-      const orderedStatuses: Array<{ id: string; name: string; color: string }> = []
+      // Collect unique status names in first-seen order, keeping first occurrence's color
+      const seenNames = new Map<string, { name: string; color: string }>()
       for (const l of listDetails) {
         for (const s of (l.statuses ?? [])) {
-          if (!seenIds.has(s.id)) { seenIds.add(s.id); orderedStatuses.push(s) }
+          const key = s.name.toLowerCase()
+          if (!seenNames.has(key)) seenNames.set(key, { name: s.name, color: s.color })
         }
       }
       const result: DisplayGroup[] = []
-      for (const s of orderedStatuses) {
-        const groupTasks = visibleTasks.filter((t) => t.status_id === s.id)
+      for (const [, { name, color }] of seenNames) {
+        const groupTasks = visibleTasks.filter((t) => {
+          const statusName = t.status_id ? statusMap[t.status_id]?.name : undefined
+          return statusName?.toLowerCase() === name.toLowerCase()
+        })
         if (groupTasks.length === 0) continue
-        result.push({ groupKey: s.id, groupLabel: s.name, groupColor: s.color, tasks: groupTasks, showHeader: true })
+        result.push({ groupKey: name, groupLabel: name, groupColor: color, tasks: groupTasks, showHeader: true })
       }
       const noStatus = visibleTasks.filter((t) => !t.status_id)
       if (noStatus.length > 0) {
