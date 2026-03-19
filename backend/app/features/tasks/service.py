@@ -196,6 +196,8 @@ class TaskService:
             await self.audit_repo.log(task_id, actor_id=actor_id, action="updated", changes=audit_changes)
         if raw_changes and self.automation_repo:
             await self._run_automations(updated, raw_changes)
+        if "status_id" in raw_changes:
+            await self._auto_assign_reviewer_on_review(updated, raw_changes["status_id"][1])
         return updated
 
     async def _run_automations(self, task: Task, raw_changes: dict) -> None:
@@ -233,6 +235,27 @@ class TaskService:
                     action="automation",
                     changes={"automation_id": str(auto.id), "action_type": auto.action_type},
                 )
+
+    async def _auto_assign_reviewer_on_review(self, task: Task, new_status_id: str | None) -> None:
+        """Randomly assign a reviewer from the list pool when status changes to a 'review' status."""
+        if not new_status_id or task.reviewer_id or not task.list_id:
+            return
+        import random
+        from uuid import UUID as _UUID
+        status = await self.list_repo.get_status_by_id(_UUID(new_status_id))
+        if not status or "review" not in status.name.lower():
+            return
+        list_ = await self.list_repo.get_by_id(task.list_id)
+        if not list_ or not list_.reviewer_ids:
+            return
+        chosen = random.choice(list_.reviewer_ids)
+        await self.repo.update(task, UpdateTaskDTO(reviewer_id=chosen))
+        await self.audit_repo.log(
+            task.id,
+            actor_id=chosen,
+            action="auto_reviewer_assigned",
+            changes={"reviewer_id": str(chosen)},
+        )
 
     async def promote(self, task_id: UUID, actor_id: UUID) -> Task:
         task = await self.get_or_404(task_id)
