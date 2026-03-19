@@ -692,6 +692,7 @@ function SortableTemplateStatusRow({
         onClick={onDelete}
         className="text-slate-300 dark:text-slate-600 hover:text-red-400 text-xs transition-colors shrink-0"
         title="Remove status"
+        aria-label="Remove status"
       >
         ✕
       </button>
@@ -984,6 +985,7 @@ function TemplateCard({
                   onClick={() => handleDeleteField(f._key)}
                   className="text-slate-300 dark:text-slate-600 hover:text-red-400 text-xs transition-colors shrink-0"
                   title="Remove field"
+                  aria-label="Remove field"
                 >
                   ✕
                 </button>
@@ -1149,6 +1151,8 @@ function TagsTab({
                 onClick={() => setNewColor(c)}
                 className={`w-6 h-6 rounded-full transition-transform ${newColor === c ? 'scale-125 ring-2 ring-offset-1 ring-slate-400' : 'hover:scale-110'}`}
                 style={{ background: c }}
+                aria-label={`Color: ${c}`}
+                aria-pressed={newColor === c}
               />
             ))}
             <input
@@ -1200,6 +1204,8 @@ function TagsTab({
                     onClick={() => setEditColor(c)}
                     className={`w-5 h-5 rounded-full transition-transform ${editColor === c ? 'scale-125 ring-2 ring-offset-1 ring-slate-400' : 'hover:scale-110'}`}
                     style={{ background: c }}
+                    aria-label={`Color: ${c}`}
+                    aria-pressed={editColor === c}
                   />
                 ))}
                 <input

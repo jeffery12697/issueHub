@@ -269,6 +269,7 @@ function StatusMappingsTab({
                     onClick={() => remove.mutate(m.id)}
                     className="ml-auto text-slate-300 dark:text-slate-600 hover:text-red-500 text-xs transition-colors"
                     title="Remove mapping"
+                    aria-label="Remove mapping"
                   >
                     ✕
                   </button>

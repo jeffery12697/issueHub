@@ -759,6 +759,7 @@ export default function ListPage() {
                   <th className="px-4 py-3.5 w-10">
                     <input
                       type="checkbox"
+                      aria-label="Select all tasks"
                       checked={visibleTasks.length > 0 && visibleTasks.every((t) => selectedIds.has(t.id))}
                       onChange={(e) => {
                         if (e.target.checked) {

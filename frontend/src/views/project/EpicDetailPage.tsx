@@ -359,7 +359,11 @@ export default function EpicDetailPage() {
                   <h1
                     className="text-xl font-bold text-slate-900 dark:text-slate-100 cursor-pointer hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
                     onClick={startEditName}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEditName() } }}
+                    role="button"
+                    tabIndex={0}
                     title="Click to rename"
+                    aria-label={`${epic.name} — click to rename`}
                   >
                     {epic.name}
                   </h1>
@@ -636,6 +640,7 @@ export default function EpicDetailPage() {
                             onClick={() => removeTask(task)}
                             className="text-slate-300 dark:text-slate-600 hover:text-red-400 dark:hover:text-red-400 transition-colors"
                             title="Remove from epic"
+                            aria-label="Remove from epic"
                           >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
                               <path d="M18 6L6 18M6 6l12 12"/>

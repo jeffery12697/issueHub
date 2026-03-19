@@ -114,7 +114,8 @@ function AttachmentChip({
           type="button"
           onClick={onDelete}
           className="shrink-0 text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-          title="Remove"
+          title="Remove attachment"
+          aria-label="Remove attachment"
         >
           ✕
         </button>

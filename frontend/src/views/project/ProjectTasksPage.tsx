@@ -621,6 +621,7 @@ export default function ProjectTasksPage() {
                   <th className="w-10 px-4 py-3.5">
                     <input
                       type="checkbox"
+                      aria-label="Select all tasks"
                       className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600"
                       checked={visibleTasks.length > 0 && visibleTasks.every((t) => selectedIds.has(t.id))}
                       onChange={(e) => {

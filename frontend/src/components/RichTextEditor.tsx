@@ -311,6 +311,7 @@ function ColorPicker({
                   style={{ background: c, border: active(c) ? '2px solid #7c3aed' : '2px solid transparent' }}
                   className="w-5 h-5 rounded-full transition-transform hover:scale-110"
                   title={c}
+                  aria-label={`Color: ${c}`}
                 />
               ))}
             </div>
@@ -423,6 +424,7 @@ function ToolBtn({ onClick, active, title, children }: {
       type="button"
       onMouseDown={(e) => { e.preventDefault(); onClick() }}
       title={title}
+      aria-label={title}
       className={`w-7 h-7 flex items-center justify-center rounded text-xs font-semibold transition-colors ${
         active ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200'
       }`}
