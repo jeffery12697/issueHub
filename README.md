@@ -25,31 +25,53 @@ A full-featured project management and issue tracking system inspired by Linear,
 ### Views
 | View | Description |
 |------|-------------|
-| **List** | Sortable table with filters, pagination, bulk selection, and CSV export |
-| **Board** | Kanban drag-and-drop columns by status |
-| **My Tasks** | Cross-list view of everything assigned to the current user |
-| **Project Tasks** | Cross-list view for all tasks in a project with advanced filters |
+| **List** | Sortable table with filters, pagination, bulk selection, inline editing, and CSV export |
+| **Board** | Kanban drag-and-drop columns by status with full filter bar |
+| **Gantt** | Project-level timeline — bars from start to due date, drag-scrollable, sticky task names |
+| **My Tasks** | Cross-list view of everything assigned to the current user, grouped by due date |
+| **Project Tasks** | Cross-list view for all tasks in a project with advanced filters and group-by |
 | **Workload** | Per-member open task count and story points |
 | **Analytics** | Task breakdown by status with story point totals (workspace and project) |
+| **Dashboard** | Configurable widget dashboard — completion rate, overdue count, member workload |
+| **Epics** | Feature-level grouping — epic cards with progress bars, status, and date ranges |
+| **Epic Detail** | Task list scoped to an epic, grouped by list, with inline editing |
+| **Epic Timeline** | Gantt-style view scoped to a single epic across all contributing lists |
+
+### Epics
+- Create, rename, and delete Epics within a project
+- Assign tasks to an Epic from the task detail panel, inline table, or bulk select
+- Progress bar per Epic (% of tasks in a done-category status)
+- Epic statuses: Not started / In progress / Done
+- Epic timeline (Gantt view) scoped to a single Epic across all lists
+
+### Tags
+- Workspace-level tags with custom names and colors
+- Assign / remove tags on any task (multi-tag support)
+- Tag filter in List, Project, and Board views (AND logic — must match all selected tags)
+- Tag management in Workspace Settings (admin / owner only)
 
 ### Statuses & Custom Fields
-- Per-list configurable statuses with colors and "done" semantics
+- Per-list configurable statuses with colors, "done" semantics, and drag-to-reorder
 - 6 field types: text, number, date, dropdown, checkbox, URL
 - Role-based field visibility and editability
 - List templates with preset statuses and custom fields
-- Description templates — workspace-level rich-text templates admins define, users apply to any task description in one click
+- Description templates — workspace-level rich-text templates admins define, users apply in one click
+- Cross-list status mapping: explicit rules or name-match fallback on task move
 
 ### Time & Planning
 - Due dates and start dates with overdue / due-today highlighting
 - Story points
 - Time tracking — log entries with duration and notes
+- Gantt view at the project level (start/due bars, month/week/day zoom, sticky left panel)
 
 ### Collaboration
 - Multi-assignee and reviewer per task
-- Real-time updates via WebSocket + Redis Pub/Sub
-- In-app notifications: @mentions, assignee changes, task updates, watchers
+- Task approvals — any workspace member can approve; shows approval count and who approved
+- Real-time updates via WebSocket + Redis Pub/Sub (task, list, and per-user channels)
+- Instant in-app notifications: @mentions, assignee changes, task updates, watchers (WebSocket push, no polling)
 - Rich text comments and descriptions (Tiptap) — bold, italic, lists, headings, tables, images, text color, font size, highlight, @mention autocomplete
 - Task links (external URLs) and full audit trail
+- Git PR / MR links: webhook captures PR title, URL, and open/merged status; displayed as cards in task detail
 
 ### Notifications & Email
 - In-app notification feed with unread badge
@@ -66,9 +88,12 @@ A full-featured project management and issue tracking system inspired by Linear,
 
 ### Search & Filters
 - Global full-text search across tasks, keys, and comments (pg_trgm GIN indexes)
-- Search by task key (e.g. `PROJ-00042`)
-- Saved views per list
-- Group-by: status, assignee, priority
+- Search by task key (e.g. `PROJ-42`) — visible on all pages via the header search
+- Saved views per list (custom filter combinations you can name and recall)
+- Group-by: status, assignee, priority (List and Project views)
+- Column sorting: title, priority, due date
+- Quick search filter and "Hide completed" toggle per view
+- Tag filter (AND logic), custom field filters, priority / status / assignee / due-date range filters
 
 ### Organization & Access Control
 - Workspaces → Projects → Lists → Tasks hierarchy
@@ -245,4 +270,9 @@ All endpoints are prefixed with `/api/v1`. Full interactive docs at `/docs`.
 | Invites | `POST /workspaces/{id}/invites`, `POST /invites/{token}/accept` |
 | Notifications | `GET /notifications`, mark read, unread count, preferences |
 | Webhooks | `POST /webhooks/github`, `POST /webhooks/gitlab` |
-| WebSocket | `ws://localhost:8000/ws/tasks/{id}`, `/ws/lists/{id}` |
+| Epics | `GET/POST /projects/{id}/epics`, `GET/PATCH/DELETE /epics/{id}`, epic tasks |
+| Tags | `GET/POST/PATCH/DELETE /workspaces/{id}/tags`, task tag assign/remove |
+| Approvals | `GET/POST/DELETE /tasks/{id}/approvals` |
+| Git Links | `GET /tasks/{id}/git-links`, `POST /webhooks/github`, `POST /webhooks/gitlab` |
+| Dashboard | `GET/POST/PATCH/DELETE /workspaces/{id}/dashboard/widgets`, widget data |
+| WebSocket | `ws://localhost:8000/ws/tasks/{id}`, `/ws/lists/{id}`, `/ws/users/{id}` |
