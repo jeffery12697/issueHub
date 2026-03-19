@@ -25,3 +25,14 @@ async def list_ws(websocket: WebSocket, list_id: UUID):
             await websocket.receive_text()
     except WebSocketDisconnect:
         disconnect(websocket, channel)
+
+
+@router.websocket("/ws/users/{user_id}")
+async def user_ws(websocket: WebSocket, user_id: UUID):
+    channel = f"user:{user_id}"
+    await connect(websocket, channel)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        disconnect(websocket, channel)

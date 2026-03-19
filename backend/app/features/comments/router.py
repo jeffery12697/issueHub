@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.security import get_current_user
-from app.core.pubsub import publish_task_event
+from app.core.pubsub import publish_task_event, publish_user_event
 from app.core.email import send_email
 from app.core.email_templates import mention_email, watcher_update_email
 from app.core.config import settings
@@ -65,6 +65,7 @@ async def create_comment(
                 body=f"{current_user.display_name} mentioned you in a comment",
                 meta={"comment_id": str(comment.id)},
             )
+            await publish_user_event(user_id, task_id, current_user.id, "notification.created", {"type": "mention"})
             user = await ws_repo.get_user_by_id(user_id)
             if user and user.email and user.notification_preference == "immediate":
                 background_tasks.add_task(
@@ -86,6 +87,7 @@ async def create_comment(
                 body=f"{current_user.display_name} commented on \"{task_title}\"",
                 meta={"comment_id": str(comment.id)},
             )
+            await publish_user_event(watcher_id, task_id, current_user.id, "notification.created", {"type": "task_updated"})
             user = await ws_repo.get_user_by_id(watcher_id)
             if user and user.email and user.notification_preference == "immediate":
                 background_tasks.add_task(

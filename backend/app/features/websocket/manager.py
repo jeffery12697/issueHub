@@ -38,7 +38,7 @@ async def redis_listener():
     """Background task: subscribe to all task/list channels via psubscribe."""
     pubsub = redis.pubsub()
     try:
-        await pubsub.psubscribe("task:*", "list:*")
+        await pubsub.psubscribe("task:*", "list:*", "user:*")
         async for message in pubsub.listen():
             if message["type"] == "pmessage":
                 channel = message["channel"]

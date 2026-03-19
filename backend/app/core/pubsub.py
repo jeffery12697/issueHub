@@ -27,3 +27,7 @@ async def publish_task_event(task_id: UUID, actor_id: UUID, event: str, data: di
 
 async def publish_list_event(list_id: UUID, task_id: UUID, actor_id: UUID, event: str, data: dict = {}):
     await publish(f"list:{list_id}", event, task_id, actor_id, data)
+
+
+async def publish_user_event(user_id: UUID, task_id: UUID, actor_id: UUID, event: str, data: dict = {}):
+    await publish(f"user:{user_id}", event, task_id, actor_id, data)

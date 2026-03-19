@@ -6,6 +6,7 @@ import { usePreferences, useUpdatePreferences } from '@/api/auth'
 import { useThemeContext } from '@/context/ThemeContext'
 import NotificationBell from '@/components/NotificationBell'
 import GlobalSearch from '@/components/GlobalSearch'
+import { useUserSocket } from '@/hooks/useTaskSocket'
 
 export default function HeaderActions() {
   const { logout, user } = useAuthStore()
@@ -19,6 +20,8 @@ export default function HeaderActions() {
   const { data: prefs } = usePreferences()
   const updatePref = useUpdatePreferences()
   const { theme, toggleTheme } = useThemeContext()
+
+  useUserSocket(user?.id)
 
   // Move focus to first menu item when menu opens
   useEffect(() => {

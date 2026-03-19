@@ -53,3 +53,28 @@ export function useListSocket(listId: string | undefined) {
     return () => ws.close()
   }, [listId, accessToken, qc])
 }
+
+export function useUserSocket(userId: string | undefined) {
+  const qc = useQueryClient()
+  const { accessToken } = useAuthStore()
+
+  useEffect(() => {
+    if (!userId || !accessToken) return
+
+    const ws = new WebSocket(`ws://localhost:8000/ws/users/${userId}`)
+
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data)
+        if (msg.event === 'notification.created') {
+          qc.invalidateQueries({ queryKey: ['notifications'] })
+          qc.invalidateQueries({ queryKey: ['notifications-unread'] })
+        }
+      } catch {}
+    }
+
+    ws.onerror = () => ws.close()
+
+    return () => ws.close()
+  }, [userId, accessToken, qc])
+}
