@@ -29,7 +29,7 @@ export default function WorkloadPage() {
         {/* Page title */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Workload</h1>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {isLoading ? 'Loading…' : workload.length === 0
               ? 'No members found'
               : `${workload.length} member${workload.length === 1 ? '' : 's'} · ${totalTasks} open task${totalTasks === 1 ? '' : 's'}${totalSP > 0 ? ` · ${totalSP} SP` : ''}`}
@@ -53,7 +53,7 @@ export default function WorkloadPage() {
               </svg>
             </div>
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No members yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm">Invite members to your workspace to see workload.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Invite members to your workspace to see workload.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -107,7 +107,7 @@ function MemberCard({ member }: { member: WorkloadMember }) {
       {expanded && (
         <div className="border-t border-slate-100 dark:border-slate-800">
           {member.tasks.length === 0 ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500 px-5 py-3">No tasks assigned.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 px-5 py-3">No tasks assigned.</p>
           ) : (
             member.tasks.map((task, i) => (
               <button
@@ -121,7 +121,7 @@ function MemberCard({ member }: { member: WorkloadMember }) {
                 />
                 <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 truncate">{task.title}</span>
                 {task.story_points != null && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{task.story_points} SP</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{task.story_points} SP</span>
                 )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600 shrink-0">
                   <polyline points="9 18 15 12 9 6" />

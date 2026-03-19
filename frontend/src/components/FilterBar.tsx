@@ -60,7 +60,7 @@ export default function FilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-slate-400 dark:text-slate-500 shrink-0">Filter</span>
+      <span className="text-sm font-medium text-slate-500 dark:text-slate-400 shrink-0">Filter</span>
       <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 shrink-0" />
 
       {rules.map((rule) => {

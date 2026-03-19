@@ -91,7 +91,7 @@ export default function DashboardPage() {
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {isAdmin ? 'Workspace health at a glance. Edit to configure widgets.' : 'Workspace health at a glance.'}
             </p>
           </div>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No widgets yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-5">
               {isAdmin ? 'Click Edit → Add widget to get started.' : 'An admin needs to configure dashboard widgets.'}
             </p>
             {isAdmin && (
@@ -411,9 +411,9 @@ function CompletionRateBody({ workspaceId, widgetId }: { workspaceId: string; wi
       <div className="space-y-1.5">
         <div>
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{done}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500">tasks completed</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">tasks completed</p>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500">{total} total tasks</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{total} total tasks</p>
       </div>
     </div>
   )
@@ -439,7 +439,7 @@ function OverdueCountBody({ workspaceId, widgetId }: { workspaceId: string; widg
       </div>
       <div>
         <p className={`text-3xl font-bold ${hasOverdue ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-100'}`}>{count}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           {count === 1 ? 'task overdue' : 'tasks overdue'}
         </p>
       </div>
@@ -455,7 +455,7 @@ function MemberWorkloadBody({ workspaceId, widgetId }: { workspaceId: string; wi
   if (isLoading) return <WidgetSkeleton rows={4} />
 
   if (members.length === 0) {
-    return <p className="text-sm text-slate-400 dark:text-slate-500 py-2">No members yet.</p>
+    return <p className="text-sm text-slate-500 dark:text-slate-400 py-2">No members yet.</p>
   }
 
   const maxCount = Math.max(...members.map((m) => m.open_task_count), 1)
@@ -468,7 +468,7 @@ function MemberWorkloadBody({ workspaceId, widgetId }: { workspaceId: string; wi
           <div key={m.user_id} className="space-y-1">
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[60%]">{m.display_name}</span>
-              <span className="text-slate-400 dark:text-slate-500 tabular-nums">{m.open_task_count} open</span>
+              <span className="text-slate-500 dark:text-slate-400 tabular-nums">{m.open_task_count} open</span>
             </div>
             <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
@@ -558,7 +558,7 @@ function AddWidgetPanel({
               }`}
             >
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-0.5">{WIDGET_LABELS[type]}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500">{WIDGET_DESCRIPTIONS[type]}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{WIDGET_DESCRIPTIONS[type]}</p>
               {alreadyAdded && (
                 <p className="text-[11px] text-violet-500 mt-1.5 font-medium">Already added</p>
               )}

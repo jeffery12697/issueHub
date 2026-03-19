@@ -318,7 +318,7 @@ function ColorPicker({
             <button
               type="button"
               onMouseDown={(e) => { e.preventDefault(); onClear(); setOpen(false) }}
-              className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-left"
+              className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-left"
             >
               Clear
             </button>

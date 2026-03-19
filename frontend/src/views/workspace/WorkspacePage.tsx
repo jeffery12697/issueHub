@@ -47,7 +47,7 @@ export default function WorkspacePage() {
       <main className="max-w-3xl mx-auto py-8 sm:py-12 px-4 sm:px-6">
         {/* Greeting */}
         <div className="mb-10">
-          <p className="text-sm text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-1">{greeting}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">{greeting}</p>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {user?.display_name ? `${user.display_name}` : 'Welcome back'}
           </h1>
@@ -117,7 +117,7 @@ export default function WorkspacePage() {
               </svg>
             </div>
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No workspaces yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">Create a workspace to start tracking your work.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-5">Create a workspace to start tracking your work.</p>
             <button
               onClick={() => setCreating(true)}
               className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
@@ -142,7 +142,7 @@ export default function WorkspacePage() {
                     <p className="text-slate-900 dark:text-slate-100 font-bold text-base truncate group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">
                       {ws.name}
                     </p>
-                    <p className="text-slate-400 dark:text-slate-500 text-sm mt-0.5">Open workspace →</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Open workspace →</p>
                   </div>
                 </Link>
               )

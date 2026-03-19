@@ -59,7 +59,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
       {/* Primary row: breadcrumb + (nav on sm+) + actions */}
       <div className="px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-2 sm:gap-4">
-        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
+        <Link to="/" className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
         <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
         <span className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[100px] sm:max-w-[200px]">
           {workspace?.name}
@@ -74,7 +74,7 @@ export default function WorkspaceHeader({ workspaceId }: { workspaceId: string }
           {canManageSettings && (
             <Link
               to={`${basePath}/settings`}
-              className="p-2 rounded-md text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Workspace settings"
               aria-label="Workspace settings"
             >

@@ -199,7 +199,7 @@ export default function EpicDetailPage() {
   if (epicLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <span className="text-slate-400 dark:text-slate-500 text-sm">Loading…</span>
+        <span className="text-slate-500 dark:text-slate-400 text-sm">Loading…</span>
       </div>
     )
   }
@@ -220,7 +220,7 @@ export default function EpicDetailPage() {
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
         <div className="px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
-          <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
+          <Link to="/" className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
           {workspace && (
             <>
               <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
@@ -269,7 +269,7 @@ export default function EpicDetailPage() {
           <div className="ml-auto flex items-center gap-2 shrink-0">
             <Link
               to={`/projects/${projectId}/settings`}
-              className="p-2 rounded-md text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Project settings"
               aria-label="Project settings"
             >
@@ -410,7 +410,7 @@ export default function EpicDetailPage() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                <span className="text-slate-400 dark:text-slate-500">Start</span>
+                <span className="text-slate-500 dark:text-slate-400">Start</span>
                 <input
                   type="date"
                   value={epic.start_date ? epic.start_date.slice(0, 10) : ''}
@@ -430,7 +430,7 @@ export default function EpicDetailPage() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <span className="text-slate-400 dark:text-slate-500">Due</span>
+                <span className="text-slate-500 dark:text-slate-400">Due</span>
                 <input
                   type="date"
                   value={epic.due_date ? epic.due_date.slice(0, 10) : ''}
@@ -469,7 +469,7 @@ export default function EpicDetailPage() {
               ) : (
                 <p
                   onClick={() => { setDescVal(epic.description ?? ''); setEditingDesc(true) }}
-                  className={`text-sm cursor-pointer rounded-lg px-1 -mx-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${epic.description ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500 italic'}`}
+                  className={`text-sm cursor-pointer rounded-lg px-1 -mx-1 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${epic.description ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400 italic'}`}
                 >
                   {epic.description ?? 'Add a description…'}
                 </p>
@@ -480,7 +480,7 @@ export default function EpicDetailPage() {
             <div>
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <span className="text-slate-500 dark:text-slate-400 font-medium">Progress</span>
-                <span className="text-slate-400 dark:text-slate-500 tabular-nums">
+                <span className="text-slate-500 dark:text-slate-400 tabular-nums">
                   {epic.done_count} / {epic.task_count} tasks · {pct}%
                 </span>
               </div>
@@ -525,7 +525,7 @@ export default function EpicDetailPage() {
                 className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
               />
               {taskSearch && addableTasks.length === 0 && (
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">No matching tasks without an epic.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">No matching tasks without an epic.</p>
               )}
               {addableTasks.slice(0, 8).map((task) => {
                 const status = task.status_id ? statusMap[task.status_id] : null
@@ -539,7 +539,7 @@ export default function EpicDetailPage() {
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: status.color }} />
                       )}
                       <span className="text-sm text-slate-700 dark:text-slate-300 truncate">{task.title}</span>
-                      <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{task.task_key}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{task.task_key}</span>
                     </div>
                     <button
                       onClick={() => addTask(task)}
@@ -562,7 +562,7 @@ export default function EpicDetailPage() {
             </div>
           ) : epicTasks.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-slate-400 dark:text-slate-500 text-sm">No tasks in this epic yet.</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">No tasks in this epic yet.</p>
               <button
                 onClick={() => setAddingTasks(true)}
                 className="mt-3 text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium transition-colors"
@@ -594,7 +594,7 @@ export default function EpicDetailPage() {
                             to={`/tasks/${task.id}`}
                             className="flex items-center gap-2 group"
                           >
-                            <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0 tabular-nums">{task.task_key}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0 tabular-nums">{task.task_key}</span>
                             <span className="text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors truncate max-w-[280px]">{task.title}</span>
                           </Link>
                         </td>

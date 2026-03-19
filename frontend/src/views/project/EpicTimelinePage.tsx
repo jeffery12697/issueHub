@@ -216,7 +216,7 @@ export default function EpicTimelinePage() {
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shrink-0">
         <div className="px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-2 sm:gap-3">
-          <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
+          <Link to="/" className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
           {workspace && (
             <>
               <span className="text-slate-200 dark:text-slate-700 shrink-0">/</span>
@@ -263,7 +263,7 @@ export default function EpicTimelinePage() {
           <div className="ml-auto flex items-center gap-2 shrink-0">
             <Link
               to={`/projects/${projectId}/settings`}
-              className="p-2 rounded-md text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Project settings"
               aria-label="Project settings"
             >
@@ -329,21 +329,21 @@ export default function EpicTimelinePage() {
         <div className="flex items-center gap-3 ml-4">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: c.bg, border: `1.5px solid ${c.border}` }} />
-            <span className="text-xs text-slate-400 dark:text-slate-500">Task</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Task</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm border border-red-400 dark:border-red-500" style={{ backgroundColor: isDark ? '#450a0a' : '#fef2f2' }} />
-            <span className="text-xs text-slate-400 dark:text-slate-500">Overdue</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Overdue</span>
           </div>
           {epicBar && (
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-2 rounded-sm" style={{ backgroundColor: accentColor + '40', border: `2px solid ${accentColor}` }} />
-              <span className="text-xs text-slate-400 dark:text-slate-500">Epic span</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Epic span</span>
             </div>
           )}
         </div>
 
-        <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
+        <span className="text-xs text-slate-500 dark:text-slate-400 ml-auto">
           {datedTasks.length} task{datedTasks.length !== 1 ? 's' : ''}
           {undatedTasks.length > 0 && (
             <span className="text-slate-300 dark:text-slate-600"> · {undatedTasks.length} hidden (no dates)</span>
@@ -366,7 +366,7 @@ export default function EpicTimelinePage() {
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">
               {epicTasks.length === 0 ? 'No tasks in this epic yet' : 'No tasks with dates'}
             </p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
               {epicTasks.length === 0
                 ? 'Add tasks to this epic to see them on the timeline.'
                 : 'Set start dates or due dates on tasks to see them here.'}
@@ -386,7 +386,7 @@ export default function EpicTimelinePage() {
             {/* Date header */}
             <div className="flex sticky top-0 z-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm" style={{ height: hdrH }}>
               <div className="shrink-0 sticky left-0 z-30 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex items-end px-4 pb-2" style={{ width: LEFT_W }}>
-                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Task</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Task</span>
               </div>
               <div className="relative select-none" style={{ width: totalPx }}>
                 <div className="absolute inset-x-0 top-0" style={{ height: 28 }}>

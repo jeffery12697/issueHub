@@ -345,7 +345,7 @@ export default function ListPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3">
-        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
+        <Link to="/" className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0">← Home</Link>
         {workspace && (
           <>
             <span className="text-slate-300 dark:text-slate-600 shrink-0">/</span>
@@ -374,7 +374,7 @@ export default function ListPage() {
           {canManageSettings && (
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -401,7 +401,7 @@ export default function ListPage() {
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {totalCount} task{totalCount === 1 ? '' : 's'}
-            {totalPages > 1 && <span className="text-slate-400 dark:text-slate-500"> · page {page} of {totalPages}</span>}
+            {totalPages > 1 && <span className="text-slate-500 dark:text-slate-400"> · page {page} of {totalPages}</span>}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <button
@@ -464,7 +464,7 @@ export default function ListPage() {
               {showViewsPanel && (
                 <div className="absolute right-0 mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
                   {savedViews.length === 0 && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 px-1 pb-1">No saved views yet.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 px-1 pb-1">No saved views yet.</p>
                   )}
                   {savedViews.map((v) => (
                     <div key={v.id} className="flex items-center gap-1.5 group">
@@ -668,7 +668,7 @@ export default function ListPage() {
                   {Object.keys(cfFilters).length > 0 && (
                     <button
                       onClick={() => { setCfFilters({}); setPage(1) }}
-                      className="h-8 flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50 dark:hover:bg-red-950"
+                      className="h-8 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors px-2 rounded-full hover:bg-red-50 dark:hover:bg-red-950"
                     >
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -684,7 +684,7 @@ export default function ListPage() {
 
         <div className="flex items-center gap-2 mb-3">
           <div className="relative flex-1 max-w-xs">
-            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input
@@ -713,7 +713,7 @@ export default function ListPage() {
             Hide {hideCompletedLabel}
           </button>
           {(searchQuery || hideCompleted) && (
-            <span className="text-xs text-slate-400 dark:text-slate-500">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               {visibleTasks.length} of {allTasks.length}
             </span>
           )}
@@ -755,7 +755,7 @@ export default function ListPage() {
         ) : allTasks.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No tasks yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">Create your first task to get started.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Create your first task to get started.</p>
             <button
               onClick={() => setCreating(true)}
               className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 font-medium"
@@ -802,7 +802,7 @@ export default function ListPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
                             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{groupLabel}</span>
-                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
                           </div>
                         </td>
                       </tr>
@@ -834,7 +834,7 @@ export default function ListPage() {
                             </svg>
                               <Link
                                 to={`/tasks/${task.parent_task_id}`}
-                                className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors truncate max-w-[180px]"
+                                className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors truncate max-w-[180px]"
                               >
                                 {parentTask?.title ?? 'Parent task'}
                               </Link>
@@ -842,7 +842,7 @@ export default function ListPage() {
                           )}
                           <div className="flex items-center gap-2 flex-wrap">
                             {task.task_key && (
-                              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 shrink-0">
+                              <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                                 {task.task_key}
                               </span>
                             )}
@@ -911,7 +911,7 @@ export default function ListPage() {
                           <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
                             <span className="flex items-center gap-2 text-sm font-medium capitalize pointer-events-none">
                               <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: PRIORITY_DOT_COLORS[task.priority] }} />
-                              <span className={task.priority === 'none' ? 'text-slate-400 dark:text-slate-500' : PRIORITY_COLORS[task.priority].text}>
+                              <span className={task.priority === 'none' ? 'text-slate-500 dark:text-slate-400' : PRIORITY_COLORS[task.priority].text}>
                                 {task.priority === 'none' ? '—' : task.priority}
                               </span>
                             </span>
@@ -993,7 +993,7 @@ export default function ListPage() {
 
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-slate-400 dark:text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount}
             </p>
             <div className="flex items-center gap-1">
@@ -1063,7 +1063,7 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
   const label = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
 
   if (statusComplete) {
-    return <span className="text-xs text-slate-400 dark:text-slate-500">{label}</span>
+    return <span className="text-xs text-slate-500 dark:text-slate-400">{label}</span>
   }
   if (isOverdue) {
     return (

@@ -97,7 +97,7 @@ export default function WorkspaceSettingsPage() {
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
           <Link
             to={`/workspaces/${workspaceId}`}
-            className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
           >
             ← Back
           </Link>
@@ -108,7 +108,7 @@ export default function WorkspaceSettingsPage() {
         </header>
         <main className="max-w-3xl mx-auto py-12 sm:py-20 px-4 sm:px-6 text-center">
           <p className="text-slate-700 dark:text-slate-300 font-semibold text-lg mb-2">Access denied</p>
-          <p className="text-slate-400 dark:text-slate-500 text-sm">Only workspace owners and admins can manage settings.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Only workspace owners and admins can manage settings.</p>
         </main>
       </div>
     )
@@ -119,7 +119,7 @@ export default function WorkspaceSettingsPage() {
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
         <Link
           to={`/workspaces/${workspaceId}`}
-          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
         >
           ← Back
         </Link>
@@ -227,7 +227,7 @@ export default function WorkspaceSettingsPage() {
             )}
 
             {templates.length === 0 ? (
-              <p className="text-slate-400 dark:text-slate-500 text-sm">No templates yet.</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">No templates yet.</p>
             ) : (
               <div className="space-y-3">
                 {templates.map((t: ListTemplate) => (
@@ -333,7 +333,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
     <div className="space-y-6">
       {/* Add member by email */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Member</p>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Add Member</p>
         <form onSubmit={handleSearch} className="flex gap-2 mb-3">
           <input
             type="email"
@@ -389,7 +389,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
           <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <div className="flex-1">
               <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{searchResult.display_name}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500">{searchResult.email}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{searchResult.email}</p>
             </div>
             {alreadyMember ? (
               <span className="text-xs text-slate-400">Already a member</span>
@@ -418,7 +418,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
 
       {/* Current members list */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
           Members ({members.length})
         </p>
         <div className="space-y-2">
@@ -549,7 +549,7 @@ function TeamCard({
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
       <div className="flex items-center gap-3 px-4 py-3">
         <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-200">{team.name}</span>
-        <span className="text-xs text-slate-400 dark:text-slate-500">{members.length} member{members.length !== 1 ? 's' : ''}</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">{members.length} member{members.length !== 1 ? 's' : ''}</span>
         <button
           onClick={onToggle}
           className="text-xs text-slate-400 hover:text-violet-600 transition-colors font-medium"
@@ -567,7 +567,7 @@ function TeamCard({
         <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 space-y-3">
           {/* Member list */}
           {members.length === 0 ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500">No members yet.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">No members yet.</p>
           ) : (
             <div className="space-y-1.5">
               {members.map((m) => (
@@ -894,7 +894,7 @@ function TemplateCard({
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
             >
               {f.name}
-              <span className="text-slate-400 dark:text-slate-500">{f.field_type}</span>
+              <span className="text-slate-500 dark:text-slate-400">{f.field_type}</span>
             </span>
           ))
         )}
@@ -1330,7 +1330,7 @@ function DescriptionTemplatesTab({
       )}
 
       {templates.length === 0 ? (
-        <p className="text-slate-400 dark:text-slate-500 text-sm">No description templates yet.</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">No description templates yet.</p>
       ) : (
         <div className="space-y-3">
           {templates.map((t) => (
@@ -1409,7 +1409,7 @@ function DescriptionTemplateCard({
       </div>
 
       {!showContentEditor && template.content && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
           {template.content.replace(/<[^>]+>/g, ' ').trim().slice(0, 120)}
         </p>
       )}

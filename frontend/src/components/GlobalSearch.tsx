@@ -101,14 +101,14 @@ export default function GlobalSearch() {
           className="absolute z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg mt-1 right-0 overflow-hidden w-[min(24rem,calc(100vw-1rem))]"
         >
           <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Searches titles, descriptions &amp; comments
             </p>
           </div>
 
           <div className="max-h-72 overflow-y-auto">
             {results.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-slate-500 px-4 py-3">No results for "{q}"</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 px-4 py-3">No results for "{q}"</p>
             ) : (
               results.map((task, idx) => (
                 <button
@@ -131,7 +131,7 @@ export default function GlobalSearch() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{task.title}</p>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                       {[task.project_name, task.list_name].filter(Boolean).join(' › ')}
                     </p>
                   </div>

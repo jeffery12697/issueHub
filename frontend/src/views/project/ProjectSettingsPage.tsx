@@ -35,7 +35,7 @@ export default function ProjectSettingsPage() {
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
         <Link
           to={`/projects/${projectId}`}
-          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
         >
           ← Back to project
         </Link>
@@ -136,7 +136,7 @@ function StatusMappingsTab({
     <div className="space-y-4">
       {/* Description */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-        <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 block">
+        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
           Status Mappings
         </label>
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -146,7 +146,7 @@ function StatusMappingsTab({
 
       {/* List pair picker */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-        <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
           Configure a list pair
         </label>
         <div className="flex items-end gap-3">
@@ -163,7 +163,7 @@ function StatusMappingsTab({
               ))}
             </select>
           </div>
-          <span className="text-slate-400 dark:text-slate-500 text-lg pb-1">→</span>
+          <span className="text-slate-500 dark:text-slate-400 text-lg pb-1">→</span>
           <div className="flex-1">
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">To list</label>
             <select
@@ -183,11 +183,11 @@ function StatusMappingsTab({
       {/* Mapping rows */}
       {fromListId && toListId && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-          <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
             {fromListDetail?.name} → {toListDetail?.name}
           </label>
           {fromStatuses.length === 0 ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500">No statuses in the source list.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">No statuses in the source list.</p>
           ) : (
             <div className="space-y-2">
               {fromStatuses.map((fromStatus) => {
@@ -223,7 +223,7 @@ function StatusMappingsTab({
       )}
 
       {(!fromListId || !toListId) && (
-        <p className="text-center text-sm text-slate-400 dark:text-slate-500 py-4">
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400 py-4">
           Select a list pair above to configure mappings.
         </p>
       )}
@@ -231,7 +231,7 @@ function StatusMappingsTab({
       {/* All mappings summary */}
       {mappings.length > 0 && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-          <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
             All configured mappings
           </label>
           <div className="space-y-2">
@@ -247,7 +247,7 @@ function StatusMappingsTab({
                   key={m.id}
                   className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
                 >
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{fromList?.name}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{fromList?.name}</span>
                   {fromStatus && (
                     <span
                       className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
@@ -257,7 +257,7 @@ function StatusMappingsTab({
                     </span>
                   )}
                   <span className="text-slate-300 dark:text-slate-600 text-sm shrink-0">→</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{toList?.name}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{toList?.name}</span>
                   {toStatus && (
                     <span
                       className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"

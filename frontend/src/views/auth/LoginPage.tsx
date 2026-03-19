@@ -67,14 +67,14 @@ export default function LoginPage() {
               <div className="text-center">
                 <button
                   onClick={() => setShowDevForm(true)}
-                  className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1"
+                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1"
                 >
                   Dev login (skip Google)
                 </button>
               </div>
             ) : (
               <form onSubmit={devLogin} className="space-y-3">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Dev Login</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dev Login</p>
                 <input
                   autoFocus
                   type="email"
@@ -108,7 +108,7 @@ export default function LoginPage() {
                     Cancel
                   </button>
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">New email = new account with its own workspace.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">New email = new account with its own workspace.</p>
               </form>
             )}
           </div>

@@ -106,7 +106,7 @@ function AttachmentChip({
         >
           {att.filename}
         </a>
-        <span className="text-slate-400 dark:text-slate-500">{formatBytes(att.size)}</span>
+        <span className="text-slate-500 dark:text-slate-400">{formatBytes(att.size)}</span>
       </div>
 
       {canDelete && (

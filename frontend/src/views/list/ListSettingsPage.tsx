@@ -38,7 +38,7 @@ export default function ListSettingsPage() {
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 flex items-center gap-3">
         <Link
           to={`/projects/${projectId}/lists/${listId}`}
-          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors"
         >
           ← Back to list
         </Link>
@@ -178,12 +178,12 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+      <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
         Statuses
       </label>
 
       {statuses.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No statuses yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">No statuses yet.</p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={statuses.map((s) => s.id)} strategy={verticalListSortingStrategy}>
@@ -202,7 +202,7 @@ function StatusesTab({ listId, statuses }: { listId: string; statuses: ListStatu
       )}
 
       <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
-        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Status</p>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Add Status</p>
         <form
           className="flex gap-2 items-center"
           onSubmit={(e) => {
@@ -367,7 +367,7 @@ function VisibilityTab({ listId, currentTeamIds }: { listId: string; currentTeam
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+      <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
         Team Visibility
       </label>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -375,7 +375,7 @@ function VisibilityTab({ listId, currentTeamIds }: { listId: string; currentTeam
       </p>
 
       {teams.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No teams in this workspace yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">No teams in this workspace yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {teams.map((team) => (
@@ -439,7 +439,7 @@ function ReviewersTab({ listId, currentReviewerIds }: { listId: string; currentR
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+      <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
         Allowed Reviewers
       </label>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -447,7 +447,7 @@ function ReviewersTab({ listId, currentReviewerIds }: { listId: string; currentR
       </p>
 
       {members.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No members in this workspace yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">No members in this workspace yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {members.map((member) => (
@@ -465,7 +465,7 @@ function ReviewersTab({ listId, currentReviewerIds }: { listId: string; currentR
                 {member.display_name[0].toUpperCase()}
               </span>
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{member.display_name}</span>
-              <span className="ml-auto text-xs text-slate-400 dark:text-slate-500 capitalize">{member.role}</span>
+              <span className="ml-auto text-xs text-slate-500 dark:text-slate-400 capitalize">{member.role}</span>
             </label>
           ))}
         </div>
@@ -502,12 +502,12 @@ function CustomFieldsTab({ listId }: { listId: string }) {
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+      <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
         Custom Fields
       </label>
 
       {fieldDefs.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No custom fields yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">No custom fields yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {fieldDefs.map((field) => (
@@ -522,7 +522,7 @@ function CustomFieldsTab({ listId }: { listId: string }) {
       )}
 
       <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
-        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Field</p>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Add Field</p>
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -721,7 +721,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
-      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+      <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 block">
         Automation Rules
       </label>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -729,7 +729,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
       </p>
 
       {automations.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No automation rules yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">No automation rules yet.</p>
       ) : (
         <div className="space-y-2 mb-6">
           {automations.map((a) => (
@@ -749,7 +749,7 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
       )}
 
       <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
-        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Add Rule</p>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Add Rule</p>
         <form className="space-y-3" onSubmit={handleSubmit}>
           <div className="flex gap-2 items-center flex-wrap">
             <span className="text-sm text-slate-500 dark:text-slate-400 shrink-0">When</span>
@@ -881,7 +881,7 @@ function FieldRow({
         </label>
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors"
+          className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 transition-colors"
         >
           Roles {expanded ? '▲' : '▼'}
         </button>

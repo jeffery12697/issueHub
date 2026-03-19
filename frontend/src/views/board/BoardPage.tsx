@@ -94,7 +94,7 @@ export default function BoardPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3 shrink-0">
-        <Link to="/" className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1">
+        <Link to="/" className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1">
           ← Home
         </Link>
         <span className="text-slate-300 dark:text-slate-600">/</span>
@@ -103,7 +103,7 @@ export default function BoardPage() {
           {canManageSettings && (
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
-              className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -223,7 +223,7 @@ export default function BoardPage() {
             Hide completed
           </button>
           {(searchQuery || hideCompleted) && (
-            <span className="text-xs text-slate-400 dark:text-slate-500">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               {visibleTasks.length} of {tasks.length}
             </span>
           )}
@@ -235,7 +235,7 @@ export default function BoardPage() {
         <div className="p-6 min-w-max">
         {statuses.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-slate-400 dark:text-slate-500 text-sm">No statuses configured.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No statuses configured.</p>
             <Link
               to={`/projects/${projectId}/lists/${listId}/settings`}
               className="mt-3 inline-block text-xs text-violet-500 hover:text-violet-700 dark:hover:text-violet-300 transition-colors"
@@ -273,7 +273,7 @@ export default function BoardPage() {
           </div>
         )}
         {isCapped && (
-          <p className="mt-4 text-xs text-slate-400 dark:text-slate-500 text-center">
+          <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 text-center">
             Showing first {BOARD_CAP} of {totalTasks} tasks.{' '}
             <Link to={`/projects/${projectId}/lists/${listId}`} className="text-violet-500 hover:text-violet-700 dark:hover:text-violet-300 transition-colors">
               Switch to List view
@@ -395,7 +395,7 @@ function KanbanColumn({
                 <button
                   type="button"
                   onClick={() => { setAddingTask(false); setNewTitle('') }}
-                  className="px-3 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  className="px-3 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                 >
                   Cancel
                 </button>
@@ -404,7 +404,7 @@ function KanbanColumn({
           ) : (
             <button
               onClick={() => setAddingTask(true)}
-              className="w-full flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 hover:bg-white dark:hover:bg-slate-900 hover:border hover:border-slate-200 dark:hover:border-slate-700 rounded-xl transition-all group"
+              className="w-full flex items-center gap-1.5 px-3 py-2 text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 hover:bg-white dark:hover:bg-slate-900 hover:border hover:border-slate-200 dark:hover:border-slate-700 rounded-xl transition-all group"
             >
               <span className="text-base leading-none group-hover:text-violet-500">+</span>
               Add task
@@ -452,7 +452,7 @@ function TaskCard({ task, memberMap, statusMap, tagMap }: { task: Task; memberMa
 
       {/* Key + Title */}
       {task.task_key && (
-        <span className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 block mb-0.5">
+        <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
           {task.task_key}
         </span>
       )}
@@ -479,7 +479,7 @@ function TaskCard({ task, memberMap, statusMap, tagMap }: { task: Task; memberMa
 
       {/* Subtask count */}
       {task.subtask_count > 0 && (
-        <div className="flex items-center gap-1 mb-2 text-xs text-slate-400 dark:text-slate-500">
+        <div className="flex items-center gap-1 mb-2 text-xs text-slate-500 dark:text-slate-400">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -508,7 +508,7 @@ function TaskCard({ task, memberMap, statusMap, tagMap }: { task: Task; memberMa
         {/* Due date */}
         {dueDate && (
           <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
-            isOverdue ? 'text-red-500' : isDueToday ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500'
+            isOverdue ? 'text-red-500' : isDueToday ? 'text-amber-500' : 'text-slate-500 dark:text-slate-400'
           }`}>
             {isOverdue && (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

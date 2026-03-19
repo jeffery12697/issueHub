@@ -91,7 +91,7 @@ export default function EpicsPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Epics</h2>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
               {epics.length === 0 ? 'No epics yet' : `${epics.length} epic${epics.length === 1 ? '' : 's'}`}
             </p>
           </div>
@@ -167,7 +167,7 @@ export default function EpicsPage() {
               </svg>
             </div>
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No epics yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-5">
               Group tasks by feature or milestone to track feature progress across teams.
             </p>
             <button
@@ -303,7 +303,7 @@ function EpicCard({
             <option value="in_progress">In progress</option>
             <option value="done">Done</option>
           </select>
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {epic.task_count} {epic.task_count === 1 ? 'task' : 'tasks'}
           </span>
         </div>
@@ -311,7 +311,7 @@ function EpicCard({
         {/* Progress bar */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-slate-400 dark:text-slate-500">Progress</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Progress</span>
             <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{pct}%</span>
           </div>
           <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -324,7 +324,7 @@ function EpicCard({
 
         {/* Date range */}
         {(epic.start_date || epic.due_date) && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
             {epic.start_date ? new Date(epic.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}
             {' → '}
             {epic.due_date ? new Date(epic.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}

@@ -57,7 +57,7 @@ export default function InviteAcceptPage() {
           </svg>
         </div>
         <p className="text-slate-800 dark:text-slate-200 font-semibold text-lg mb-1">You're in!</p>
-        <p className="text-slate-400 dark:text-slate-500 text-sm">Redirecting you to the workspace…</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">Redirecting you to the workspace…</p>
       </PageShell>
     )
   }
@@ -76,7 +76,7 @@ export default function InviteAcceptPage() {
       </p>
 
       {invite.accepted_at && (
-        <p className="text-sm text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 mb-4">
+        <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 mb-4">
           This invite has already been accepted.
         </p>
       )}

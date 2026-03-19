@@ -114,7 +114,7 @@ export default function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {recent.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">
+              <div className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 No notifications yet
               </div>
             ) : (
@@ -135,7 +135,7 @@ export default function NotificationBell() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug line-clamp-3">{notif.body}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{relativeTime(notif.created_at)}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{relativeTime(notif.created_at)}</p>
                   </div>
                 </button>
               ))

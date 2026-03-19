@@ -33,7 +33,7 @@ export default function MyTasksPage() {
         {/* Page title */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">My Tasks</h1>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {isLoading ? 'Loading…' : tasks.length === 0
               ? 'No tasks assigned to you yet'
               : `${tasks.length} task${tasks.length === 1 ? '' : 's'} assigned to you`}
@@ -65,12 +65,12 @@ export default function MyTasksPage() {
               </svg>
             </div>
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">You're all clear</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm">No tasks are assigned to you right now.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No tasks are assigned to you right now.</p>
           </div>
         ) : (
           <div className="space-y-6">
             {overdue.length > 0 && (
-              <TaskGroup title="Overdue" tasks={overdue} onOpen={(id) => navigate(`/tasks/${id}`)} accent="text-red-600" badgeClass="bg-red-50 text-red-500" projectMap={projectMap} listMap={listMap} />
+              <TaskGroup title="Overdue" tasks={overdue} onOpen={(id) => navigate(`/tasks/${id}`)} accent="text-red-600 dark:text-red-400" badgeClass="bg-red-50 dark:bg-red-950 text-red-500 dark:text-red-400" projectMap={projectMap} listMap={listMap} />
             )}
             {upcoming.length > 0 && (
               <TaskGroup title="Upcoming" tasks={upcoming} onOpen={(id) => navigate(`/tasks/${id}`)} projectMap={projectMap} listMap={listMap} />
@@ -89,8 +89,8 @@ function TaskGroup({
   title,
   tasks,
   onOpen,
-  accent = 'text-slate-500',
-  badgeClass = 'bg-slate-100 text-slate-500',
+  accent = 'text-slate-500 dark:text-slate-400',
+  badgeClass = 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
   projectMap,
   listMap,
 }: {
@@ -125,7 +125,7 @@ function TaskGroup({
             <span className="flex-1 text-sm text-slate-800 dark:text-slate-200 truncate">{task.title}</span>
             <span className="flex items-center gap-1 shrink-0">
               {projectMap[task.project_id] && (
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full truncate max-w-[100px]">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full truncate max-w-[100px]">
                   {projectMap[task.project_id]}
                 </span>
               )}
@@ -136,7 +136,7 @@ function TaskGroup({
               )}
             </span>
             {task.due_date && (
-              <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+              <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
                 {new Date(task.due_date).toLocaleDateString('en-US')}
               </span>
             )}

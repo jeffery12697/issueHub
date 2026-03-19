@@ -318,7 +318,7 @@ export default function ProjectTasksPage() {
         <div className="mb-5 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{project?.name}</h2>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
               {total} task{total !== 1 ? 's' : ''}
               {totalPages > 1 && <span> · page {page} of {totalPages}</span>}
             </p>
@@ -383,7 +383,7 @@ export default function ProjectTasksPage() {
               {showViewsPanel && (
                 <div className="absolute right-0 mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg w-72 p-3 space-y-1.5">
                   {savedViews.length === 0 && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 px-1 pb-1">No saved views yet.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 px-1 pb-1">No saved views yet.</p>
                   )}
                   {savedViews.map((v) => (
                     <div key={v.id} className="flex items-center gap-1.5 group">
@@ -562,7 +562,7 @@ export default function ProjectTasksPage() {
         {/* Search + hide-completed toolbar */}
         <div className="flex items-center gap-2 mb-3">
           <div className="relative flex-1 max-w-xs">
-            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input
@@ -591,7 +591,7 @@ export default function ProjectTasksPage() {
             Hide {hideCompletedLabel}
           </button>
           {(searchQuery || hideCompleted) && (
-            <span className="text-xs text-slate-400 dark:text-slate-500">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               {visibleTasks.length} of {tasks.length}
             </span>
           )}
@@ -619,7 +619,7 @@ export default function ProjectTasksPage() {
         ) : tasks.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No tasks found</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               {hasFilters ? 'Try adjusting your filters.' : 'Tasks in this project will appear here.'}
             </p>
           </div>
@@ -661,7 +661,7 @@ export default function ProjectTasksPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: groupColor }} />
                             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{groupLabel}</span>
-                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-full">{groupTasks.length}</span>
                           </div>
                         </td>
                       </tr>
@@ -695,7 +695,7 @@ export default function ProjectTasksPage() {
                             </div>
                           )}
                           {task.task_key && (
-                            <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 block mb-0.5">
+                            <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
                               {task.task_key}
                             </span>
                           )}
@@ -848,7 +848,7 @@ export default function ProjectTasksPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-slate-400 dark:text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
             </p>
             <div className="flex items-center gap-1">
@@ -935,7 +935,7 @@ function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; sta
   const label = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
 
   if (statusComplete) {
-    return <span className="text-xs text-slate-400 dark:text-slate-500">{label}</span>
+    return <span className="text-xs text-slate-500 dark:text-slate-400">{label}</span>
   }
   if (isOverdue) {
     return (

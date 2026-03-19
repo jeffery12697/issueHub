@@ -48,7 +48,7 @@ export default function ProjectPage() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Projects</h2>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {projects.length === 0 ? 'No projects yet' : `${projects.length} project${projects.length === 1 ? '' : 's'}`}
             </p>
           </div>
@@ -106,7 +106,7 @@ export default function ProjectPage() {
               </svg>
             </div>
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No projects yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">Create a project to organize your lists and tasks.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-5">Create a project to organize your lists and tasks.</p>
             <button
               onClick={() => setCreatingProject(true)}
               className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
@@ -181,7 +181,7 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
               {project.name}
             </Link>
           {lists.length > 0 && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
               {lists.length} {lists.length === 1 ? 'list' : 'lists'}
             </span>
           )}
@@ -261,7 +261,7 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
       {/* List items */}
       <div className="px-5 py-2">
         {lists.length === 0 ? (
-          <p className="text-slate-400 dark:text-slate-500 text-xs py-3">No lists yet — create one to start tracking tasks.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs py-3">No lists yet — create one to start tracking tasks.</p>
         ) : (
           <ul className="divide-y divide-slate-50 dark:divide-slate-800">
             {lists.map((list: List) => (

@@ -35,7 +35,7 @@ export default function AnalyticsPage() {
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {isLoading ? 'Loading…' : `Overview of all tasks in this ${scopeLabel}`}
             </p>
           </div>
@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">Tasks by Status</h3>
               {(analytics?.tasks_by_status ?? []).length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-slate-400 dark:text-slate-500 text-sm">No tasks with statuses yet.</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">No tasks with statuses yet.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
                             <span className="text-slate-600 dark:text-slate-400 font-medium truncate max-w-[60%]">
                               {row.status_name ?? '(No status)'}
                             </span>
-                            <span className="text-slate-400 dark:text-slate-500 tabular-nums flex items-center gap-2">
+                            <span className="text-slate-500 dark:text-slate-400 tabular-nums flex items-center gap-2">
                               {row.count} task{row.count !== 1 ? 's' : ''}
                               {row.story_points > 0 && (
                                 <span className="text-violet-500">{row.story_points} SP</span>

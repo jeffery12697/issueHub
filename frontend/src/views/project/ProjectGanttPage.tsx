@@ -206,7 +206,7 @@ export default function ProjectGanttPage() {
           <button
             onClick={() => navigate(`/tasks/${task.id}`)}
             className={`text-left text-sm font-medium truncate block w-full transition-colors hover:text-violet-600 dark:hover:text-violet-400 ${
-              faded ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-300'
+              faded ? 'text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-300'
             }`}
           >
             {task.title}
@@ -325,21 +325,21 @@ export default function ProjectGanttPage() {
         <div className="flex items-center gap-3 ml-4">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm border border-violet-400 dark:border-violet-500" style={{ backgroundColor: isDark ? '#2e1065' : '#ede9fe' }} />
-            <span className="text-xs text-slate-400 dark:text-slate-500">Task bar</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Task bar</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm border border-red-400 dark:border-red-500" style={{ backgroundColor: isDark ? '#450a0a' : '#fef2f2' }} />
-            <span className="text-xs text-slate-400 dark:text-slate-500">Overdue</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Overdue</span>
           </div>
           <div className="flex items-center gap-1.5">
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
               <path d="M5 0 L10 5 L5 10 L0 5 Z" fill={isDark ? '#7c3aed' : '#8b5cf6'} />
             </svg>
-            <span className="text-xs text-slate-400 dark:text-slate-500">Due date only</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Due date only</span>
           </div>
         </div>
 
-        <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
+        <span className="text-xs text-slate-500 dark:text-slate-400 ml-auto">
           {datedTasks.length} task{datedTasks.length !== 1 ? 's' : ''}
           {undatedTasks.length > 0 && (
             <span className="text-slate-300 dark:text-slate-600"> · {undatedTasks.length} hidden (no dates)</span>
@@ -366,7 +366,7 @@ export default function ProjectGanttPage() {
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">
               {allTasks.length === 0 ? 'No tasks yet' : 'No tasks with dates'}
             </p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               {allTasks.length === 0
                 ? 'Tasks will appear on the timeline once created.'
                 : 'Set a start date or due date on tasks to see them here.'}
@@ -391,7 +391,7 @@ export default function ProjectGanttPage() {
                 className="shrink-0 sticky left-0 z-30 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex items-end px-4 pb-2"
                 style={{ width: LEFT_W }}
               >
-                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Task
                 </span>
               </div>

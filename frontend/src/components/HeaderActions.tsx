@@ -100,12 +100,12 @@ export default function HeaderActions() {
                 {/* User info — not interactive, not a menu item */}
                 <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{user.display_name}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                 </div>
 
                 {/* Notification preference */}
                 <div className="px-4 py-2" role="group" aria-label="Notification preference">
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Notifications</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Notifications</p>
                   <div className="flex rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 text-sm">
                     {(['immediate', 'digest'] as const).map((opt, idx) => (
                       <button
@@ -124,7 +124,7 @@ export default function HeaderActions() {
                       </button>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
                     {prefs?.notification_preference === 'digest'
                       ? "You'll get a daily email summary at 8 AM."
                       : "You'll get emails right away."}

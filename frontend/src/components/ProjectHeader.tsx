@@ -71,7 +71,7 @@ export default function ProjectHeader({
       <div className="px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-2 sm:gap-4">
         <Link
           to="/"
-          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0"
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors shrink-0"
         >
           ← Home
         </Link>
@@ -100,7 +100,7 @@ export default function ProjectHeader({
           {canManageSettings && (
             <Link
               to={`${basePath}/settings`}
-              className="p-2 rounded-md text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Project settings"
               aria-label="Project settings"
             >

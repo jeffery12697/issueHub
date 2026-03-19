@@ -246,19 +246,19 @@ export default function TaskDetailPage() {
         </svg>
       </div>
       <p className="text-slate-700 dark:text-slate-300 font-semibold">Access denied</p>
-      <p className="text-slate-400 dark:text-slate-500 text-sm">You don't have permission to view this task.</p>
+      <p className="text-slate-500 dark:text-slate-400 text-sm">You don't have permission to view this task.</p>
       <button onClick={() => navigate(-1)} className="mt-2 text-sm text-violet-600 hover:underline">Go back</button>
     </div>
   )
   if (!task) return (
     <div className="flex flex-col items-center justify-center h-screen gap-3">
       <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 dark:text-slate-500" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 dark:text-slate-400" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
       </div>
       <p className="text-slate-700 dark:text-slate-300 font-semibold">Task not found</p>
-      <p className="text-slate-400 dark:text-slate-500 text-sm">This task may have been deleted or moved.</p>
+      <p className="text-slate-500 dark:text-slate-400 text-sm">This task may have been deleted or moved.</p>
       <button onClick={() => navigate(-1)} className="mt-2 text-sm text-violet-600 hover:underline">Go back</button>
     </div>
   )
@@ -325,7 +325,7 @@ export default function TaskDetailPage() {
         {task.task_key && (
           <>
             <span className="text-slate-300 dark:text-slate-600">/</span>
-            <span className="text-xs font-mono font-semibold text-slate-400 dark:text-slate-500 shrink-0">{task.task_key}</span>
+            <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 shrink-0">{task.task_key}</span>
           </>
         )}
         <span className="text-slate-200 dark:text-slate-700 hidden sm:block">/</span>
@@ -379,7 +379,7 @@ export default function TaskDetailPage() {
             {/* Title + Description card */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6">
               {task.task_key && (
-                <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 block mb-1.5 tracking-wide">
+                <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 block mb-1.5 tracking-wide">
                   {task.task_key}
                 </span>
               )}
@@ -409,7 +409,7 @@ export default function TaskDetailPage() {
                 <div ref={templatePickerRef} className="relative mb-2 flex justify-end">
                   <button
                     onClick={() => setTemplatePickerOpen((v) => !v)}
-                    className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center gap-1 font-medium"
+                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center gap-1 font-medium"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -419,7 +419,7 @@ export default function TaskDetailPage() {
                   </button>
                   {templatePickerOpen && (
                     <div className="absolute top-6 right-0 z-20 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1">
-                      <p className="text-xs text-slate-400 dark:text-slate-500 px-3 pt-2 pb-1 font-medium uppercase tracking-wide">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 px-3 pt-2 pb-1 font-medium uppercase tracking-wide">
                         Description Templates
                       </p>
                       {descriptionTemplates.map((t) => (
@@ -541,14 +541,14 @@ export default function TaskDetailPage() {
                               </select>
                             )}
                             <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                            <button type="button" onClick={() => { setAddingSubtask(false); setNewSubtaskListId('') }} className="text-xs px-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
+                            <button type="button" onClick={() => { setAddingSubtask(false); setNewSubtaskListId('') }} className="text-xs px-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
                           </div>
                         </form>
                       )
                     })() : task.depth === 0 ? (
                       <button
                         onClick={() => setAddingSubtask(true)}
-                        className="text-sm text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5"
+                        className="text-sm text-slate-500 dark:text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5"
                       >
                         <span className="text-lg leading-none">+</span> Add subtask
                       </button>
@@ -562,7 +562,7 @@ export default function TaskDetailPage() {
                 {activeTab === 'dependencies' && (
                   <div className="space-y-4">
                     <div>
-                      <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Blocked by</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Blocked by</p>
                       {blockedBy.length > 0 ? (
                         <ul className="space-y-1 mb-2">
                           {blockedBy.map((t) => (
@@ -584,7 +584,7 @@ export default function TaskDetailPage() {
                             </li>
                           ))}
                         </ul>
-                      ) : !addingBlockedBy && <p className="text-sm text-slate-400 dark:text-slate-500 mb-2">No blockers.</p>}
+                      ) : !addingBlockedBy && <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">No blockers.</p>}
 
                       {addingBlockedBy ? (() => {
                         const blockedByIds = new Set(blockedBy.map((t) => t.id))
@@ -604,7 +604,7 @@ export default function TaskDetailPage() {
                                 placeholder="Search by name or task key…"
                                 className="flex-1 border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                               />
-                              <button type="button" onClick={() => { setAddingBlockedBy(false); setBlockerQuery('') }} className="text-xs px-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
+                              <button type="button" onClick={() => { setAddingBlockedBy(false); setBlockerQuery('') }} className="text-xs px-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
                             </div>
                             {filtered.length > 0 && (
                               <ul className="absolute z-20 left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-52 overflow-y-auto">
@@ -616,7 +616,7 @@ export default function TaskDetailPage() {
                                       className="w-full text-left px-3 py-2 hover:bg-violet-50 dark:hover:bg-violet-950 flex items-center gap-2 text-sm transition-colors"
                                     >
                                       {t.task_key && (
-                                        <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 shrink-0">{t.task_key}</span>
+                                        <span className="text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 shrink-0">{t.task_key}</span>
                                       )}
                                       <span className="text-slate-700 dark:text-slate-300 truncate">{t.title}</span>
                                     </button>
@@ -627,7 +627,7 @@ export default function TaskDetailPage() {
                           </div>
                         )
                       })() : (
-                        <button onClick={() => setAddingBlockedBy(true)} className="text-sm text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5">
+                        <button onClick={() => setAddingBlockedBy(true)} className="text-sm text-slate-500 dark:text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5">
                           <span className="text-lg leading-none">+</span> Add blocker
                         </button>
                       )}
@@ -635,7 +635,7 @@ export default function TaskDetailPage() {
 
                     {blocking.length > 0 && (
                       <div>
-                        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Blocking</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Blocking</p>
                         <ul className="space-y-1">
                           {blocking.map((t) => (
                             <li key={t.id}>
@@ -706,11 +706,11 @@ export default function TaskDetailPage() {
                           placeholder="Title (optional)" className="w-full border border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                         <div className="flex gap-2">
                           <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Add</button>
-                          <button type="button" onClick={() => { setAddingLink(false); setLinkUrl(''); setLinkTitle('') }} className="text-xs px-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
+                          <button type="button" onClick={() => { setAddingLink(false); setLinkUrl(''); setLinkTitle('') }} className="text-xs px-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
                         </div>
                       </form>
                     ) : (
-                      <button onClick={() => setAddingLink(true)} className="text-sm text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5">
+                      <button onClick={() => setAddingLink(true)} className="text-sm text-slate-500 dark:text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5">
                         <span className="text-lg leading-none">+</span> Add link
                       </button>
                     )}
@@ -802,13 +802,13 @@ export default function TaskDetailPage() {
                         </div>
                         <div className="flex gap-2">
                           <button type="submit" className="bg-violet-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors">Log</button>
-                          <button type="button" onClick={() => { setAddingTime(false); setLogMinutes(''); setLogNote('') }} className="text-xs px-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
+                          <button type="button" onClick={() => { setAddingTime(false); setLogMinutes(''); setLogNote('') }} className="text-xs px-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
                         </div>
                       </form>
                     ) : (
                       <button
                         onClick={() => setAddingTime(true)}
-                        className="text-sm text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5"
+                        className="text-sm text-slate-500 dark:text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1.5"
                       >
                         <span className="text-lg leading-none">+</span> Log time
                       </button>
@@ -838,7 +838,7 @@ export default function TaskDetailPage() {
                         <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3">
                           <div className="flex items-baseline gap-2 mb-1.5">
                             <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.author_name}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
                               {new Date(c.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                             </span>
                             {currentUser?.id === c.author_id && (
@@ -861,11 +861,11 @@ export default function TaskDetailPage() {
               ) : (
                 <div className="text-center py-8 mb-4">
                   <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400 dark:text-slate-500">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-500 dark:text-slate-400">
                       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                     </svg>
                   </div>
-                  <p className="text-sm text-slate-400 dark:text-slate-500">No comments yet</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">No comments yet</p>
                 </div>
               )}
 
@@ -892,7 +892,7 @@ export default function TaskDetailPage() {
               {/* Status */}
               {statuses.length > 0 && (
                 <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Status</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Status</p>
                   <button
                     onClick={() => { setStatusOpen((o) => !o); setPriorityOpen(false) }}
                     className="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full"
@@ -935,7 +935,7 @@ export default function TaskDetailPage() {
 
               {/* Priority */}
               <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Priority</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Priority</p>
                 <button
                   onClick={() => { setPriorityOpen((o) => !o); setStatusOpen(false) }}
                   className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all w-full ${PRIORITY_CHIP[task.priority]}`}
@@ -974,7 +974,7 @@ export default function TaskDetailPage() {
 
               {/* Assignees */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Assignees</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Assignees</p>
                 {task.assignee_ids.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {task.assignee_ids.map((id) => {
@@ -1016,7 +1016,7 @@ export default function TaskDetailPage() {
 
               {/* Reviewer */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Reviewer</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Reviewer</p>
                 {task.reviewer_id && memberMap[task.reviewer_id] ? (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
@@ -1049,7 +1049,7 @@ export default function TaskDetailPage() {
               {/* Approvals */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     Approvals
                     {approvals.length > 0 && (
                       <span className="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">
@@ -1081,7 +1081,7 @@ export default function TaskDetailPage() {
                   })()}
                 </div>
                 {approvals.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-slate-500">No approvals yet</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">No approvals yet</p>
                 ) : (
                   <div className="space-y-1.5">
                     {approvals.map((a, i) => (
@@ -1111,7 +1111,7 @@ export default function TaskDetailPage() {
                         <div className="flex-1 min-w-0">
                           <span className="text-xs text-slate-700 dark:text-slate-300 truncate block">{a.display_name}</span>
                           {a.source !== 'internal' && (
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500">{a.source} · via webhook</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{a.source} · via webhook</span>
                           )}
                         </div>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1124,7 +1124,7 @@ export default function TaskDetailPage() {
               {/* Dates */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 space-y-3">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Start Date</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Start Date</p>
                   <input
                     key={task.start_date ?? 'start-none'}
                     type="date"
@@ -1135,7 +1135,7 @@ export default function TaskDetailPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Due Date</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Due Date</p>
                   <input
                     key={task.due_date ?? 'none'}
                     type="date"
@@ -1149,7 +1149,7 @@ export default function TaskDetailPage() {
 
               {/* Story Points */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Story Points</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Story Points</p>
                 <input
                   key={task.story_points ?? 'sp-none'}
                   type="number"
@@ -1166,7 +1166,7 @@ export default function TaskDetailPage() {
 
               {/* Tags */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tags</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tags</p>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {taskTags.map((tag) => (
                     <span
@@ -1212,13 +1212,13 @@ export default function TaskDetailPage() {
                   </div>
                 )}
                 {workspaceTags.length === 0 && taskTags.length === 0 && (
-                  <p className="text-xs text-slate-400 dark:text-slate-500">No tags defined</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">No tags defined</p>
                 )}
               </div>
 
               {/* Epic */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Epic</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Epic</p>
                 <div className="relative">
                   {task.epic_id && epics.find((e) => e.id === task.epic_id) ? (
                     <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200">
@@ -1236,7 +1236,7 @@ export default function TaskDetailPage() {
                       </button>
                     </div>
                   ) : (
-                    <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">—</span>
                   )}
                   <select
                     value={task.epic_id ?? ''}
@@ -1257,7 +1257,7 @@ export default function TaskDetailPage() {
                 <div className="border-b border-slate-100 dark:border-slate-800">
                   <button
                     onClick={() => setMoveExpanded((o) => !o)}
-                    className="w-full px-4 py-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    className="w-full px-4 py-3 flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
                     Move to List
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className={`ml-auto transition-transform ${moveExpanded ? 'rotate-180' : ''}`} aria-hidden="true">
@@ -1295,7 +1295,7 @@ export default function TaskDetailPage() {
                   <div className="border-b border-slate-100 dark:border-slate-800">
                     <button
                       onClick={() => setGitExpanded((o) => !o)}
-                      className="w-full px-4 py-3 flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                      className="w-full px-4 py-3 flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
@@ -1315,7 +1315,7 @@ export default function TaskDetailPage() {
                       {/* Linked PRs / MRs */}
                       {gitLinks.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+                          <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                             {gitLinks[0].platform === 'gitlab' ? 'Merge Requests' : 'Pull Requests'}
                           </p>
                           <div className="space-y-1.5">
@@ -1349,7 +1349,7 @@ export default function TaskDetailPage() {
                                       {gl.pr_title ?? `#${gl.pr_number}`}
                                     </span>
                                   )}
-                                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate mt-0.5">{gl.branch}</p>
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">{gl.branch}</p>
                                 </div>
                                 <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                                   gl.status === 'merged'
@@ -1375,7 +1375,7 @@ export default function TaskDetailPage() {
                           title={`Copy ${label}`}
                           className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 group transition-colors text-left"
                         >
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 w-14 shrink-0 leading-none">{label}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 w-14 shrink-0 leading-none">{label}</span>
                           <span className="flex-1 font-mono text-[11px] text-slate-600 dark:text-slate-300 truncate">{value}</span>
                           {copiedGit === value ? (
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0" aria-hidden="true">
@@ -1523,13 +1523,13 @@ function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; member
       const [oldIds, newIds] = val as [string[], string[]]
       const oldNames = oldIds.map((id) => resolveName(id, memberMap)).join(', ') || '—'
       const newNames = newIds.map((id) => resolveName(id, memberMap)).join(', ') || '—'
-      return <span>assignees: <span className="line-through text-slate-400 dark:text-slate-500">{oldNames}</span> → <span className="text-slate-600 dark:text-slate-400">{newNames}</span></span>
+      return <span>assignees: <span className="line-through text-slate-500 dark:text-slate-400">{oldNames}</span> → <span className="text-slate-600 dark:text-slate-400">{newNames}</span></span>
     }
     const [oldVal, newVal] = val as [string, string?]
     if (newVal === undefined) {
       return <span>{field}: <span className="text-slate-500 dark:text-slate-400">edited</span></span>
     }
-    return <span>{field.replace(/_id$/, '')}: <span className="line-through text-slate-400 dark:text-slate-500">{renderValue(field, oldVal) ?? '—'}</span> → <span className="text-slate-600 dark:text-slate-400">{renderValue(field, newVal)}</span></span>
+    return <span>{field.replace(/_id$/, '')}: <span className="line-through text-slate-500 dark:text-slate-400">{renderValue(field, oldVal) ?? '—'}</span> → <span className="text-slate-600 dark:text-slate-400">{renderValue(field, newVal)}</span></span>
   }
 
   return (
@@ -1545,7 +1545,7 @@ function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; member
               <span className="font-semibold text-slate-700 dark:text-slate-300">{log.actor_name ?? 'Git'}</span>{' '}
               <span className="text-slate-500 dark:text-slate-400 capitalize">{log.action.replace(/_/g, ' ')}</span>
               {log.action === 'time_logged' && log.changes && (
-                <div className="text-slate-400 dark:text-slate-500 mt-0.5">
+                <div className="text-slate-500 dark:text-slate-400 mt-0.5">
                   {log.changes.duration_minutes} min
                   {log.changes.note ? ` — ${log.changes.note}` : ''}
                 </div>
@@ -1554,13 +1554,13 @@ function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; member
                 Object.entries(log.changes)
                   .filter(([, val]) => Array.isArray(val))
                   .map(([field, val]) => (
-                    <div key={field} className="text-slate-400 dark:text-slate-500 mt-0.5">
+                    <div key={field} className="text-slate-500 dark:text-slate-400 mt-0.5">
                       {renderChange(field, val)}
                     </div>
                   ))
               }
               {log.action === 'git_branch_linked' && log.changes && (
-                <div className="text-slate-400 dark:text-slate-500 mt-0.5">
+                <div className="text-slate-500 dark:text-slate-400 mt-0.5">
                   branch: <span className="font-mono">{log.changes.branch as string}</span>
                 </div>
               )}
@@ -1570,7 +1570,7 @@ function HistorySection({ logs, memberMap, listMap }: { logs: AuditLog[]; member
         ))}
       </ul>
       {logs.length > 5 && (
-        <button onClick={() => setExpanded((v) => !v)} className="mt-3 text-xs text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1">
+        <button onClick={() => setExpanded((v) => !v)} className="mt-3 text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 transition-colors flex items-center gap-1">
           {expanded
             ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg> Show less</>
             : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg> {logs.length - 5} more</>
@@ -1646,7 +1646,7 @@ function CommentForm({ members, onSubmit, value, onChange }: {
             <button
               type="button"
               onClick={() => onChange('')}
-              className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 px-3 py-1.5 transition-colors"
+              className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-3 py-1.5 transition-colors"
             >
               Clear
             </button>
