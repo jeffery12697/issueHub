@@ -646,3 +646,9 @@ _Completed: 2026-03-19_
 - [x] `ListPage.tsx` + `ProjectTasksPage.tsx` — status badge gets `transition-colors duration-150` for smooth color shift on inline status change
 - [x] `ListPage.tsx` — `+ New task` primary buttons get `hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150` lift effect
 - [x] `ListPage.tsx` + `ProjectTasksPage.tsx` — views default-star buttons get `active:scale-90` tactile press feedback
+
+### Dark Mode Contrast Fix
+- [x] Created `lib/color.ts` — `statusBadgeStyle(color)` utility: in dark mode, lightens hex color by 50% (mixed with white) for readable text on slate-900 backgrounds; background opacity bumped from `'20'` to `'25'`
+- [x] Updated `PRIORITY_COLORS` in `lib/priority.ts` — added `dark:bg-*-950` and `dark:text-*-300/400` variants for all priority levels
+- [x] Updated `PRIORITY_CHIP` in `lib/priority.ts` — added `dark:bg-*-950 dark:border-*-800 dark:text-*-300/400` variants for all priority levels
+- [x] Replaced `style={{ backgroundColor: color + '20', color }}` pattern in `ListPage`, `ProjectTasksPage`, `BoardPage`, `EpicDetailPage`, `ProjectSettingsPage` with `statusBadgeStyle(color)`

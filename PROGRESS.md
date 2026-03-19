@@ -42,6 +42,9 @@
 - (nothing — ready for next task)
 
 ## Recently Completed (outside phases, continued)
+- Dark mode contrast fix: statusBadgeStyle() utility lightens hex status colors by 50% in dark mode; PRIORITY_COLORS/PRIORITY_CHIP updated with dark: variants for all priority levels
+
+## Recently Completed (outside phases, continued)
 - Impeccable audit → harden pass: aria-label on all icon buttons (ToolBtn in RichTextEditor, remove status/field/mapping/attachment/epic buttons), keyboard accessibility for epic rename h1, aria-pressed on color swatch toggles, aria-label="Select all tasks" on both table checkboxes
 - Multi-tag support: workspace-level tags (name + color), admin/owner CRUD, any member assign/remove, tag chips in List/Project/Board views, tag filter (AND logic) in all three, Tags tab in Workspace Settings, 14 backend tests (migration 0031, commit f307c2f)
 
