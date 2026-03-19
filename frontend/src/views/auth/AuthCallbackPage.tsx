@@ -18,8 +18,11 @@ export default function AuthCallbackPage() {
   }, [params, setAccessToken, navigate])
 
   return (
-    <div className="flex items-center justify-center h-screen text-gray-500">
-      Signing in...
+    <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="w-28 h-3.5 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+      </div>
     </div>
   )
 }

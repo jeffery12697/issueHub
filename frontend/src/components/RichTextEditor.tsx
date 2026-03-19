@@ -308,8 +308,8 @@ function ColorPicker({
                   key={c}
                   type="button"
                   onMouseDown={(e) => { e.preventDefault(); onPick(c); setOpen(false) }}
-                  style={{ background: c, border: active(c) ? '2px solid #7c3aed' : '2px solid transparent' }}
-                  className="w-5 h-5 rounded-full transition-transform hover:scale-110"
+                  style={{ background: c }}
+                  className={`w-5 h-5 rounded-full transition-transform ${active(c) ? 'ring-2 ring-violet-600 ring-offset-1' : 'hover:scale-110'}`}
                   title={c}
                   aria-label={`Color: ${c}`}
                 />

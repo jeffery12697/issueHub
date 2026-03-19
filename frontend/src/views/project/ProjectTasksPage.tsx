@@ -12,12 +12,10 @@ import { savedViewsApi } from '@/api/savedViews'
 import { useEpics } from '@/api/epics'
 import { useWorkspaceTags } from '@/api/tags'
 import { toast } from '@/store/toastStore'
+import { PRIORITY_DOT_COLORS } from '@/lib/priority'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
 
-const PRIORITY_DOT_COLORS: Record<Priority, string> = {
-  none: '#cbd5e1', low: '#38bdf8', medium: '#fbbf24', high: '#f97316', urgent: '#ef4444',
-}
 const PRIORITIES: Priority[] = ['none', 'low', 'medium', 'high', 'urgent']
 const PAGE_SIZE = 50
 

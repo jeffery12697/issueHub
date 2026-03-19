@@ -41,7 +41,45 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   })
 
   if (!accessToken) return <Navigate to="/login" replace />
-  if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500">Loading...</div>
+  if (isLoading) return (
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Header skeleton */}
+      <div className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center gap-3">
+        <div className="w-7 h-7 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="w-32 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        <div className="ml-auto flex gap-2">
+          <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+        </div>
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar skeleton */}
+        <div className="w-56 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-7 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" style={{ width: `${70 + (i % 3) * 12}%` }} />
+          ))}
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 p-6 flex flex-col gap-4">
+          <div className="w-48 h-6 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-11" />
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-3.5">
+                  <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse shrink-0" />
+                  <div className="flex-1 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-20 h-5 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
   if (isError) return <Navigate to="/login" replace />
 
   return <>{children}</>
