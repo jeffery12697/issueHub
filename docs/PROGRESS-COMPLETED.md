@@ -608,3 +608,41 @@ _Completed: 2026-03-17_
 - [x] `frontend/src/api/descriptionTemplates.ts` — typed API client + TanStack Query hooks (list, create, update, delete)
 - [x] `frontend/src/views/workspace/WorkspaceSettingsPage.tsx` — new "Description Templates" tab (owner/admin only): list, create with RichTextEditor, inline edit name + content, delete
 - [x] `frontend/src/views/task/TaskDetailPage.tsx` — "Use template" dropdown button above description editor; lists workspace templates by name; selecting one replaces task description via updateTask mutation
+
+---
+
+## Design Quality Pass — Impeccable (audit → normalize → harden → delight)
+_Completed: 2026-03-19_
+
+### Critique — Holistic Design Audit
+- [x] Ran full audit across all major views and shared components
+- [x] Confirmed: no AI-slop anti-patterns (no glassmorphism, gradient text, hero metric layouts, AI color palette)
+- [x] Identified 17 issues: 1 critical, 9 high, 5 medium, 2 low — spanning accessibility, theming, loading states
+
+### Normalize — Design System Alignment
+- [x] `ProjectTasksPage.tsx` — deleted local `PRIORITY_DOT_COLORS` constant; import from `@/lib/priority` (canonical single source of truth)
+- [x] `router/index.tsx` — `text-gray-500` → `text-slate-500` (gray palette not in design system); replaced plain `"Loading..."` with 6-row pulse skeleton matching app loading pattern
+- [x] `AuthCallbackPage.tsx` — `text-gray-500` → `text-slate-500`
+- [x] `ProjectTasksPage.tsx` — fixed broken `DueDateBadge`: 0-indexed month bug fixed with `getMonth() + 1` + `padStart(2, '0')`; `⚠` emoji → inline SVG warning triangle; `📋 Views` → SVG bookmark icon; `⊞` removed from group-by option text (emoji in `<option>` unsupported); `"Loading..."` → 6-row skeleton
+- [x] `ListPage.tsx` — `↳` unicode → `aria-hidden` SVG corner-turn icon for subtask indent
+
+### Harden — Accessibility & Edge Cases
+- [x] `RichTextEditor.tsx` (`ToolBtn`) — added `aria-label={title}` to all 20+ toolbar buttons (title= alone not announced by VoiceOver on iOS/Safari)
+- [x] `RichTextEditor.tsx` color swatches — added `aria-label="Color: {hex}"` to each swatch button
+- [x] `WorkspaceSettingsPage.tsx` tag swatches — added `aria-label` + `aria-pressed` on color swatch toggle buttons (×2 forms: create and edit)
+- [x] `WorkspaceSettingsPage.tsx` — `aria-label` on "Remove status" and "Remove field" icon buttons
+- [x] `AttachmentList.tsx` — `title="Remove"` → `aria-label="Remove attachment"` (more descriptive)
+- [x] `EpicDetailPage.tsx` — `aria-label="Remove from epic"` on row action button; epic title `<h1>` gets `role="button"`, `tabIndex={0}`, `onKeyDown` (Enter/Space triggers rename), `aria-label`
+- [x] `ProjectSettingsPage.tsx` — `aria-label="Remove mapping"` on status mapping delete button
+- [x] `ListPage.tsx` + `ProjectTasksPage.tsx` — `aria-label="Select all tasks"` on select-all header checkboxes
+- [x] `ListSettingsPage.tsx` (`AutomationsTab`) — replaced raw "User ID" text input with workspace member `<select>` dropdown for `assign_reviewer` action
+- [x] `ListSettingsPage.tsx` (`StatusRow`) — guard empty name on blur/submit: revert to original on blank input
+- [x] `ListSettingsPage.tsx` (`CustomFieldsTab`) — `disabled={createField.isPending}` on Create button; pending state label "Creating…"
+- [x] `ListSettingsPage.tsx` (tab bar) — `flex-wrap` added so tabs don't overflow on narrow screens
+- [x] `TaskDetailPage.tsx` — replaced bare `"Task not found"` text with proper error state: icon, heading, explanation, Go back button
+
+### Delight — Micro-interactions
+- [x] `ListPage.tsx` + `ProjectTasksPage.tsx` — completed task rows get `opacity-60` and title `line-through` when `status.is_complete`
+- [x] `ListPage.tsx` + `ProjectTasksPage.tsx` — status badge gets `transition-colors duration-150` for smooth color shift on inline status change
+- [x] `ListPage.tsx` — `+ New task` primary buttons get `hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150` lift effect
+- [x] `ListPage.tsx` + `ProjectTasksPage.tsx` — views default-star buttons get `active:scale-90` tactile press feedback
