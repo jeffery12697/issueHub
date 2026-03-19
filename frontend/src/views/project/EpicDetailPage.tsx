@@ -10,6 +10,7 @@ import { useWorkspaceMembers } from '@/api/workspaces'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 import { PRIORITY_DOT_COLORS } from '@/lib/priority'
+import { statusBadgeStyle } from '@/lib/color'
 import { toast } from '@/store/toastStore'
 import { useUIStore } from '@/store/uiStore'
 
@@ -601,7 +602,7 @@ export default function EpicDetailPage() {
                           {status ? (
                             <span
                               className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full"
-                              style={{ backgroundColor: status.color + '20', color: status.color }}
+                              style={statusBadgeStyle(status.color)}
                             >
                               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
                               {status.name}

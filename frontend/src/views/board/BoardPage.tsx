@@ -7,6 +7,7 @@ import { useWorkspaceMembers, type Member } from '@/api/workspaces'
 import { useListSocket } from '@/hooks/useTaskSocket'
 import { useAuthStore } from '@/store/authStore'
 import { PRIORITY_COLORS } from '@/lib/priority'
+import { statusBadgeStyle } from '@/lib/color'
 import HeaderActions from '@/components/HeaderActions'
 import FilterBar, { type FilterRule } from '@/components/FilterBar'
 import { useFieldDefinitions } from '@/api/customFields'
@@ -334,7 +335,7 @@ function KanbanColumn({
             )}
             <span
               className="text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
-              style={{ backgroundColor: status.color + '20', color: status.color }}
+              style={statusBadgeStyle(status.color)}
             >
               {tasks.length}
             </span>

@@ -13,6 +13,7 @@ import { useEpics } from '@/api/epics'
 import { useWorkspaceTags } from '@/api/tags'
 import { toast } from '@/store/toastStore'
 import { PRIORITY_DOT_COLORS } from '@/lib/priority'
+import { statusBadgeStyle } from '@/lib/color'
 
 type GroupBy = 'none' | 'status' | 'assignee' | 'priority'
 
@@ -741,7 +742,7 @@ export default function ProjectTasksPage() {
                             {status ? (
                               <span
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none transition-colors duration-150"
-                                style={{ backgroundColor: status.color + '20', color: status.color }}
+                                style={statusBadgeStyle(status.color)}
                               >
                                 {status.name}
                               </span>

@@ -6,6 +6,7 @@ import { listsApi, type ListStatus } from '@/api/lists'
 import { statusMappingsApi, type StatusMapping } from '@/api/statusMappings'
 import HeaderActions from '@/components/HeaderActions'
 import { toast } from '@/store/toastStore'
+import { statusBadgeStyle } from '@/lib/color'
 
 export default function ProjectSettingsPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -198,7 +199,7 @@ function StatusMappingsTab({
                   >
                     <span
                       className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 min-w-[100px]"
-                      style={{ backgroundColor: fromStatus.color + '20', color: fromStatus.color }}
+                      style={statusBadgeStyle(fromStatus.color)}
                     >
                       {fromStatus.name}
                     </span>
@@ -250,7 +251,7 @@ function StatusMappingsTab({
                   {fromStatus && (
                     <span
                       className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
-                      style={{ backgroundColor: fromStatus.color + '20', color: fromStatus.color }}
+                      style={statusBadgeStyle(fromStatus.color)}
                     >
                       {fromStatus.name}
                     </span>
@@ -260,7 +261,7 @@ function StatusMappingsTab({
                   {toStatus && (
                     <span
                       className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
-                      style={{ backgroundColor: toStatus.color + '20', color: toStatus.color }}
+                      style={statusBadgeStyle(toStatus.color)}
                     >
                       {toStatus.name}
                     </span>

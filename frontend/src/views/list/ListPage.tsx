@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
 import { tasksApi, type Task, type Priority } from '@/api/tasks'
 import { PRIORITY_DOT_COLORS, PRIORITY_COLORS } from '@/lib/priority'
+import { statusBadgeStyle } from '@/lib/color'
 import { dependenciesApi } from '@/api/dependencies'
 import { useWorkspaceMembers, workspacesApi, type Member } from '@/api/workspaces'
 import { projectsApi } from '@/api/projects'
@@ -887,7 +888,7 @@ export default function ListPage() {
                             {task.status_id && statusMap[task.status_id] ? (
                               <span
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none transition-colors duration-150"
-                                style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
+                                style={statusBadgeStyle(statusMap[task.status_id].color)}
                               >
                                 {statusMap[task.status_id].name}
                               </span>
