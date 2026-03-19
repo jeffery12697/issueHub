@@ -134,6 +134,8 @@ class TaskService:
         priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         tag_ids: list[UUID] | None = None,
+        status_names: list[str] | None = None,
+        status_names_not: list[str] | None = None,
         include_subtasks: bool = False,
         page: int = 1,
         page_size: int = 0,
@@ -162,7 +164,7 @@ class TaskService:
             ]
 
         return await self.repo.list_for_project(
-            project_id, list_ids_allowed, list_id, priority, priorities_not, assignee_id, tag_ids, include_subtasks, page, page_size, sort_by, sort_dir
+            project_id, list_ids_allowed, list_id, priority, priorities_not, assignee_id, tag_ids, status_names, status_names_not, include_subtasks, page, page_size, sort_by, sort_dir
         )
 
     async def list_subtasks(self, parent_task_id: UUID, user_id: UUID) -> list[Task]:

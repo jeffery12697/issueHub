@@ -55,6 +55,8 @@ export default function ProjectTasksPage() {
   const priorityEq = filterRules.find((r) => r.field === 'priority' && r.op === 'eq')?.value as Priority | undefined
   const priorityNots = filterRules.filter((r) => r.field === 'priority' && r.op === 'neq').map((r) => r.value)
   const tagFilterIds = filterRules.filter((r) => r.field === 'tag' && r.op === 'eq').map((r) => r.value)
+  const statusNameEq = filterRules.find((r) => r.field === 'status_name' && r.op === 'eq')?.value
+  const statusNameNots = filterRules.filter((r) => r.field === 'status_name' && r.op === 'neq').map((r) => r.value)
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -79,6 +81,12 @@ export default function ProjectTasksPage() {
   )
   const listMap = Object.fromEntries(lists.map((l) => [l.id, l]))
 
+  const uniqueStatusNames = Array.from(
+    new Map(
+      listDetails.flatMap((l) => (l.statuses ?? []).map((s) => [s.name.toLowerCase(), s.name]))
+    ).values()
+  ).sort()
+
   const { data: epics = [] } = useEpics(projectId)
   const epicMap = Object.fromEntries(epics.map((e) => [e.id, e]))
 
@@ -91,6 +99,8 @@ export default function ProjectTasksPage() {
       priority: priorityEq || undefined,
       priority_not: priorityNots.join(',') || undefined,
       tag_ids: tagFilterIds.join(',') || undefined,
+      status_name: statusNameEq || undefined,
+      status_name_not: statusNameNots.join(',') || undefined,
       include_subtasks: includeSubtasks,
       sort_by: sortBy,
       sort_dir: sortDir,
@@ -388,6 +398,11 @@ export default function ProjectTasksPage() {
                 options: lists.map((l) => ({ value: l.id, label: l.name })),
                 ops: ['eq'],
               },
+              ...(uniqueStatusNames.length > 0 ? [{
+                id: 'status_name',
+                label: 'Status',
+                options: uniqueStatusNames.map((n) => ({ value: n, label: n })),
+              }] : []),
               {
                 id: 'priority',
                 label: 'Priority',

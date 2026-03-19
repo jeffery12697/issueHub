@@ -205,6 +205,8 @@ async def list_project_tasks(
     priority_not: str | None = None,
     assignee_id: UUID | None = None,
     tag_ids: str | None = None,
+    status_name: str | None = None,
+    status_name_not: str | None = None,
     include_subtasks: bool = False,
     page: int = 1,
     page_size: int = 0,
@@ -228,6 +230,14 @@ async def list_project_tasks(
         except ValueError:
             pass
 
+    parsed_status_names: list[str] | None = None
+    if status_name:
+        parsed_status_names = [n.strip() for n in status_name.split(",") if n.strip()]
+
+    parsed_status_names_not: list[str] | None = None
+    if status_name_not:
+        parsed_status_names_not = [n.strip() for n in status_name_not.split(",") if n.strip()]
+
     tasks, total = await service.list_for_project(
         project_id,
         user_id=current_user.id,
@@ -236,6 +246,8 @@ async def list_project_tasks(
         priorities_not=priorities_not,
         assignee_id=assignee_id,
         tag_ids=parsed_tag_ids,
+        status_names=parsed_status_names,
+        status_names_not=parsed_status_names_not,
         include_subtasks=include_subtasks,
         page=page,
         page_size=page_size,

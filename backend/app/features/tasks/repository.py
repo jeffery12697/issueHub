@@ -190,6 +190,8 @@ class TaskRepository:
         priorities_not: list[Priority] | None = None,
         assignee_id: UUID | None = None,
         tag_ids: list[UUID] | None = None,
+        status_names: list[str] | None = None,
+        status_names_not: list[str] | None = None,
         include_subtasks: bool = False,
         page: int = 1,
         page_size: int = 0,
@@ -197,6 +199,7 @@ class TaskRepository:
         sort_dir: str | None = None,
     ) -> tuple[list[Task], int]:
         from app.models.tag import TaskTag
+        from app.models.list_status import ListStatus
         q = (
             select(Task)
             .where(Task.project_id == project_id)
@@ -224,6 +227,20 @@ class TaskRepository:
                     .correlate(Task)
                     .exists()
                 )
+        if status_names:
+            lower_names = [n.lower() for n in status_names]
+            status_id_subq = select(ListStatus.id).where(
+                func.lower(ListStatus.name).in_(lower_names)
+            ).scalar_subquery()
+            q = q.where(Task.status_id.in_(status_id_subq))
+        if status_names_not:
+            lower_names_not = [n.lower() for n in status_names_not]
+            status_id_subq_not = select(ListStatus.id).where(
+                func.lower(ListStatus.name).in_(lower_names_not)
+            ).scalar_subquery()
+            q = q.where(
+                (Task.status_id.is_(None)) | Task.status_id.notin_(status_id_subq_not)
+            )
 
         count_result = await self.session.execute(
             select(func.count()).select_from(q.subquery())
