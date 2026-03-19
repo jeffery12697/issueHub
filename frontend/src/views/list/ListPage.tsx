@@ -817,7 +817,9 @@ export default function ListPage() {
                         <td className={`px-4 py-3 ${isSubtask ? 'pl-10' : ''}`}>
                           {isSubtask && (
                             <div className="flex items-center gap-1 mb-0.5">
-                              <span className="text-slate-300 dark:text-slate-600 text-xs">↳</span>
+                              <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 dark:text-slate-600 shrink-0">
+                              <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
+                            </svg>
                               <Link
                                 to={`/tasks/${task.parent_task_id}`}
                                 className="text-xs text-slate-400 dark:text-slate-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors truncate max-w-[180px]"

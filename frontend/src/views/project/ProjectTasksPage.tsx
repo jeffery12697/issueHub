@@ -342,7 +342,7 @@ export default function ProjectTasksPage() {
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <option value="none">⊞ Group by…</option>
+                <option value="none">Group by…</option>
                 <option value="status">Status</option>
                 <option value="assignee">Assignee</option>
                 <option value="priority">Priority</option>
@@ -359,7 +359,10 @@ export default function ProjectTasksPage() {
                     : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                📋 Views
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                Views
                 {savedViews.length > 0 && (
                   <span className="text-[11px] bg-violet-100 text-violet-600 px-1.5 rounded-full font-semibold">
                     {savedViews.length}
@@ -585,7 +588,23 @@ export default function ProjectTasksPage() {
 
         {/* Table */}
         {isLoading ? (
-          <p className="text-slate-400 dark:text-slate-500 text-sm">Loading...</p>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-12" />
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-3.5">
+                  <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse shrink-0" />
+                  <div className="flex-1 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-16 h-5 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-20 h-5 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                  <div className="w-12 h-4 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : tasks.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-1">No tasks found</p>
@@ -657,7 +676,11 @@ export default function ProjectTasksPage() {
                         {/* Title */}
                         <td className={`px-4 py-3 ${task.parent_task_id ? 'pl-10' : ''}`}>
                           {task.parent_task_id && (
-                            <div className="text-xs text-slate-300 dark:text-slate-600 mb-0.5">↳</div>
+                            <div className="text-slate-300 dark:text-slate-600 mb-0.5">
+                              <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
+                              </svg>
+                            </div>
                           )}
                           {task.task_key && (
                             <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500 block mb-0.5">
@@ -886,24 +909,39 @@ function AvatarStack({ ids, memberMap }: { ids: string[]; memberMap: Record<stri
 
 function DueDateBadge({ dueDate, statusComplete }: { dueDate: string | null; statusComplete: boolean | undefined }) {
   if (!dueDate) return <span className="text-slate-300 text-xs">—</span>
+
+  // Compare date only (Asia/Taipei boundary). Month is padded to ensure correct lexicographic sort.
   const today = new Date()
   const due = new Date(dueDate)
-  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
-  const dueStr = `${due.getFullYear()}-${due.getMonth()}-${due.getDate()}`
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const todayStr = fmt(today)
+  const dueStr = fmt(due)
   const isOverdue = !statusComplete && dueStr < todayStr
   const isDueToday = !statusComplete && dueStr === todayStr
+
   const label = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: due.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
-  if (statusComplete) return <span className="text-xs text-slate-400">{label}</span>
-  if (isOverdue) return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-      <span>⚠</span> {label}
-    </span>
-  )
-  if (isDueToday) return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-      Today
-    </span>
-  )
+
+  if (statusComplete) {
+    return <span className="text-xs text-slate-400 dark:text-slate-500">{label}</span>
+  }
+  if (isOverdue) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {label}
+      </span>
+    )
+  }
+  if (isDueToday) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+        Today
+      </span>
+    )
+  }
   return <span className="text-xs text-slate-500">{label}</span>
 }
 
