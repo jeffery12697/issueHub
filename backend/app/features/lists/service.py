@@ -7,6 +7,7 @@ from app.features.lists.schemas import (
     CreateListDTO,
     UpdateListDTO,
     SetVisibilityDTO,
+    SetReviewersDTO,
     CreateStatusDTO,
     UpdateStatusDTO,
     ReorderStatusDTO,
@@ -192,6 +193,12 @@ class ListService:
         project = await self.project_repo.get_by_id(list_.project_id)
         await self._require_role(project.workspace_id, actor_id, {WorkspaceRole.owner, WorkspaceRole.admin})
         return await self.repo.set_visibility(list_, dto.team_ids)
+
+    async def set_reviewer_ids(self, list_id: UUID, dto: SetReviewersDTO, actor_id: UUID) -> List:
+        list_ = await self.get_or_404(list_id)
+        project = await self.project_repo.get_by_id(list_.project_id)
+        await self._require_role(project.workspace_id, actor_id, {WorkspaceRole.owner, WorkspaceRole.admin})
+        return await self.repo.set_reviewer_ids(list_, dto.reviewer_ids)
 
     async def _require_workspace_member(self, workspace_id: UUID, user_id: UUID) -> None:
         member = await self.workspace_repo.get_member(workspace_id, user_id)

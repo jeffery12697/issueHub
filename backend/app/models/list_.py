@@ -19,6 +19,9 @@ class List(Base, TimestampMixin, SoftDeleteMixin):
     team_ids: Mapped[list[UUID]] = mapped_column(
         ARRAY(UUID(as_uuid=True)), nullable=True, default=list, server_default="{}"
     )
+    reviewer_ids: Mapped[list[UUID]] = mapped_column(
+        ARRAY(UUID(as_uuid=True)), nullable=False, default=list, server_default="{}"
+    )
 
     statuses: Mapped[list["ListStatus"]] = relationship(
         back_populates="list_",

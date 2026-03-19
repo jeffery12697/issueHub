@@ -18,13 +18,14 @@ import { CSS } from '@dnd-kit/utilities'
 import { listsApi, type ListStatus } from '@/api/lists'
 import { useFieldDefinitions, useCreateField, useDeleteField, useUpdateField, type FieldType, type FieldDefinition } from '@/api/customFields'
 import { useTeams } from '@/api/teams'
+import { useWorkspaceMembers } from '@/api/workspaces'
 import { automationsApi, type Automation, type TriggerType, type ActionType, type CreateAutomationBody } from '@/api/automations'
 import HeaderActions from '@/components/HeaderActions'
 import DeleteButton from '@/components/DeleteButton'
 
 export default function ListSettingsPage() {
   const { projectId, listId } = useParams<{ projectId: string; listId: string }>()
-  const [activeTab, setActiveTab] = useState<'statuses' | 'custom-fields' | 'visibility' | 'automations'>('statuses')
+  const [activeTab, setActiveTab] = useState<'statuses' | 'custom-fields' | 'visibility' | 'reviewers' | 'automations'>('statuses')
 
   const { data: list } = useQuery({
     queryKey: ['list', listId],
@@ -81,6 +82,16 @@ export default function ListSettingsPage() {
             Visibility
           </button>
           <button
+            onClick={() => setActiveTab('reviewers')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'reviewers'
+                ? 'bg-violet-600 text-white'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            Reviewers
+          </button>
+          <button
             onClick={() => setActiveTab('automations')}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeTab === 'automations'
@@ -100,6 +111,9 @@ export default function ListSettingsPage() {
         )}
         {activeTab === 'visibility' && listId && list && (
           <VisibilityTab listId={listId} currentTeamIds={list.team_ids ?? []} />
+        )}
+        {activeTab === 'reviewers' && listId && list && (
+          <ReviewersTab listId={listId} currentReviewerIds={list.reviewer_ids ?? []} />
         )}
         {activeTab === 'automations' && listId && (
           <AutomationsTab listId={listId} statuses={list?.statuses ?? []} />
@@ -386,6 +400,82 @@ function VisibilityTab({ listId, currentTeamIds }: { listId: string; currentTeam
           className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-60"
         >
           {saveMutation.isPending ? 'Saving…' : 'Save visibility'}
+        </button>
+        {saveMutation.isSuccess && (
+          <span className="text-xs text-green-600 font-medium">Saved</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ReviewersTab({ listId, currentReviewerIds }: { listId: string; currentReviewerIds: string[] }) {
+  const { projectId } = useParams<{ projectId: string }>()
+  const qc = useQueryClient()
+
+  const { data: project } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => import('@/api/projects').then((m) => m.projectsApi.get(projectId!)),
+    enabled: !!projectId,
+  })
+
+  const { data: members = [] } = useWorkspaceMembers(project?.workspace_id)
+
+  const [selectedIds, setSelectedIds] = useState<string[]>(currentReviewerIds)
+
+  const toggleMember = (userId: string) =>
+    setSelectedIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    )
+
+  const saveMutation = useMutation({
+    mutationFn: () => listsApi.setReviewers(listId, { reviewer_ids: selectedIds }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['list', listId] })
+    },
+  })
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
+      <label className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 block">
+        Allowed Reviewers
+      </label>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        Restrict who can be assigned as a reviewer on tasks in this list. Leave all unchecked to allow any workspace member.
+      </p>
+
+      {members.length === 0 ? (
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">No members in this workspace yet.</p>
+      ) : (
+        <div className="space-y-2 mb-6">
+          {members.map((member) => (
+            <label
+              key={member.user_id}
+              className="flex items-center gap-3 py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 cursor-pointer transition-colors"
+            >
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(member.user_id)}
+                onChange={() => toggleMember(member.user_id)}
+                className="w-4 h-4 rounded border-slate-300 text-violet-600"
+              />
+              <span className="w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 flex items-center justify-center text-xs font-bold shrink-0">
+                {member.display_name[0].toUpperCase()}
+              </span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{member.display_name}</span>
+              <span className="ml-auto text-xs text-slate-400 dark:text-slate-500 capitalize">{member.role}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending}
+          className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-60"
+        >
+          {saveMutation.isPending ? 'Saving…' : 'Save reviewers'}
         </button>
         {saveMutation.isSuccess && (
           <span className="text-xs text-green-600 font-medium">Saved</span>

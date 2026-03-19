@@ -1029,7 +1029,10 @@ export default function TaskDetailPage() {
                     className="w-full border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
                   >
                     <option value="">Assign reviewer…</option>
-                    {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.display_name}</option>)}
+                    {(list?.reviewer_ids?.length
+                      ? members.filter((m) => list.reviewer_ids.includes(m.user_id))
+                      : members
+                    ).map((m) => <option key={m.user_id} value={m.user_id}>{m.display_name}</option>)}
                   </select>
                 )}
               </div>

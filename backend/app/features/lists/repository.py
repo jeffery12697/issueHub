@@ -73,6 +73,11 @@ class ListRepository:
         await self.session.flush()
         return list_
 
+    async def set_reviewer_ids(self, list_: List, reviewer_ids: list) -> List:
+        list_.reviewer_ids = reviewer_ids
+        await self.session.flush()
+        return list_
+
     # --- Status management ---
 
     async def create_status(self, dto: CreateStatusDTO) -> ListStatus:

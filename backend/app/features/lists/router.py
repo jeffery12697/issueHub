@@ -11,6 +11,7 @@ from app.features.lists.schemas import (
     CreateListRequest,
     UpdateListRequest,
     SetVisibilityRequest,
+    SetReviewersRequest,
     CreateStatusRequest,
     UpdateStatusRequest,
     ReorderStatusRequest,
@@ -102,6 +103,19 @@ async def set_visibility(
     session: AsyncSession = Depends(get_session),
 ):
     list_ = await service.set_visibility(list_id, body.to_dto(), actor_id=current_user.id)
+    await session.commit()
+    return ListResponse.model_validate(list_)
+
+
+@router.patch("/lists/{list_id}/reviewers", response_model=ListResponse)
+async def set_reviewers(
+    list_id: UUID,
+    body: SetReviewersRequest,
+    current_user: User = Depends(get_current_user),
+    service: ListService = Depends(get_service),
+    session: AsyncSession = Depends(get_session),
+):
+    list_ = await service.set_reviewer_ids(list_id, body.to_dto(), actor_id=current_user.id)
     await session.commit()
     return ListResponse.model_validate(list_)
 

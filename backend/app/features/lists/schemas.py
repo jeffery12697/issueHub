@@ -28,6 +28,11 @@ class SetVisibilityDTO:
 
 
 @dataclass(frozen=True)
+class SetReviewersDTO:
+    reviewer_ids: list[UUID]
+
+
+@dataclass(frozen=True)
 class CreateStatusDTO:
     list_id: UUID
     name: str
@@ -79,6 +84,13 @@ class SetVisibilityRequest(BaseModel):
 
     def to_dto(self) -> SetVisibilityDTO:
         return SetVisibilityDTO(team_ids=self.team_ids)
+
+
+class SetReviewersRequest(BaseModel):
+    reviewer_ids: list[UUID] = []
+
+    def to_dto(self) -> SetReviewersDTO:
+        return SetReviewersDTO(reviewer_ids=self.reviewer_ids)
 
 
 class CreateStatusRequest(BaseModel):
@@ -157,6 +169,7 @@ class ListResponse(BaseModel):
     name: str
     description: str | None
     team_ids: list[UUID] = []
+    reviewer_ids: list[UUID] = []
 
     model_config = {"from_attributes": True}
 
