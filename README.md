@@ -205,11 +205,29 @@ docker compose up --build
 docker compose exec backend alembic upgrade head
 ```
 
-### 4. Log in
+### 4. (Optional) Seed demo data
 
-**Google OAuth** — click "Sign in with Google" on the login page.
+```bash
+docker compose exec backend python scripts/seed.py
+```
 
-**Dev login** (no OAuth setup needed) — toggle "Dev login" and enter any email and display name.
+Creates a fully-populated **"Acme Corp"** workspace with projects, lists, ~50 tasks, epics, tags, and 5 team members. Re-runnable; exits early if already seeded. Reset with `--reset` flag.
+
+### 5. Log in
+
+**Dev login** (no OAuth setup needed) — toggle "Dev login" on the login page.
+
+| Account | Email | Role |
+|---------|-------|------|
+| Dev (you) | `dev@issuehub.app` | Owner — use this to explore all features |
+| Alice Chen | `alice@issuehub.app` | Admin |
+| Bob Tanaka | `bob@issuehub.app` | Member |
+| Carol Reyes | `carol@issuehub.app` | Member |
+| Dave Kim | `dave@issuehub.app` | Member |
+
+> All accounts are created by the seed script. To create a fresh account without seeding, enter any email in the Dev login form.
+
+**Google OAuth** — set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `backend/.env`, then click "Sign in with Google".
 
 ---
 

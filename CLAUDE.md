@@ -31,9 +31,23 @@ Services started:
 docker compose exec backend alembic upgrade head
 ```
 
-### Seed demo data (optional)
+### Seed demo data (recommended for evaluation)
 ```bash
-docker compose exec backend python -m app.seed
+docker compose exec backend python scripts/seed.py
+```
+
+Creates a fully-populated **"Acme Corp"** workspace with:
+- **Dev account** — `dev@issuehub.app` / display name: "Dev (You)" — workspace owner
+- Team members: Alice Chen, Bob Tanaka, Carol Reyes, Dave Kim
+- Multiple projects with Backend, Frontend, App, UI, DevOps lists
+- ~50 realistic tasks across epics, with priorities, due dates, tags, comments, subtasks
+- 7 workspace tags (bug, feature, ux, perf, security, tech-debt, docs)
+
+To log in as the dev account: open http://localhost:5173, click **Dev login**, enter `dev@issuehub.app`.
+
+To reset and re-seed from scratch:
+```bash
+docker compose exec backend python scripts/seed.py --reset
 ```
 
 ### Test
