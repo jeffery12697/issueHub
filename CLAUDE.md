@@ -6,6 +6,50 @@
 > **IMPORTANT**: Auto-commit after meaningful changes. Always inform the user what was committed.
 > **IMPORTANT**: Every new backend feature must include tests in `backend/tests/test_{feature}.py`. See `docs/BACKEND.md` → Testing section for rules and fixtures.
 
+## Commands
+
+### Build
+```bash
+docker compose up --build
+```
+
+### Run (after first build)
+```bash
+docker compose up
+```
+Services started:
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| Swagger docs | http://localhost:8000/docs |
+| MinIO console | http://localhost:9001 |
+
+### Migrate database (first run only)
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+### Seed demo data (optional)
+```bash
+docker compose exec backend python -m app.seed
+```
+
+### Test
+```bash
+docker compose exec backend pytest
+```
+
+### Verify
+
+1. Open http://localhost:5173
+2. Click **Dev login**, enter any email and display name → creates an account instantly
+3. Create a workspace → project → list → task
+4. Verify: edit task, add comment, change status, assign a user
+
+---
+
 ## Project Overview
 Issue tracking system — React.js frontend, FastAPI (Python) backend. Inspired by ClickUp / Jira / Linear.
 
@@ -30,6 +74,7 @@ issueHub/
 
 | File | When to read |
 |------|--------------|
+| `docs/ARCHITECTURE.md` | System overview, component descriptions, technology rationale |
 | `docs/BACKEND.md` | Any backend/ work |
 | `docs/FRONTEND.md` | Any frontend/ work |
 | `docs/AUTH.md` | Auth or permission changes |
