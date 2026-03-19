@@ -165,7 +165,13 @@ export default function ProjectTasksPage() {
 
   const _taskVisible = (t: Task) => {
     if (hideCompleted && t.status_id && statusMap[t.status_id]?.is_complete) return false
-    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      const matchesTitle = t.title.toLowerCase().includes(q)
+      const matchesKey = t.task_key ? t.task_key.toLowerCase().includes(q) : false
+      const matchesNumber = t.task_number !== null && String(t.task_number) === q.replace(/\D/g, '')
+      if (!matchesTitle && !matchesKey && !matchesNumber) return false
+    }
     return true
   }
   const visibleTasks = tasks.filter(_taskVisible)
