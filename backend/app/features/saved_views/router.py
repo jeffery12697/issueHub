@@ -78,3 +78,17 @@ async def delete_saved_view(
         raise HTTPException(status_code=404, detail="View not found")
     await repo.delete(view)
     await session.commit()
+
+
+@router.patch("/saved-views/{view_id}/set-default", response_model=SavedViewResponse)
+async def set_default_saved_view(
+    view_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    repo = SavedViewRepository(session)
+    view = await repo.set_default(view_id, current_user.id)
+    if not view:
+        raise HTTPException(status_code=404, detail="View not found")
+    await session.commit()
+    return view

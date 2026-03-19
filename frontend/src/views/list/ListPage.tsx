@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '@/api/lists'
@@ -298,6 +298,24 @@ export default function ListPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-views', 'list', listId] }),
   })
 
+  const setDefaultView = useMutation({
+    mutationFn: savedViewsApi.setDefault,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-views', 'list', listId] }),
+  })
+
+  const defaultApplied = useRef(false)
+  useEffect(() => {
+    if (defaultApplied.current || savedViews.length === 0) return
+    const defaultView = savedViews.find((v) => v.is_default)
+    if (defaultView) {
+      setFilterRules(defaultView.filters_json.filter_rules ?? [])
+      setCfFilters(defaultView.filters_json.cf_filters ?? {})
+      setGroupBy((defaultView.filters_json.group_by as GroupBy) ?? 'none')
+      setPage(1)
+    }
+    defaultApplied.current = true
+  }, [savedViews])
+
   function applyView(view: (typeof savedViews)[0]) {
     setFilterRules(view.filters_json.filter_rules ?? [])
     setCfFilters(view.filters_json.cf_filters ?? {})
@@ -438,7 +456,7 @@ export default function ListPage() {
                     <p className="text-xs text-slate-400 dark:text-slate-500 px-1 pb-1">No saved views yet.</p>
                   )}
                   {savedViews.map((v) => (
-                    <div key={v.id} className="flex items-center gap-2 group">
+                    <div key={v.id} className="flex items-center gap-1.5 group">
                       <button
                         onClick={() => applyView(v)}
                         className="flex-1 text-left text-sm text-slate-700 dark:text-slate-300 hover:text-violet-600 font-medium truncate py-1"
@@ -446,8 +464,18 @@ export default function ListPage() {
                         {v.name}
                       </button>
                       <button
+                        onClick={() => setDefaultView.mutate(v.id)}
+                        title={v.is_default ? 'Remove default' : 'Set as default'}
+                        className={`shrink-0 transition-all ${v.is_default ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
+                        aria-label={v.is_default ? `Remove default for ${v.name}` : `Set ${v.name} as default`}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill={v.is_default ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      </button>
+                      <button
                         onClick={() => deleteView.mutate(v.id)}
-                        className="text-slate-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                        className="shrink-0 text-slate-300 dark:text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                         aria-label={`Delete view ${v.name}`}
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

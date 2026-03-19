@@ -11,6 +11,7 @@ export interface SavedView {
   id: string
   name: string
   filters_json: SavedViewFilters
+  is_default: boolean
   created_at: string
 }
 
@@ -32,4 +33,7 @@ export const savedViewsApi = {
       .then((r: { data: SavedView }) => r.data),
 
   delete: (id: string) => apiClient.delete(`/saved-views/${id}`),
+
+  setDefault: (id: string) =>
+    apiClient.patch<SavedView>(`/saved-views/${id}/set-default`).then((r: { data: SavedView }) => r.data),
 }

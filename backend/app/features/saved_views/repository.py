@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.saved_view import SavedView
@@ -58,3 +58,28 @@ class SavedViewRepository:
     async def delete(self, view: SavedView) -> None:
         await self.session.execute(delete(SavedView).where(SavedView.id == view.id))
         await self.session.flush()
+
+    async def set_default(self, view_id: UUID, user_id: UUID) -> SavedView | None:
+        view = await self.get(view_id, user_id)
+        if not view:
+            return None
+        # Clear all defaults in the same scope for this user
+        if view.list_id:
+            await self.session.execute(
+                update(SavedView)
+                .where(SavedView.user_id == user_id)
+                .where(SavedView.list_id == view.list_id)
+                .values(is_default=False)
+            )
+        elif view.project_id:
+            await self.session.execute(
+                update(SavedView)
+                .where(SavedView.user_id == user_id)
+                .where(SavedView.project_id == view.project_id)
+                .values(is_default=False)
+            )
+        # Toggle: set as default if it wasn't, leave unset if it was (cleared above)
+        if not view.is_default:
+            view.is_default = True
+        await self.session.flush()
+        return view

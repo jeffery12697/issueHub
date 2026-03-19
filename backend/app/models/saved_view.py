@@ -1,6 +1,6 @@
 from uuid import UUID as PyUUID, uuid4
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -22,3 +22,4 @@ class SavedView(Base, TimestampMixin):
         UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
     )
     filters_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
