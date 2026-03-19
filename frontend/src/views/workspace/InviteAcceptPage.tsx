@@ -102,7 +102,7 @@ export default function InviteAcceptPage() {
         <button
           onClick={handleAccept}
           disabled={acceptInvite.isPending}
-          className="bg-violet-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+          className="bg-violet-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {acceptInvite.isPending ? 'Accepting…' : 'Accept invitation'}
         </button>

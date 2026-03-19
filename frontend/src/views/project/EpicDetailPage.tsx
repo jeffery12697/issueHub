@@ -354,7 +354,7 @@ export default function EpicDetailPage() {
                       className="flex-1 border border-violet-300 dark:border-violet-600 rounded-lg px-3 py-1.5 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                     />
                     <button type="submit" className="text-xs px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium">Save</button>
-                    <button type="button" onClick={() => setEditingName(false)} className="text-xs px-2 py-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Cancel</button>
+                    <button type="button" onClick={() => setEditingName(false)} className="text-xs px-2 py-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Cancel</button>
                   </form>
                 ) : (
                   <h1
@@ -463,7 +463,7 @@ export default function EpicDetailPage() {
                   />
                   <div className="flex gap-2 mt-2">
                     <button onClick={saveDesc} className="text-xs px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium">Save</button>
-                    <button onClick={() => setEditingDesc(false)} className="text-xs px-2 py-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Cancel</button>
+                    <button onClick={() => setEditingDesc(false)} className="text-xs px-2 py-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Cancel</button>
                   </div>
                 </div>
               ) : (

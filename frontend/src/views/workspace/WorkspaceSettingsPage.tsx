@@ -345,7 +345,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
           <button
             type="submit"
             disabled={searching}
-            className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+            className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {searching ? 'Searching…' : 'Search'}
           </button>
@@ -376,7 +376,7 @@ function MembersTab({ workspaceId }: { workspaceId: string }) {
               <button
                 onClick={handleSendEmailInvite}
                 disabled={sendInvite.isPending}
-                className="bg-violet-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-50"
+                className="bg-violet-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendInvite.isPending ? 'Sending…' : 'Send invite'}
               </button>

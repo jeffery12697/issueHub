@@ -54,7 +54,7 @@ export default function AttachmentList({ taskId, commentId = null }: Props) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={upload.isPending}
-        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-violet-600 transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-violet-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className="text-base leading-none">⊕</span>
         {upload.isPending ? 'Uploading…' : 'Attach file'}

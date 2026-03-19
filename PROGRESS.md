@@ -42,6 +42,7 @@
 - (nothing — ready for next task)
 
 ## Recently Completed (outside phases, continued)
+- Polish pass: NotificationBell hover dark mode fix (violet-800→violet-700/dark:violet-400); cancel buttons dark:text-slate-400 (EpicsPage, EpicDetailPage ×2); disabled:cursor-not-allowed on all disabled:opacity-50 buttons (10 files); EpicsPage ✕→SVG with aria-label; WorkspacePage empty-state SVG aria-hidden
 - Dark mode contrast fix: statusBadgeStyle() utility lightens hex status colors by 50% in dark mode; PRIORITY_COLORS/PRIORITY_CHIP updated with dark: variants for all priority levels
 
 ## Recently Completed (outside phases, continued)

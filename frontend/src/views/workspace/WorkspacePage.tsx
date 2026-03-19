@@ -87,7 +87,7 @@ export default function WorkspacePage() {
             <button
               type="submit"
               disabled={!name.trim()}
-              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Create
             </button>
@@ -111,7 +111,7 @@ export default function WorkspacePage() {
         ) : workspaces.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
             <div className="w-12 h-12 bg-violet-50 dark:bg-violet-950 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-violet-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-violet-400" aria-hidden="true">
                 <rect x="3" y="3" width="18" height="18" rx="3" />
                 <path d="M12 8v8M8 12h8" />
               </svg>

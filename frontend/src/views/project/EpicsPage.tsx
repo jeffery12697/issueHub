@@ -135,7 +135,7 @@ export default function EpicsPage() {
             <button
               type="submit"
               disabled={!newName.trim() || createEpic.isPending}
-              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-50"
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Create
             </button>
@@ -253,7 +253,9 @@ function EpicCard({
                   className="flex-1 border border-violet-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 />
                 <button type="submit" className="text-xs px-2.5 py-1 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors">Save</button>
-                <button type="button" onClick={onCancelRename} className="text-xs px-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">✕</button>
+                <button type="button" onClick={onCancelRename} aria-label="Cancel rename" className="text-xs px-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
               </form>
             ) : (
               <Link to={`/projects/${projectId}/epics/${epic.id}`}>
