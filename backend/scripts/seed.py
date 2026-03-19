@@ -64,12 +64,18 @@ def task_path(task_id, parent_path: str | None = None) -> Ltree:
 async def reset_db(s):
     """Truncate all application tables in dependency order."""
     tables = [
-        "task_tags", "task_dependencies", "comments", "audit_logs",
+        # leaf / junction tables first
+        "task_tags", "task_dependencies", "task_links", "task_watchers",
+        "task_git_links", "task_approvals", "time_entries",
+        "attachments", "notifications",
+        "comments", "audit_logs",
         "custom_field_values", "custom_field_definitions",
-        "status_mappings", "list_statuses",
+        "automations", "saved_views",
+        "status_mappings", "list_statuses", "list_templates",
+        "dashboard_widgets", "description_templates",
         "tasks", "epics", "lists", "projects",
         "team_members", "teams",
-        "workspace_members", "workspaces",
+        "workspace_invites", "workspace_members", "workspaces",
         "tags", "users",
     ]
     for t in tables:
@@ -303,7 +309,7 @@ async def seed(force_reset: bool = False):
         def next_key(proj: Project) -> tuple[int, str]:
             n = task_counters[str(proj.id)]
             task_counters[str(proj.id)] += 1
-            return n, f"{proj.task_prefix}-{n}"
+            return n, f"{proj.task_prefix}-{n:05d}"
 
         def make_task(
             title: str,
@@ -1249,9 +1255,9 @@ async def seed(force_reset: bool = False):
         print("  Workspace : Acme Corp")
         print()
         print("  Projects & lists:")
-        print("  Club (CLB-*)  — Backend / Frontend / App / UI / DevOps")
-        print("  Book (BOK-*)  — Backend / Frontend / App / UI / DevOps")
-        print("  Ism  (ISM-*)  — Backend / Frontend / App / UI / DevOps")
+        print("  Club (CLB-00001…)  — Backend / Frontend / App / UI / DevOps")
+        print("  Book (BOK-00001…)  — Backend / Frontend / App / UI / DevOps")
+        print("  Ism  (ISM-00001…)  — Backend / Frontend / App / UI / DevOps")
         print()
         print(f"  Tasks : {root_count} root tasks, {sub_count} subtasks")
         print("          (incl. 2 cross-list feature tasks: CLB check-in flow, BOK borrow flow)")
