@@ -251,7 +251,16 @@ export default function TaskDetailPage() {
     </div>
   )
   if (!task) return (
-    <div className="flex items-center justify-center h-screen text-slate-400 dark:text-slate-500 text-sm">Task not found</div>
+    <div className="flex flex-col items-center justify-center h-screen gap-3">
+      <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 dark:text-slate-500" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <p className="text-slate-700 dark:text-slate-300 font-semibold">Task not found</p>
+      <p className="text-slate-400 dark:text-slate-500 text-sm">This task may have been deleted or moved.</p>
+      <button onClick={() => navigate(-1)} className="mt-2 text-sm text-violet-600 hover:underline">Go back</button>
+    </div>
   )
 
   const statuses = list?.statuses ?? []

@@ -50,7 +50,7 @@ export default function ListSettingsPage() {
       </header>
 
       <main className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex flex-wrap items-center gap-2 mb-6">
           <button
             onClick={() => setActiveTab('statuses')}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -291,7 +291,8 @@ function StatusRow({
           className="flex-1 flex gap-2"
           onSubmit={(e) => {
             e.preventDefault()
-            onUpdate({ name })
+            if (!name.trim()) { setName(status.name); setEditing(false); return }
+            onUpdate({ name: name.trim() })
             setEditing(false)
           }}
         >
@@ -300,7 +301,8 @@ function StatusRow({
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => {
-              onUpdate({ name })
+              if (!name.trim()) { setName(status.name); setEditing(false); return }
+              onUpdate({ name: name.trim() })
               setEditing(false)
             }}
             className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
@@ -598,9 +600,10 @@ function CustomFieldsTab({ listId }: { listId: string }) {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+              disabled={createField.isPending}
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium disabled:opacity-60"
             >
-              Create
+              {createField.isPending ? 'Creating…' : 'Create'}
             </button>
           </div>
         </form>
@@ -651,11 +654,19 @@ const ACTION_LABELS: Record<ActionType, string> = {
 const PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'] as const
 
 function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListStatus[] }) {
+  const { projectId } = useParams<{ projectId: string }>()
   const qc = useQueryClient()
   const { data: automations = [] } = useQuery({
     queryKey: ['automations', listId],
     queryFn: () => automationsApi.list(listId),
   })
+
+  const { data: project } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => import('@/api/projects').then((m) => m.projectsApi.get(projectId!)),
+    enabled: !!projectId,
+  })
+  const { data: members = [] } = useWorkspaceMembers(project?.workspace_id)
 
   const [triggerType, setTriggerType] = useState<TriggerType>('status_changed')
   const [triggerValue, setTriggerValue] = useState('')
@@ -702,7 +713,9 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
     const actionDisplay =
       a.action_type === 'set_status'
         ? (statuses.find((s) => s.id === a.action_value)?.name ?? a.action_value ?? '')
-        : a.action_value ?? ''
+        : a.action_type === 'assign_reviewer'
+          ? (members.find((m) => m.user_id === a.action_value)?.display_name ?? a.action_value ?? '')
+          : a.action_value ?? ''
     return `When ${triggerLabel} "${triggerDisplay}" → ${actionLabel}${actionDisplay ? ` "${actionDisplay}"` : ''}`
   }
 
@@ -810,12 +823,16 @@ function AutomationsTab({ listId, statuses }: { listId: string; statuses: ListSt
               </select>
             )}
             {actionType === 'assign_reviewer' && (
-              <input
+              <select
                 value={actionValue}
                 onChange={(e) => setActionValue(e.target.value)}
-                placeholder="User ID"
-                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-72 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:placeholder-slate-500"
-              />
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">— pick reviewer —</option>
+                {members.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>{m.display_name}</option>
+                ))}
+              </select>
             )}
           </div>
 
