@@ -466,7 +466,7 @@ export default function ListPage() {
                       <button
                         onClick={() => setDefaultView.mutate(v.id)}
                         title={v.is_default ? 'Remove default' : 'Set as default'}
-                        className={`shrink-0 transition-all ${v.is_default ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
+                        className={`shrink-0 transition-all active:scale-90 ${v.is_default ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
                         aria-label={v.is_default ? `Remove default for ${v.name}` : `Set ${v.name} as default`}
                       >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill={v.is_default ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -505,7 +505,7 @@ export default function ListPage() {
             </div>
             <button
               onClick={() => setCreating(true)}
-              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+              className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 font-medium"
             >
               + New task
             </button>
@@ -747,7 +747,7 @@ export default function ListPage() {
             <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">Create your first task to get started.</p>
             <button
               onClick={() => setCreating(true)}
-              className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 transition-colors font-medium"
+              className="bg-violet-600 text-white text-sm px-5 py-2 rounded-lg hover:bg-violet-700 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 font-medium"
             >+ New task</button>
           </div>
         ) : (
@@ -800,7 +800,7 @@ export default function ListPage() {
                     const isSubtask = !!task.parent_task_id
                     const parentTask = isSubtask ? taskMap[task.parent_task_id!] : null
                     rows.push(
-                      <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50 dark:bg-violet-950' : ''} ${isSubtask ? 'bg-slate-50/60 dark:bg-slate-800/60' : ''}`}>
+                      <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50 dark:bg-violet-950' : ''} ${isSubtask ? 'bg-slate-50/60 dark:bg-slate-800/60' : ''} ${task.status_id && statusMap[task.status_id]?.is_complete ? 'opacity-60' : ''}`}>
                         <td className="px-4 py-3 w-10">
                           <input
                             type="checkbox"
@@ -836,7 +836,7 @@ export default function ListPage() {
                             )}
                             <Link
                               to={`/tasks/${task.id}`}
-                              className={`hover:text-violet-600 dark:hover:text-violet-400 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700 dark:text-slate-300' : 'font-semibold text-slate-800 dark:text-slate-200 text-base'}`}
+                              className={`hover:text-violet-600 dark:hover:text-violet-400 transition-colors ${isSubtask ? 'text-sm font-medium text-slate-700 dark:text-slate-300' : 'font-semibold text-slate-800 dark:text-slate-200 text-base'} ${task.status_id && statusMap[task.status_id]?.is_complete ? 'line-through' : ''}`}
                             >
                               {task.title}
                             </Link>
@@ -875,7 +875,7 @@ export default function ListPage() {
                           <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
                             {task.status_id && statusMap[task.status_id] ? (
                               <span
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none transition-colors duration-150"
                                 style={{ backgroundColor: statusMap[task.status_id].color + '20', color: statusMap[task.status_id].color }}
                               >
                                 {statusMap[task.status_id].name}

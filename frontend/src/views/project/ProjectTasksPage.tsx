@@ -385,7 +385,7 @@ export default function ProjectTasksPage() {
                       <button
                         onClick={() => setDefaultView.mutate(v.id)}
                         title={v.is_default ? 'Remove default' : 'Set as default'}
-                        className={`shrink-0 transition-all ${v.is_default ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
+                        className={`shrink-0 transition-all active:scale-90 ${v.is_default ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
                         aria-label={v.is_default ? `Remove default for ${v.name}` : `Set ${v.name} as default`}
                       >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill={v.is_default ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -659,7 +659,7 @@ export default function ProjectTasksPage() {
                     const list = task.list_id ? listMap[task.list_id] : null
                     const status = task.status_id ? statusMap[task.status_id] : null
                     rows.push(
-                      <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50/50 dark:bg-violet-950/30' : ''}`}>
+                      <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedIds.has(task.id) ? 'bg-violet-50/50 dark:bg-violet-950/30' : ''} ${status?.is_complete ? 'opacity-60' : ''}`}>
                         <td className="w-10 px-4 py-3">
                           <input
                             type="checkbox"
@@ -690,7 +690,7 @@ export default function ProjectTasksPage() {
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <button
                               onClick={() => navigate(`/tasks/${task.id}`)}
-                              className="text-left font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                              className={`text-left font-semibold text-slate-800 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 transition-colors ${status?.is_complete ? 'line-through' : ''}`}
                             >
                               {task.title}
                             </button>
@@ -729,7 +729,7 @@ export default function ProjectTasksPage() {
                           <div className="relative inline-flex items-center cursor-pointer hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-700 rounded-lg transition-all">
                             {status ? (
                               <span
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none transition-colors duration-150"
                                 style={{ backgroundColor: status.color + '20', color: status.color }}
                               >
                                 {status.name}
