@@ -127,6 +127,10 @@ export default function ListPage() {
   const memberMap = Object.fromEntries(membersEarly.map((m) => [m.user_id, m]))
 
   const statusMapEarly = Object.fromEntries((list?.statuses ?? []).map((s) => [s.id, s]))
+  const completeStatusNames = [...new Set((list?.statuses ?? []).filter((s) => s.is_complete).map((s) => s.name))]
+  const hideCompletedLabel = completeStatusNames.length > 0 && completeStatusNames.length <= 2
+    ? completeStatusNames.join(', ')
+    : 'completed'
 
   const { data: epics = [] } = useEpics(projectId)
   const epicMap = Object.fromEntries(epics.map((e) => [e.id, e]))
@@ -705,7 +709,7 @@ export default function ListPage() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Hide completed
+            Hide {hideCompletedLabel}
           </button>
           {(searchQuery || hideCompleted) && (
             <span className="text-xs text-slate-400 dark:text-slate-500">
