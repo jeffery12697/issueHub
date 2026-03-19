@@ -129,10 +129,14 @@ export default function ProjectPage() {
 const PROJECT_COLORS = [
   'bg-violet-500', 'bg-sky-500', 'bg-emerald-500',
   'bg-amber-500', 'bg-rose-500', 'bg-indigo-500',
+  'bg-teal-500', 'bg-orange-500', 'bg-pink-500', 'bg-cyan-500',
 ]
 
-function projectColor(name: string) {
-  return PROJECT_COLORS[name.charCodeAt(0) % PROJECT_COLORS.length]
+function projectColor(id: string) {
+  // Hash the full ID so each project gets a consistent but distinct color
+  let h = 5381
+  for (let i = 0; i < id.length; i++) h = (h * 33) ^ id.charCodeAt(i)
+  return PROJECT_COLORS[Math.abs(h) % PROJECT_COLORS.length]
 }
 
 function ProjectCard({ project, workspaceId, templates }: { project: Project; workspaceId: string; templates: ListTemplate[] }) {
@@ -166,7 +170,7 @@ function ProjectCard({ project, workspaceId, templates }: { project: Project; wo
     },
   })
 
-  const dotColor = projectColor(project.name)
+  const dotColor = projectColor(project.id)
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
