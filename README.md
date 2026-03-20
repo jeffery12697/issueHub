@@ -167,7 +167,9 @@ Edit `backend/.env`:
 DATABASE_URL=postgresql+asyncpg://issuehub:issuehub@db:5432/issuehub
 REDIS_URL=redis://redis:6379/0
 
-JWT_SECRET_KEY=your-long-random-secret
+JWT_SECRET_KEY=change-me-to-a-long-random-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
 
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
@@ -176,7 +178,8 @@ GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
 FRONTEND_URL=http://localhost:5173
 ALLOW_DEV_LOGIN=true
 
-# Email — set MAIL_ENABLED=true to send real emails
+# Email (SMTP — set MAIL_ENABLED=true to actually send emails)
+# For local dev use Mailtrap: https://mailtrap.io
 MAIL_SERVER=sandbox.smtp.mailtrap.io
 MAIL_PORT=2525
 MAIL_SENDER_NAME=IssueHub
@@ -184,6 +187,17 @@ MAIL_SENDER_EMAIL=noreply@issuehub.app
 MAIL_USERNAME=your-mailtrap-username
 MAIL_PASSWORD=your-mailtrap-password
 MAIL_ENABLED=false
+
+# Git webhook (GitHub / GitLab)
+# Set to any strong random string; use the same value in webhook settings
+WEBHOOK_SECRET=change-me-to-a-long-random-secret
+
+# File storage — MinIO runs via docker compose, defaults work out of the box
+S3_ENDPOINT_URL=http://minio:9000
+S3_ACCESS_KEY=issuehub
+S3_SECRET_KEY=issuehub123
+S3_BUCKET=issuehub-attachments
+S3_PUBLIC_URL=http://localhost:9000
 ```
 
 ### 2. Start all services
